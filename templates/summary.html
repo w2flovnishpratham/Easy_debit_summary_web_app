@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Summary Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h2 { margin-top: 40px; }
+    .table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+    .table th, .table td { border: 1px solid #ddd; padding: 8px; }
+    .table th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+
+  <h1>📊 Summary Dashboard</h1>
+
+  <ul>
+    <li><strong>Opening Balance:</strong> ₹{{ '{:,.2f}'.format(opening_balance) }}</li>
+    <li><strong>Total Debits:</strong> ₹{{ '{:,.2f}'.format(total_debit) }}</li>
+    <li><strong>Total Credits:</strong> ₹{{ '{:,.2f}'.format(total_credit) }}</li>
+    <li><strong>Closing Balance:</strong> ₹{{ '{:,.2f}'.format(closing_balance) }}</li>
+  </ul>
+
+  <h2>📆 Daily Debit vs Credit</h2>
+  <canvas id="dailyChart" width="800" height="300"></canvas>
+  <script>
+    const ctx = document.getElementById('dailyChart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: {{ daily_data["Date"]|tojson }},
+        datasets: [
+          {
+            label: 'Credit',
+            data: {{ daily_data["Credit"]|tojson }},
+            borderColor: 'green',
+            fill: false,
+            tension: 0.3
+          },
+          {
+            label: 'Debit',
+            data: {{ daily_data["Debit"]|tojson }},
+            borderColor: 'red',
+            fill: false,
+            tension: 0.3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            type: 'time',
+            time: {
+              unit: 'day',
+              tooltipFormat: 'MMM dd',
+              displayFormats: {
+                day: 'MMM dd'
+              }
+            },
+            title: {
+              display: true,
+              text: 'Date'
+            }
+          },
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Amount (₹)'
+            }
+          }
+        }
+      }
+    });
+  </script>
+
+  <h2>🏆 Top 5 Debits</h2>
+  {{ top_debits|safe }}
+
+  <h2>💰 Top 5 Credits</h2>
+  {{ top_credits|safe }}
+
+  <br><a href="/">🔙 Back to Upload</a>
+
+</body>
+</html>

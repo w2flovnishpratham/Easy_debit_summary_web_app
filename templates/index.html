@@ -1,0 +1,106 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>EasyDebitSummary – HDFC Statement Analyzer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f7fa;
+      color: #333;
+    }
+    header {
+      background: #003366;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+    .intro-video {
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+    .content-block {
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-start;
+      padding: 30px;
+      flex-wrap: wrap;
+    }
+    .upload-section, .sample-image {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 45%;
+      min-width: 300px;
+    }
+    .upload-section h2 {
+      margin-top: 0;
+    }
+    .upload-section form {
+      margin-bottom: 20px;
+    }
+    footer {
+      text-align: center;
+      padding: 15px;
+      background: #eee;
+      font-size: 14px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>EasyDebitSummary</h1>
+  <p>Powered by HelloLiveNa</p>
+</header>
+
+<div class="intro-video">
+  <video width="720" controls poster="{{ url_for('static', filename='poster_image.jpg') }}">
+  <source src="{{ url_for('static', filename='video_1.mp4') }}" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+</div>
+
+<div class="content-block">
+
+  <div class="upload-section">
+    <h2>📂 Upload HDFC Bank Statement</h2>
+
+    <form action="/upload" method="post" enctype="multipart/form-data">
+      <label>Extract & Download CSV:</label><br>
+      <input type="file" name="pdf" accept="application/pdf" required />
+      <input type="submit" value="Extract CSV" />
+    </form>
+
+    <form action="/summary" method="post" enctype="multipart/form-data">
+      <label>View Summary Dashboard:</label><br>
+      <input type="file" name="pdf" accept="application/pdf" required />
+      <input type="submit" value="View Summary" />
+    </form>
+  </div>
+
+  <div class="sample-image">
+    <h2>📝 Sample HDFC Statement</h2>
+    <img src="{{ url_for('static', filename='image_1.png') }}" alt="Sample PDF" style="width:50%; border-radius: 8px;">
+  </div>
+
+</div>
+
+<footer>
+  Extractor developed by <strong>Pratham</strong><br>
+  Protected & Deployed by <strong>Luvnish</strong>
+</footer>
+
+</body>
+</html>
