@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Summary Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { margin-bottom: 10px; }
+    h2 { margin-top: 40px; }
+    .table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+    .table th, .table td { border: 1px solid #ddd; padding: 8px; }
+    .table th { background-color: #f2f2f2; }
+    .notice-box {
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 15px;
+      line-height: 1.5em;
+    }
+    .notice-pass { background:#e8ffe8; color:green; border:1px solid green; }
+    .notice-fail { background:#ffe8e8; color:red; border:1px solid red; }
+    .accuracy-table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .accuracy-table td, .accuracy-table th {
+      border: 1px solid #ddd;
+      padding: 6px 10px;
+    }
+    .accuracy-table th {
+      background: #f7f7f7;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📊 Summary Dashboard</h1>
+
+  <!-- 🔍 Detailed Accuracy Test -->
+  <div id="accuracy-check"></div>
+  <script>
+    const opening = {{ opening_balance }};
+    const debit = {{ total_debit }};
+    const credit = {{ total_credit }};
+    const closing = {{ closing_balance }};
+
+    const computed = opening + credit - debit;
+    const difference = closing - computed;
+    const absDiff = Math.abs(difference);
+
+    let resultBox = "";
+
+    if (absDiff < 0.01) {
+      resultBox = `
+        <div class="notice-box notice-pass">
+          ✅ <strong>Accuracy Check Passed:</strong> Balances match correctly.<br><br>
+          <table class="accuracy-table">
+            <tr><th>Opening Balance</th><td>₹${opening.toFixed(2)}</td></tr>
+            <tr><th>Total Credits (+)</th><td>₹${credit.toFixed(2)}</td></tr>
+            <tr><th>Total Debits (−)</th><td>₹${debit.toFixed(2)}</td></tr>
+            <tr><th>Computed Closing Balance</th><td>₹${computed.toFixed(2)}</td></tr>
+            <tr><th>Reported Closing Balance</th><td>₹${closing.toFixed(2)}</td></tr>
+            <tr><th>Difference</th><td>₹${difference.toFixed(2)}</td></tr>
+          </table>
+        </div>`;
+    } else {
+      resultBox = `
+        <div class="notice-box notice-fail">
+          ❌ <strong>Error Detected:</strong> Balances do not match.<br>
+          Please verify extracted data.<br><br>
+          <table class="accuracy-table">
+            <tr><th>Opening Balance</th><td>₹${opening.toFixed(2)}</td></tr>
+            <tr><th>Total Credits (+)</th><td>₹${credit.toFixed(2)}</td></tr>
+            <tr><th>Total Debits (−)</th><td>₹${debit.toFixed(2)}</td></tr>
+            <tr><th>Computed Closing Balance</th><td>₹${computed.toFixed(2)}</td></tr>
+            <tr><th>Reported Closing Balance</th><td>₹${closing.toFixed(2)}</td></tr>
+            <tr><th>Difference</th><td><strong style="color:red;">₹${difference.toFixed(2)}</strong></td></tr>
+          </table>
+        </div>`;
+    }
+
+    document.getElementById("accuracy-check").innerHTML = resultBox;
+  </script>
+
+  <ul>
+    <li><strong>Opening Balance:</strong> ₹{{ '{:,.2f}'.format(opening_balance) }}</li>
+    <li><strong>Total Debits:</strong> ₹{{ '{:,.2f}'.format(total_debit) }}</li>
+    <li><strong>Total Credits:</strong> ₹{{ '{:,.2f}'.format(total_credit) }}</li>
+    <li><strong>Closing Balance:</strong> ₹{{ '{:,.2f}'.format(closing_balance) }}</li>
+  </ul>
+
+  <h2>📆 Daily Debit vs Credit</h2>
+  <canvas id="dailyChart" width="800" height="300"></canvas>
+  <script>
+    const ctx = document.getElementById('dailyChart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: {{ daily_data["Date"]|tojson }},
+        datasets: [
+          {
+            label: 'Credit',
+            data: {{ daily_data["Credit"]|tojson }},
+            borderColor: 'green',
+            fill: false,
+            tension: 0.3
+          },
+          {
+            label: 'Debit',
+            data: {{ daily_data["Debit"]|tojson }},
+            borderColor: 'red',
+            fill: false,
+            tension: 0.3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            type: 'time',
+            time: {
+              unit: 'day',
+              tooltipFormat: 'MMM dd',
+              displayFormats: { day: 'MMM dd' }
+            },
+            title: { display: true, text: 'Date' }
+          },
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: 'Amount (₹)' }
+          }
+        }
+      }
+    });
+  </script>
+
+  <h2>🏆 Top 5 Debits</h2>
+  {{ top_debits|safe }}
+
+  <h2>💰 Top 5 Credits</h2>
+  {{ top_credits|safe }}
+
+  <br><a href="/">🔙 Back to Upload</a>
+
+</body>
+</html>
