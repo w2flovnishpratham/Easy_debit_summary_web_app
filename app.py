@@ -1,4 +1,3 @@
-
 import os
 import uuid
 from flask import Flask, request, render_template, send_file
@@ -34,8 +33,12 @@ def upload_file():
 
     return send_file(csv_path, as_attachment=True)
 
-@app.route('/summary', methods=['POST'])
+@app.route('/summary', methods=['GET', 'POST'])
 def summary_view():
+    if request.method == 'GET':
+        # Allow direct GET access to /summary
+        return render_template('summary.html')
+
     file = request.files['pdf']
     if not file:
         return "No file uploaded", 400
