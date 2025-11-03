@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -8,15 +7,85 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1"></script>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { margin-bottom: 10px; }
     h2 { margin-top: 40px; }
     .table { border-collapse: collapse; width: 100%; margin-top: 10px; }
     .table th, .table td { border: 1px solid #ddd; padding: 8px; }
     .table th { background-color: #f2f2f2; }
+    .notice-box {
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 15px;
+      line-height: 1.5em;
+    }
+    .notice-pass { background:#e8ffe8; color:green; border:1px solid green; }
+    .notice-fail { background:#ffe8e8; color:red; border:1px solid red; }
+    .accuracy-table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .accuracy-table td, .accuracy-table th {
+      border: 1px solid #ddd;
+      padding: 6px 10px;
+    }
+    .accuracy-table th {
+      background: #f7f7f7;
+      text-align: left;
+    }
   </style>
 </head>
 <body>
 
   <h1>📊 Summary Dashboard</h1>
+
+  <!-- 🔍 Detailed Accuracy Test -->
+  <div id="accuracy-check"></div>
+  <script>
+    const opening = {{ opening_balance }};
+    const debit = {{ total_debit }};
+    const credit = {{ total_credit }};
+    const closing = {{ closing_balance }};
+
+    const computed = opening + credit - debit;
+    const difference = closing - computed;
+    const absDiff = Math.abs(difference);
+
+    let resultBox = "";
+
+    if (absDiff < 0.01) {
+      resultBox = `
+        <div class="notice-box notice-pass">
+          ✅ <strong>Accuracy Check Passed:</strong> Balances match correctly.<br><br>
+          <table class="accuracy-table">
+            <tr><th>Opening Balance</th><td>₹${opening.toFixed(2)}</td></tr>
+            <tr><th>Total Credits (+)</th><td>₹${credit.toFixed(2)}</td></tr>
+            <tr><th>Total Debits (−)</th><td>₹${debit.toFixed(2)}</td></tr>
+            <tr><th>Computed Closing Balance</th><td>₹${computed.toFixed(2)}</td></tr>
+            <tr><th>Reported Closing Balance</th><td>₹${closing.toFixed(2)}</td></tr>
+            <tr><th>Difference</th><td>₹${difference.toFixed(2)}</td></tr>
+          </table>
+        </div>`;
+    } else {
+      resultBox = `
+        <div class="notice-box notice-fail">
+          ❌ <strong>Error Detected:</strong> Balances do not match.<br>
+          Please verify extracted data.<br><br>
+          <table class="accuracy-table">
+            <tr><th>Opening Balance</th><td>₹${opening.toFixed(2)}</td></tr>
+            <tr><th>Total Credits (+)</th><td>₹${credit.toFixed(2)}</td></tr>
+            <tr><th>Total Debits (−)</th><td>₹${debit.toFixed(2)}</td></tr>
+            <tr><th>Computed Closing Balance</th><td>₹${computed.toFixed(2)}</td></tr>
+            <tr><th>Reported Closing Balance</th><td>₹${closing.toFixed(2)}</td></tr>
+            <tr><th>Difference</th><td><strong style="color:red;">₹${difference.toFixed(2)}</strong></td></tr>
+          </table>
+        </div>`;
+    }
+
+    document.getElementById("accuracy-check").innerHTML = resultBox;
+  </script>
 
   <ul>
     <li><strong>Opening Balance:</strong> ₹{{ '{:,.2f}'.format(opening_balance) }}</li>
@@ -58,21 +127,13 @@
             time: {
               unit: 'day',
               tooltipFormat: 'MMM dd',
-              displayFormats: {
-                day: 'MMM dd'
-              }
+              displayFormats: { day: 'MMM dd' }
             },
-            title: {
-              display: true,
-              text: 'Date'
-            }
+            title: { display: true, text: 'Date' }
           },
           y: {
             beginAtZero: true,
-            title: {
-              display: true,
-              text: 'Amount (₹)'
-            }
+            title: { display: true, text: 'Amount (₹)' }
           }
         }
       }
