@@ -41,7 +41,7 @@
 
   <h1>📊 Summary Dashboard</h1>
 
-  <!-- 🔍 Detailed Accuracy Test -->
+  <!-- 🔍 Balance Verification -->
   <div id="accuracy-check"></div>
   <script>
     const opening = {{ opening_balance }};
@@ -146,7 +146,68 @@
   <h2>💰 Top 5 Credits</h2>
   {{ top_credits|safe }}
 
-  <br><a href="/">🔙 Back to Upload</a>
+  <h2>📥 Download Extracted Data</h2>
+  <a href="{{ download_link }}" download>👉 Download CSV File</a>
 
+  <br><br><a href="/">🔙 Back to Upload</a>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    (function(){
+      const anchor = document.querySelector('a[href="{{ download_link }}"]');
+      if (!anchor) return;
+      anchor.style.pointerEvents = 'none';
+      anchor.style.opacity = '0.6';
+      anchor.title = 'Unlock by completing payment';
+
+      const payBtn = document.createElement('button');
+      payBtn.id = 'payBtn';
+      payBtn.textContent = 'Pay & Unlock Download';
+      payBtn.style.marginLeft = '12px';
+      anchor.insertAdjacentElement('afterend', payBtn);
+
+      const currency = "{{ razorpay_currency }}";
+      const keyId = "{{ razorpay_key_id }}";
+
+      async function createOrder() {
+        const res = await fetch('/create_order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error || 'Failed to create order');
+        return data;
+      }
+
+      payBtn.addEventListener('click', async () => {
+        try {
+          const order = await createOrder();
+          const options = {
+            key: order.key_id || keyId,
+            amount: order.amount,
+            currency: order.currency || currency,
+            name: 'Easy Debit Summary',
+            description: 'CSV Export Unlock',
+            order_id: order.order_id,
+            handler: async function (response) {
+              const verifyRes = await fetch('/verify_payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(response) });
+              const verifyData = await verifyRes.json();
+              if (verifyData.ok) {
+                anchor.style.pointerEvents = 'auto';
+                anchor.style.opacity = '1';
+                anchor.title = '';
+                window.location.href = anchor.href;
+              } else {
+                alert('Payment verification failed: ' + (verifyData.error || 'Unknown error'));
+              }
+            },
+            theme: { color: '#3399cc' }
+          };
+          const rzp = new Razorpay(options);
+          rzp.on('payment.failed', function(){ alert('Payment failed. Please try again.'); });
+          rzp.open();
+        } catch (e) {
+          alert('Error initializing payment: ' + e.message);
+        }
+      });
+    })();
+  </script>
 </body>
 </html>

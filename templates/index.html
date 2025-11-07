@@ -1,106 +1,394 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>EasyDebitSummary – HDFC Statement Analyzer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Easy Debit Summary – Bank Statement Uploader</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: Arial, sans-serif;
+    :root {
+      --primary-blue: #0a1f44;
+      --secondary-blue: #0e4d92;
+      --accent-blue: #0078ff;
+      --accent-cyan: #00d4ff;
+      --text-light: #ffffff;
+      --text-muted: #bcd4f6;
+      --card-bg: rgba(255, 255, 255, 0.1);
+      --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    * {
       margin: 0;
       padding: 0;
-      background: #f5f7fa;
-      color: #333;
+      box-sizing: border-box;
     }
+
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+      color: var(--text-light);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
     header {
-      background: #003366;
-      color: #fff;
-      padding: 20px;
       text-align: center;
+      padding: 60px 20px 40px;
+      animation: fadeInDown 1s ease;
     }
-    h1 {
-      margin: 0;
-      font-size: 28px;
+
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      background: linear-gradient(90deg, var(--text-light), var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
-    .intro-video {
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      font-weight: 300;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .container {
       display: flex;
-      justify-content: center;
-      padding: 20px;
-    }
-    .content-block {
-      display: flex;
-      justify-content: space-around;
+      justify-content: space-between;
       align-items: flex-start;
-      padding: 30px;
+      gap: 60px;
+      padding: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
       flex-wrap: wrap;
     }
-    .upload-section, .sample-image {
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      width: 45%;
-      min-width: 300px;
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      flex: 1;
+      min-width: 350px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      animation: fadeInUp 0.8s ease 0.2s both;
     }
-    .upload-section h2 {
-      margin-top: 0;
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
     }
-    .upload-section form {
-      margin-bottom: 20px;
+
+    .upload-form {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
     }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      font-weight: 600;
+      color: #e0eaff;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label::before {
+      content: "▸";
+      color: var(--accent-cyan);
+      font-size: 1.1rem;
+    }
+
+    select, input[type="file"] {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      font-size: 1rem;
+      background: rgba(255, 255, 255, 0.95);
+      color: #333;
+      transition: all 0.3s ease;
+      font-family: "Poppins", sans-serif;
+    }
+
+    select:focus, input[type="file"]:focus {
+      outline: none;
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
+    }
+
+    input[type="submit"] {
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+      color: white;
+      border: none;
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+      font-family: "Poppins", sans-serif;
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    input[type="submit"]::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    input[type="submit"]:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 120, 255, 0.4);
+    }
+
+    input[type="submit"]:hover::before {
+      left: 100%;
+    }
+
+    .sample-image {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .sample-image h3 {
+      color: #cde3ff;
+      font-size: 1.3rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .sample-image img {
+      width: 100%;
+      max-width: 380px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .sample-image img:hover {
+      transform: scale(1.02);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+
     footer {
       text-align: center;
-      padding: 15px;
-      background: #eee;
-      font-size: 14px;
-      color: #555;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 40px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Animations */
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      header {
+        padding: 40px 20px 30px;
+      }
+
+      header h1 {
+        font-size: 2rem;
+      }
+
+      .container {
+        flex-direction: column;
+        padding: 20px;
+        gap: 30px;
+      }
+
+      .card {
+        padding: 30px;
+        min-width: 100%;
+      }
+
+      .sample-image {
+        order: -1;
+      }
+
+      .sample-image img {
+        max-width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header h1 {
+        font-size: 1.8rem;
+      }
+
+      .card {
+        padding: 25px 20px;
+      }
+
+      select, input[type="file"], input[type="submit"] {
+        padding: 12px 14px;
+      }
+    }
+
+    /* File input styling */
+    input[type="file"] {
+      cursor: pointer;
+    }
+
+    input[type="file"]::file-selector-button {
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      margin-right: 12px;
+      cursor: pointer;
+      font-family: "Poppins", sans-serif;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    input[type="file"]::file-selector-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 120, 255, 0.3);
     }
   </style>
 </head>
 <body>
 
-<header>
-  <h1>EasyDebitSummary</h1>
-  <p>Powered by HelloLiveNa</p>
-</header>
+  <header>
+    <h1>Easy Debit Summary</h1>
+    <p>Upload your bank statement PDF and get instant insights & CSV exports</p>
+  </header>
 
-<div class="intro-video">
-  <video width="720" controls poster="{{ url_for('static', filename='poster_image.jpg') }}">
-  <source src="{{ url_for('static', filename='video_1.mp4') }}" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+  <div class="container">
+    <div class="card upload-form">
+      <form action="/upload" method="post" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="bank">Select Your Bank</label>
+          <select name="bank" id="bank" required>
+            <option value="HDFC">HDFC Bank</option>
+            <option value="ICICI">ICICI Bank</option>
+            <option value="SBI">State Bank of India</option>
+          </select>
+        </div>
 
-</div>
+        <div class="form-group">
+          <label for="pdf_file">Upload PDF Statement</label>
+          <input type="file" name="pdf_file" id="pdf_file" accept="application/pdf" required>
+        </div>
 
-<div class="content-block">
+        <input type="submit" value="Upload and Extract">
+      </form>
+    </div>
 
-  <div class="upload-section">
-    <h2>📂 Upload HDFC Bank Statement</h2>
-
-    <form action="/upload" method="post" enctype="multipart/form-data">
-      <label>Extract & Download CSV:</label><br>
-      <input type="file" name="pdf" accept="application/pdf" required />
-      <input type="submit" value="Extract CSV" />
-    </form>
-
-    <form action="/summary" method="post" enctype="multipart/form-data">
-      <label>View Summary Dashboard:</label><br>
-      <input type="file" name="pdf" accept="application/pdf" required />
-      <input type="submit" value="View Summary" />
-    </form>
+    <div class="card sample-image">
+      <h3>📊 Sample Statement Preview</h3>
+      <img id="sample-img" src="{{ url_for('static', filename='image_1.png') }}" alt="Sample Statement">
+    </div>
   </div>
 
-  <div class="sample-image">
-    <h2>📝 Sample HDFC Statement</h2>
-    <img src="{{ url_for('static', filename='image_1.png') }}" alt="Sample PDF" style="width:50%; border-radius: 8px;">
-  </div>
+  <footer>
+    <div class="footer-content">
+      <div class="footer-line powered-by">
+        <span class="footer-icon">⚡</span>
+        Powered by <span class="highlight">HelloLiveNA</span>
+      </div>
+      
+      <div class="footer-line credits">
+        <span class="footer-icon">👨‍💻</span>
+        Developed by <span class="highlight">@Pratham</span>
+        <span class="separator">|</span>
+        <span class="footer-icon">🛡️</span>
+        Protected & Deployed by <span class="highlight">@Lovnish</span>
+      </div>
+      
+      <div class="footer-line copyright">
+        <span class="footer-icon">©</span>
+        <span id="currentYear">2025</span> Easy Debit Summary. All rights reserved.
+      </div>
+    </div>
+  </footer>
 
-</div>
 
-<footer>
-  Extractor developed by <strong>Pratham</strong><br>
-  Protected & Deployed by <strong>Lovnish</strong>
-</footer>
+  <script>
+    const img = document.getElementById('sample-img');
+    const bankSelect = document.getElementById('bank');
+
+    function updateImage() {
+      const bank = bankSelect.value;
+      const images = {
+        'HDFC': "{{ url_for('static', filename='IMAGE_1.png') }}",
+        'ICICI': "{{ url_for('static', filename='IMAGE_3.png') }}",
+        'SBI': "{{ url_for('static', filename='IMAGE_2.png') }}"
+      };
+      
+      // Add fade out effect
+      img.style.opacity = '0';
+      img.style.transform = 'scale(0.95)';
+      
+      setTimeout(() => {
+        img.src = images[bank];
+        // Add fade in effect
+        img.style.opacity = '1';
+        img.style.transform = 'scale(1)';
+      }, 300);
+    }
+
+    bankSelect.addEventListener('change', updateImage);
+    window.addEventListener('load', updateImage);
+
+    // Add loading animation for form submission
+    document.querySelector('form').addEventListener('submit', function(e) {
+      const submitBtn = this.querySelector('input[type="submit"]');
+      submitBtn.value = 'Processing...';
+      submitBtn.style.opacity = '0.8';
+      submitBtn.style.cursor = 'not-allowed';
+    });
+  </script>
 
 </body>
 </html>
