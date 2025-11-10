@@ -1,10 +1,6 @@
 from flask import Flask, render_template, request, send_file, session, jsonify, abort
 import os
-import pandas as pd
 from datetime import datetime
-from extractor.extractor_hdfc import extract_hdfc_transactions
-from extractor.extractor_icici import extract_icici_transactions
-from extractor.extractor_sbi import extract_sbi_transactions
 from dotenv import load_dotenv
 import base64
 import json
@@ -26,6 +22,11 @@ os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 def index():
     return render_template('index.html')
 
+@app.get('/healthz')
+def healthz():
+    # Fast readiness/liveness probe for Render health checks
+    return "ok", 200
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
     bank = request.form['bank']
@@ -39,17 +40,20 @@ def upload_file():
     filepath = os.path.join(UPLOAD_FOLDER, safe_filename)
     file.save(filepath)
 
-    # Extract data
+    # Extract data (lazy imports to reduce cold start time)
     if bank == 'HDFC':
-        df, summary = extract_hdfc_transactions(filepath)
+        from extractor.extractor_hdfc import extract_hdfc_transactions as _extract
     elif bank == 'ICICI':
-        df, summary = extract_icici_transactions(filepath)
+        from extractor.extractor_icici import extract_icici_transactions as _extract
     elif bank == 'SBI':
-        df, summary = extract_sbi_transactions(filepath)
+        from extractor.extractor_sbi import extract_sbi_transactions as _extract
     else:
         return 'Unsupported bank selected', 400
 
+    df, summary = _extract(filepath)
+
     # Convert daily_data to JSON-safe format
+    import pandas as pd  # lazy import for faster cold start
     daily_df = summary['daily_data']
     daily_data = {
         "Date": pd.to_datetime(daily_df["Date"], errors='coerce').dt.strftime("%Y-%m-%d").tolist(),
