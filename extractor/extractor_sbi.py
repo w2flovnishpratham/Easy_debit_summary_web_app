@@ -2,6 +2,7 @@ import pdfplumber
 import pandas as pd
 import re
 from datetime import datetime
+from typing import Any
 
 def extract_sbi_transactions(pdf_path):
     rows = []
@@ -34,18 +35,9 @@ def extract_sbi_transactions(pdf_path):
         .str.strip()
     )
 
-    # ✅ Normalize amount fields (Debit, Credit, Balance)
+    # ✅ Normalize amount fields (Debit, Credit, Balance) without zeroing real negatives
     for col in ["Debit", "Credit", "Balance"]:
-        df[col] = (
-            df[col]
-            .fillna("0")
-            .astype(str)
-            .str.replace(",", "", regex=False)  # Remove commas
-            .str.replace("-", "0", regex=False) # Replace "-" with 0
-            .str.strip()
-            .replace("", "0")
-            .astype(float)
-        )
+        df[col] = _clean_amount_series(df[col])
 
     # ✅ Create Transaction Type column
     df["Transaction Type"] = df.apply(
@@ -66,9 +58,9 @@ def extract_sbi_transactions(pdf_path):
     opening_balance = df.loc[0, "Balance"]
     closing_balance = df["Balance"].iloc[-1]
     
-    # ✅ Totals (excluding first row, because first row is already BALANCE AFTER transaction)
-    total_debit = df["Debit"].iloc[1:].sum()
-    total_credit = df["Credit"].iloc[1:].sum()
+    # ✅ Totals using complete data
+    total_debit = df["Debit"].sum()
+    total_credit = df["Credit"].sum()
 
     # ✅ Daily data aggregation
     daily_data = df.groupby(df["Date"].dt.date)[["Credit", "Debit"]].sum().reset_index()
@@ -88,3 +80,22 @@ def extract_sbi_transactions(pdf_path):
         "top_debits": top_debits.to_html(index=False, classes='table'),
         "top_credits": top_credits.to_html(index=False, classes='table'),
     }
+
+
+def _clean_amount_series(series: pd.Series) -> pd.Series:
+    def _normalize(value: Any) -> float:
+        if pd.isna(value):
+            return 0.0
+        text = str(value).strip()
+        if text in {"", "-", "--", "—"}:
+            return 0.0
+        text = text.replace(",", "")
+        if text.startswith("(") and text.endswith(")"):
+            text = f"-{text[1:-1]}"
+        text = re.sub(r"[^\d\.\-]", "", text)
+        try:
+            return float(text)
+        except ValueError:
+            return 0.0
+
+    return series.astype(object).apply(_normalize).astype(float)

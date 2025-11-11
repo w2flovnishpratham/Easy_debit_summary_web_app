@@ -90,6 +90,17 @@
       gap: 25px;
     }
 
+    .statement-block {
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 20px;
+      background: rgba(10, 22, 60, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: relative;
+    }
+
     .form-group {
       display: flex;
       flex-direction: column;
@@ -129,7 +140,7 @@
       box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
     }
 
-    input[type="submit"] {
+    .primary-btn {
       background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
       color: white;
       border: none;
@@ -146,7 +157,7 @@
       overflow: hidden;
     }
 
-    input[type="submit"]::before {
+    .primary-btn::before {
       content: '';
       position: absolute;
       top: 0;
@@ -157,13 +168,52 @@
       transition: left 0.5s;
     }
 
-    input[type="submit"]:hover {
+    .primary-btn:hover {
       transform: translateY(-3px);
       box-shadow: 0 8px 20px rgba(0, 120, 255, 0.4);
     }
 
-    input[type="submit"]:hover::before {
+    .primary-btn:hover::before {
       left: 100%;
+    }
+
+    .inline-btn {
+      border: 1px dashed rgba(255, 255, 255, 0.4);
+      color: var(--text-light);
+      background: transparent;
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.2s ease;
+    }
+
+    .inline-btn:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    .remove-block {
+      align-self: flex-start;
+      background: rgba(220, 38, 38, 0.15);
+      color: #fecaca;
+      border: 1px solid rgba(220, 38, 38, 0.4);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+
+    .remove-block:hover {
+      opacity: 0.8;
+    }
+
+    .multi-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
     }
 
     .sample-image {
@@ -306,22 +356,32 @@
 
   <div class="container">
     <div class="card upload-form">
-      <form action="/upload" method="post" enctype="multipart/form-data">
-        <div class="form-group">
-          <label for="bank">Select Your Bank</label>
-          <select name="bank" id="bank" required>
-            <option value="HDFC">HDFC Bank</option>
-            <option value="ICICI">ICICI Bank</option>
-            <option value="SBI">State Bank of India</option>
-          </select>
+      <form action="/upload" method="post" enctype="multipart/form-data" id="multiUploadForm">
+        <div id="statementList">
+          <div class="statement-block">
+            <div class="form-group">
+              <label>Select Your Bank</label>
+              <select name="bank[]" class="bank-select" required>
+                <option value="HDFC">HDFC Bank</option>
+                <option value="ICICI">ICICI Bank</option>
+                <option value="SBI">State Bank of India</option>
+                <option value="AXIS">Axis Bank</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Upload PDF Statement</label>
+              <input type="file" name="pdf_file[]" accept="application/pdf" required>
+            </div>
+
+            <button type="button" class="remove-block">Remove</button>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="pdf_file">Upload PDF Statement</label>
-          <input type="file" name="pdf_file" id="pdf_file" accept="application/pdf" required>
+        <div class="multi-actions">
+          <button type="button" class="inline-btn" id="addStatement">+ Add another statement</button>
+          <input type="submit" class="primary-btn" value="Upload and Extract">
         </div>
-
-        <input type="submit" value="Upload and Extract">
       </form>
     </div>
 
@@ -355,39 +415,83 @@
 
 
   <script>
-    const img = document.getElementById('sample-img');
-    const bankSelect = document.getElementById('bank');
-
-    function updateImage() {
-      const bank = bankSelect.value;
-      const images = {
+    (function() {
+      const statementList = document.getElementById('statementList');
+      const addBtn = document.getElementById('addStatement');
+      const form = document.getElementById('multiUploadForm');
+      const img = document.getElementById('sample-img');
+      const imageMap = {
         'HDFC': "{{ url_for('static', filename='IMAGE_1.png') }}",
         'ICICI': "{{ url_for('static', filename='IMAGE_3.png') }}",
-        'SBI': "{{ url_for('static', filename='IMAGE_2.png') }}"
+        'SBI': "{{ url_for('static', filename='IMAGE_2.png') }}",
+        'AXIS': "{{ url_for('static', filename='IMAGE_4.png') }}"
       };
-      
-      // Add fade out effect
-      img.style.opacity = '0';
-      img.style.transform = 'scale(0.95)';
-      
-      setTimeout(() => {
-        img.src = images[bank];
-        // Add fade in effect
-        img.style.opacity = '1';
-        img.style.transform = 'scale(1)';
-      }, 300);
-    }
 
-    bankSelect.addEventListener('change', updateImage);
-    window.addEventListener('load', updateImage);
+      function updateImage(bank) {
+        const fallback = 'HDFC';
+        const key = bank || fallback;
+        img.style.opacity = '0';
+        img.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          img.src = imageMap[key] || imageMap[fallback];
+          img.style.opacity = '1';
+          img.style.transform = 'scale(1)';
+        }, 200);
+      }
 
-    // Add loading animation for form submission
-    document.querySelector('form').addEventListener('submit', function(e) {
-      const submitBtn = this.querySelector('input[type="submit"]');
-      submitBtn.value = 'Processing...';
-      submitBtn.style.opacity = '0.8';
-      submitBtn.style.cursor = 'not-allowed';
-    });
+      function updateRemoveButtons() {
+        const blocks = statementList.querySelectorAll('.statement-block');
+        blocks.forEach(block => {
+          const btn = block.querySelector('.remove-block');
+          btn.style.display = blocks.length === 1 ? 'none' : 'inline-flex';
+        });
+      }
+
+      function createBlock() {
+        const template = statementList.querySelector('.statement-block');
+        const clone = template.cloneNode(true);
+        const select = clone.querySelector('select');
+        const fileInput = clone.querySelector('input[type="file"]');
+        select.selectedIndex = 0;
+        fileInput.value = '';
+        return clone;
+      }
+
+      addBtn.addEventListener('click', () => {
+        const block = createBlock();
+        statementList.appendChild(block);
+        updateRemoveButtons();
+      });
+
+      statementList.addEventListener('click', (event) => {
+        if (event.target.classList.contains('remove-block')) {
+          event.preventDefault();
+          const block = event.target.closest('.statement-block');
+          block.remove();
+          if (!statementList.children.length) {
+            statementList.appendChild(createBlock());
+          }
+          updateRemoveButtons();
+        }
+      });
+
+      statementList.addEventListener('change', (event) => {
+        if (event.target.classList.contains('bank-select')) {
+          updateImage(event.target.value);
+        }
+      });
+
+      updateRemoveButtons();
+      const firstSelect = statementList.querySelector('.bank-select');
+      updateImage(firstSelect ? firstSelect.value : 'HDFC');
+
+      form.addEventListener('submit', function() {
+        const submitBtn = this.querySelector('.primary-btn');
+        submitBtn.value = 'Processing...';
+        submitBtn.style.opacity = '0.8';
+        submitBtn.style.cursor = 'not-allowed';
+      });
+    })();
   </script>
 
 </body>

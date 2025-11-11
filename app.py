@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, send_file, session, jsonify, abort
 import os
+import pandas as pd
 from datetime import datetime
+from extractor.summary import generate_summary, _build_dashboard_summary
 from dotenv import load_dotenv
 import base64
 import json
@@ -22,68 +24,143 @@ os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 def index():
     return render_template('index.html')
 
-@app.get('/healthz')
-def healthz():
-    # Fast readiness/liveness probe for Render health checks
-    return "ok", 200
-
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    bank = request.form['bank']
-    file = request.files['pdf_file']
-    if not file:
+    banks = request.form.getlist('bank[]') or request.form.getlist('bank')
+    files = request.files.getlist('pdf_file[]') or request.files.getlist('pdf_file')
+
+    entries = []
+    for bank, file in zip(banks, files):
+        if bank and file and file.filename:
+            entries.append((bank, file))
+
+    if not entries:
         return 'No file uploaded', 400
 
-    # Save uploaded file
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    safe_filename = f"{timestamp}_{file.filename}".replace(" ", "_")
-    filepath = os.path.join(UPLOAD_FOLDER, safe_filename)
-    file.save(filepath)
+    batch_id = datetime.now().strftime('%Y%m%d_%H%M%S')
+    normalized_frames = []
+    statement_sources = []
 
-    # Extract data (lazy imports to reduce cold start time)
-    if bank == 'HDFC':
-        from extractor.extractor_hdfc import extract_hdfc_transactions as _extract
-    elif bank == 'ICICI':
-        from extractor.extractor_icici import extract_icici_transactions as _extract
-    elif bank == 'SBI':
-        from extractor.extractor_sbi import extract_sbi_transactions as _extract
-    else:
-        return 'Unsupported bank selected', 400
+    for idx, (bank, file) in enumerate(entries, start=1):
+        safe_filename = f"{batch_id}_{idx}_{file.filename}".replace(" ", "_")
+        filepath = os.path.join(UPLOAD_FOLDER, safe_filename)
+        file.save(filepath)
 
-    df, summary = _extract(filepath)
+        try:
+            df, summary = generate_summary(bank, filepath)
+        except ValueError as exc:
+            return str(exc), 400
 
-    # Convert daily_data to JSON-safe format
-    import pandas as pd  # lazy import for faster cold start
-    daily_df = summary['daily_data']
+        bank_label = summary.get("bank", (bank or "").upper())
+        df["Bank"] = bank_label
+        normalized_frames.append(df)
+
+        date_min = df["Date"].min() if not df["Date"].empty else None
+        date_max = df["Date"].max() if not df["Date"].empty else None
+        source_entry = {
+            "bank": bank_label,
+            "filename": file.filename,
+            "transactions": int(len(df)),
+            "date_min": date_min.strftime("%Y-%m-%d") if pd.notna(date_min) else "",
+            "date_max": date_max.strftime("%Y-%m-%d") if pd.notna(date_max) else "",
+            "total_credit": float(df["Credit"].sum()),
+            "total_debit": float(df["Debit"].sum()),
+        }
+        statement_sources.append(source_entry)
+
+    if not normalized_frames:
+        return 'Failed to process uploads', 400
+
+    combined_df = pd.concat(normalized_frames, ignore_index=True)
+    combined_summary = _build_dashboard_summary(combined_df)
+    combined_summary["bank"] = "MULTI"
+
+    bank_daily_series = []
+    bank_totals = []
+    accuracy_breakdown = []
+
+    for bank_name, bank_df in combined_df.groupby("Bank"):
+        bank_summary = _build_dashboard_summary(bank_df)
+        bank_summary["bank"] = bank_name
+        accuracy_breakdown.append({
+            "bank": bank_name,
+            "opening_balance": bank_summary["opening_balance"],
+            "closing_balance": bank_summary["closing_balance"],
+            "total_credit": bank_summary["total_credit"],
+            "total_debit": bank_summary["total_debit"],
+        })
+
+        daily = bank_summary["daily_data"]
+        daily_dates = pd.to_datetime(daily["Date"], errors='coerce').dt.strftime("%Y-%m-%d")
+        bank_daily_series.append({
+            "bank": bank_name,
+            "series": [
+                {"Date": date, "Credit": credit, "Debit": debit}
+                for date, credit, debit in zip(daily_dates, daily["Credit"], daily["Debit"])
+            ],
+        })
+
+        bank_totals.append({
+            "bank": bank_name,
+            "credit": bank_summary["total_credit"],
+            "debit": bank_summary["total_debit"],
+        })
+
+    daily_df = combined_summary['daily_data']
+    daily_dates = pd.to_datetime(daily_df["Date"], errors='coerce').dt.strftime("%Y-%m-%d")
     daily_data = {
-        "Date": pd.to_datetime(daily_df["Date"], errors='coerce').dt.strftime("%Y-%m-%d").tolist(),
+        "Date": daily_dates.tolist(),
         "Credit": daily_df["Credit"].tolist(),
         "Debit": daily_df["Debit"].tolist()
     }
+    daily_series = combined_summary.get("daily_series", [])
 
-    # Save CSV
-    output_csv_name = f"{timestamp}_output.csv"
+    table_df = combined_df.copy()
+    table_df["Date"] = table_df["Date"].dt.strftime("%Y-%m-%d")
+    table_columns = table_df.columns.tolist()
+    table_rows = table_df.to_dict(orient="records")
+
+    # Save combined CSV
+    output_csv_name = f"{batch_id}_combined_output.csv"
     output_csv_path = os.path.join(OUTPUT_FOLDER, output_csv_name)
-    df.to_csv(output_csv_path, index=False)
+    combined_df.to_csv(output_csv_path, index=False)
 
-    # Track download file in session and mark unpaid until checkout completes
     session['download_file'] = output_csv_name
     session['paid'] = False
 
-    # Render summary page
     return render_template(
         'summary.html',
-        opening_balance=summary['opening_balance'],
-        closing_balance=summary['closing_balance'],
-        total_credit=summary['total_credit'],
-        total_debit=summary['total_debit'],
+        opening_balance=combined_summary['opening_balance'],
+        closing_balance=combined_summary['closing_balance'],
+        total_credit=combined_summary['total_credit'],
+        total_debit=combined_summary['total_debit'],
         daily_data=daily_data,
-        top_debits=summary['top_debits'],
-        top_credits=summary['top_credits'],
+        daily_series=daily_series,
+        top_debits=combined_summary['top_debits'],
+        top_credits=combined_summary['top_credits'],
+        date_min=combined_summary.get('date_min', ''),
+        date_max=combined_summary.get('date_max', ''),
+        transactions_js=combined_summary.get('transactions_js', []),
+        kpi_avg_ticket=combined_summary.get('kpi_avg_ticket', 0.0),
+        kpi_active_days=combined_summary.get('kpi_active_days', 0),
+        kpi_spend_to_income=combined_summary.get('kpi_spend_to_income'),
+        statement_sources=statement_sources,
+        bank_accuracy=accuracy_breakdown,
+        bank_daily_series=bank_daily_series,
+        bank_totals=bank_totals,
+        transactions_table=table_rows,
+        transactions_columns=table_columns,
         download_link=f"/download/{output_csv_name}",
         razorpay_key_id=os.environ.get('RAZORPAY_KEY_ID', ''),
         razorpay_amount=int(os.environ.get('RAZORPAY_AMOUNT', '0')),
-        razorpay_currency=os.environ.get('RAZORPAY_CURRENCY', 'INR')
+        razorpay_currency=os.environ.get('RAZORPAY_CURRENCY', 'INR'),
+        insight_payload={
+            "net_flow": combined_summary.get("net_flow"),
+            "avg_daily_debit": combined_summary.get("avg_daily_debit"),
+            "avg_daily_credit": combined_summary.get("avg_daily_credit"),
+            "peak_debit_day": combined_summary.get("peak_debit_day"),
+            "peak_credit_day": combined_summary.get("peak_credit_day"),
+        }
     )
 
 @app.route('/download/<path:filename>')

@@ -1,176 +1,1276 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Summary Dashboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Summary Dashboard | Easy Debit Summary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h1 { margin-bottom: 10px; }
-    h2 { margin-top: 40px; }
-    .table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-    .table th, .table td { border: 1px solid #ddd; padding: 8px; }
-    .table th { background-color: #f2f2f2; }
-    .notice-box {
-      padding: 15px;
-      margin-bottom: 20px;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 15px;
-      line-height: 1.5em;
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #141c33;
+      --card: #ffffff;
+      --card-muted: #f3f5fb;
+      --accent: #5b8ef3;
+      --accent-strong: #2563eb;
+      --text: #0f172a;
+      --text-muted: #4b5563;
+      --success: #0d9488;
+      --danger: #dc2626;
+      --warning: #f97316;
+      --border: #e5e7eb;
+      --shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
     }
-    .notice-pass { background:#e8ffe8; color:green; border:1px solid green; }
-    .notice-fail { background:#ffe8e8; color:red; border:1px solid red; }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #edf1f7;
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(15, 23, 42, 0.05);
+    }
+
+    .section {
+      margin-top: 32px;
+    }
+
+    .section-heading {
+      margin-bottom: 18px;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      color: #111827;
+    }
+
+    .section-heading p {
+      margin: 6px 0 0;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .hero {
+      background: linear-gradient(120deg, rgba(91, 142, 243, 0.15), rgba(37, 99, 235, 0.25)), var(--card);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.5), transparent 45%);
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      margin: 8px 0 12px;
+      font-size: 2rem;
+    }
+
+    .hero p {
+      margin: 0;
+      color: #1f2937;
+      max-width: 520px;
+      line-height: 1.5;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent-strong);
+    }
+
+    .pill {
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--accent-strong);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .filter-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .filter-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: flex-end;
+    }
+
+    .filter-controls label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .filter-controls input[type="date"] {
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      min-width: 180px;
+    }
+
+    .filter-controls button {
+      height: 42px;
+    }
+
+    .filter-note {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .statement-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .statement-card {
+      border-radius: 16px;
+      padding: 18px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: linear-gradient(135deg, rgba(91, 142, 243, 0.12), rgba(37, 99, 235, 0.08));
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .stmt-bank {
+      font-weight: 600;
+      font-size: 1.05rem;
+      color: #0f172a;
+    }
+
+    .stmt-range {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .stmt-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .stmt-totals {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 18px;
+    }
+
+    .stat-card {
+      border-radius: 18px;
+      padding: 20px;
+      background: linear-gradient(160deg, #ffffff, #f5f7ff);
+      border: 1px solid rgba(15, 23, 42, 0.05);
+    }
+
+    .stat-card h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .stat-value {
+      margin-top: 8px;
+      font-size: 1.65rem;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .stat-trend {
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stat-card.positive .stat-value { color: var(--success); }
+    .stat-card.negative .stat-value { color: var(--danger); }
+
+    .kpi-grid .stat-card {
+      background: linear-gradient(160deg, #0f172a, #1e3a8a);
+      color: white;
+      border: none;
+      box-shadow: 0 25px 45px rgba(15, 23, 42, 0.35);
+    }
+
+    .kpi-grid .stat-card h3 {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .kpi-grid .stat-value {
+      color: white;
+    }
+
+    .kpi-grid .stat-trend {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .accuracy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .accuracy-card {
+      border-radius: 18px;
+      padding: 24px;
+    }
+
+    .accuracy-card.pass {
+      background: linear-gradient(160deg, #ecfdf5, #ffffff);
+      border: 1px solid rgba(13, 148, 136, 0.3);
+    }
+
+    .accuracy-card.fail {
+      background: linear-gradient(160deg, #fef2f2, #ffffff);
+      border: 1px solid rgba(220, 38, 38, 0.3);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .status-pill.pass {
+      background: rgba(13, 148, 136, 0.12);
+      color: var(--success);
+    }
+
+    .status-pill.fail {
+      background: rgba(220, 38, 38, 0.12);
+      color: var(--danger);
+    }
+
     .accuracy-table {
-      border-collapse: collapse;
       width: 100%;
-      margin-top: 10px;
+      border-collapse: collapse;
+      margin-top: 18px;
+      font-size: 0.9rem;
     }
-    .accuracy-table td, .accuracy-table th {
-      border: 1px solid #ddd;
-      padding: 6px 10px;
-    }
-    .accuracy-table th {
-      background: #f7f7f7;
+
+    .accuracy-table th,
+    .accuracy-table td {
       text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .accuracy-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .chart-card canvas {
+      width: 100% !important;
+      height: 320px !important;
+    }
+
+    .table-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .table-wrapper {
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid rgba(15, 23, 42, 0.06);
+      background: var(--card);
+    }
+
+    .table-wrapper table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      background: transparent;
+    }
+
+    .table-wrapper th {
+      text-align: left;
+      background: var(--card-muted);
+      padding: 12px;
+      font-weight: 600;
+    }
+
+    .table-wrapper td {
+      padding: 12px;
+      border-top: 1px solid rgba(15, 23, 42, 0.05);
+    }
+
+    .table-wrapper tr:nth-child(even) td {
+      background: rgba(15, 23, 42, 0.02);
+    }
+
+    .leaderboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+      padding: 18px;
+    }
+
+    .leader-card {
+      border-radius: 16px;
+      padding: 18px;
+      border: 1px solid rgba(15, 23, 42, 0.05);
+      background: linear-gradient(180deg, #fff, #f8fafc);
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .leader-rank {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--accent-strong);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+    }
+
+    .leader-date {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .leader-details {
+      font-weight: 600;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      color: #111827;
+    }
+
+    .leader-amount {
+      margin-top: auto;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--danger);
+    }
+
+    .leader-card.credit .leader-amount {
+      color: var(--success);
+    }
+
+    .leader-bank {
+      font-size: 0.8rem;
+      color: var(--accent-strong);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .split-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .callout-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: linear-gradient(120deg, rgba(91, 142, 243, 0.1), rgba(37, 99, 235, 0.15)), var(--card);
+    }
+
+    .cta-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2);
+    }
+
+    .btn.primary {
+      background: var(--accent-strong);
+      color: white;
+    }
+
+    .btn.ghost {
+      background: transparent;
+      color: var(--accent-strong);
+      border: 1px solid rgba(37, 99, 235, 0.4);
+    }
+
+    .btn.accent {
+      background: #f97316;
+      color: white;
+      box-shadow: 0 12px 30px rgba(249, 115, 22, 0.25);
+    }
+
+    .btn.disabled {
+      opacity: 0.55;
+      pointer-events: none;
+      box-shadow: none;
+    }
+
+    #payBtn {
+      border-radius: 999px;
+      border: none;
+      padding: 12px 18px;
+      font-weight: 600;
+      background: #f97316;
+      color: #fff;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+
+    #payBtn:hover {
+      opacity: 0.85;
+    }
+
+    footer {
+      margin-top: 48px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.85rem;
+    }
+
+    .ledger-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+
+    .ledger-controls input {
+      flex: 1;
+      min-width: 220px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      font-size: 0.95rem;
+    }
+
+    #ledgerTable {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    #ledgerTable th,
+    #ledgerTable td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    }
+
+    #ledgerTable th {
+      background: rgba(15, 23, 42, 0.04);
+      text-align: left;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    #ledgerTable tr:nth-child(even) td {
+      background: rgba(15, 23, 42, 0.015);
+    }
+
+    @media (max-width: 600px) {
+      .card {
+        padding: 20px;
+      }
+
+      .hero h1 {
+        font-size: 1.6rem;
+      }
+
+      .cta-actions {
+        flex-direction: column;
+      }
+
+      .btn,
+      #payBtn {
+        width: 100%;
+      }
+
+      .filter-controls input[type="date"] {
+        min-width: 0;
+        width: 100%;
+      }
+
+      .chart-card canvas {
+        height: 260px !important;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="page">
+    <header class="hero card">
+      <div class="eyebrow">Easy Debit Summary</div>
+      <h1>Account Health Snapshot</h1>
+      <p>View critical balances, daily movement, and the highest credit/debit events in one glance. Optimized for quick reviews on both desktop and mobile.</p>
+      <div class="hero-meta">
+        <span class="pill">Updated Today</span>
+        <span class="pill">Secure CSV Export</span>
+      </div>
+    </header>
 
-  <h1>📊 Summary Dashboard</h1>
+    {% if statement_sources %}
+    <section class="section">
+      <div class="section-heading">
+        <h2>Included Statements</h2>
+        <p>Every PDF you uploaded in this batch is summarized below.</p>
+      </div>
+      <div class="statement-grid">
+        {% for stmt in statement_sources %}
+        <article class="statement-card">
+          <div class="stmt-bank">{{ stmt.bank }}</div>
+          <div class="stmt-range">{{ stmt.date_min or 'N/A' }} → {{ stmt.date_max or 'N/A' }}</div>
+          <div class="stmt-meta">
+            <span>{{ stmt.transactions }} rows</span>
+            <span>{{ stmt.filename }}</span>
+          </div>
+          <div class="stmt-totals">
+            <span>₹{{ '{:,.2f}'.format(stmt.total_credit) }} in</span>
+            <span>₹{{ '{:,.2f}'.format(stmt.total_debit) }} out</span>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
 
-  <!-- 🔍 Balance Verification -->
-  <div id="accuracy-check"></div>
+    <section class="section">
+      <div class="section-heading">
+        <h2>Balance Overview</h2>
+        <p>High-level view of how the ledger evolved across the selected period.</p>
+      </div>
+      <div class="stat-grid">
+        <article class="stat-card">
+          <h3>Opening Balance</h3>
+          <div class="stat-value">₹{{ '{:,.2f}'.format(opening_balance) }}</div>
+          <div class="stat-trend">Starting point for this statement window.</div>
+        </article>
+        <article class="stat-card positive">
+          <h3>Total Credits</h3>
+          <div class="stat-value">₹{{ '{:,.2f}'.format(total_credit) }}</div>
+          <div class="stat-trend">Inflows recorded (₹).</div>
+        </article>
+        <article class="stat-card negative">
+          <h3>Total Debits</h3>
+          <div class="stat-value">₹{{ '{:,.2f}'.format(total_debit) }}</div>
+          <div class="stat-trend">Outflows recorded (₹).</div>
+        </article>
+        <article class="stat-card">
+          <h3>Closing Balance</h3>
+          <div class="stat-value">₹{{ '{:,.2f}'.format(closing_balance) }}</div>
+          <div class="stat-trend">Ending balance after all transactions.</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading">
+        <h2>Balance Integrity</h2>
+        <p>Automated reconciliation between reported closing balance and computed movement.</p>
+      </div>
+      <div id="accuracy-check"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading">
+        <h2>Bank-wise Totals</h2>
+        <p>Compare inflows and outflows for each uploaded bank.</p>
+      </div>
+      <article class="card chart-card">
+        <canvas id="bankTotalsChart"></canvas>
+      </article>
+    </section>
+
+    <section class="section">
+      <div class="split-grid">
+        <article class="card table-card">
+          <div class="section-heading">
+            <h2>Top 5 Debits</h2>
+            <p>Largest money-out instances to watch closely.</p>
+          </div>
+          <div class="table-wrapper" id="debitsTable">
+            {{ top_debits|safe }}
+          </div>
+        </article>
+        <article class="card table-card">
+          <div class="section-heading">
+            <h2>Top 5 Credits</h2>
+            <p>Biggest inflows powering the current balance.</p>
+          </div>
+          <div class="table-wrapper" id="creditsTable">
+            {{ top_credits|safe }}
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <article class="card filter-card">
+        <div class="section-heading">
+          <h2>Date Range</h2>
+          <p>Focus the KPIs and chart on a specific window from this statement.</p>
+        </div>
+        <div class="filter-controls">
+          <label>
+            From
+            <input type="date" id="startDate" value="{{ date_min }}" min="{{ date_min }}" max="{{ date_max }}">
+          </label>
+          <label>
+            To
+            <input type="date" id="endDate" value="{{ date_max }}" min="{{ date_min }}" max="{{ date_max }}">
+          </label>
+          <button type="button" class="btn ghost" id="resetFilter">Reset</button>
+        </div>
+        <p class="filter-note" id="filterSummary">Showing full statement period.</p>
+      </article>
+    </section>
+
+    <section class="section">
+      <div class="section-heading">
+        <h2>Operational KPIs</h2>
+        <p>Live indicators that react to the date range selection above.</p>
+      </div>
+      <div class="stat-grid kpi-grid">
+        <article class="stat-card">
+          <h3>Average Ticket Size</h3>
+          <div class="stat-value" id="avgTicketValue">₹{{ '{:,.2f}'.format(kpi_avg_ticket or 0) }}</div>
+          <div class="stat-trend">Typical amount per transaction.</div>
+        </article>
+        <article class="stat-card">
+          <h3>Active Transaction Days</h3>
+          <div class="stat-value" id="activeDaysValue">{{ kpi_active_days or 0 }}</div>
+          <div class="stat-trend">Unique calendar days with activity.</div>
+        </article>
+        <article class="stat-card">
+          <h3>Spend-to-Income Ratio</h3>
+          <div class="stat-value" id="spendIncomeValue">
+            {% if kpi_spend_to_income is not none %}
+              {{ '{:.2f}x'.format(kpi_spend_to_income) }}
+            {% else %}
+              —
+            {% endif %}
+          </div>
+          <div class="stat-trend">How aggressively debits draw against credits.</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading">
+        <h2>Daily Debit vs Credit</h2>
+        <p>Trendlines highlight spikes and dips across the selected date range.</p>
+      </div>
+      <article class="card chart-card">
+        <canvas id="dailyChart"></canvas>
+      </article>
+    </section>
+
+    <section class="section">
+      <div class="section-heading">
+        <h2>Full Transaction Ledger</h2>
+        <p>Filter and sort every row extracted from the uploaded statements.</p>
+      </div>
+      <article class="card table-card">
+        <div class="ledger-controls">
+          <input type="search" id="ledgerSearch" placeholder="Search by any field...">
+          <span id="ledgerCount" style="font-size:0.9rem;color:var(--text-muted);"></span>
+        </div>
+        <div class="table-wrapper" style="max-height:480px;overflow:auto;">
+          <table id="ledgerTable"></table>
+        </div>
+      </article>
+    </section>
+
+    <section class="section">
+      <article class="card callout-card">
+        <div>
+          <div class="section-heading">
+            <h2>Download Extracted Data</h2>
+            <p>Get the enriched CSV to continue analysis in Excel, GSheets, or BI tools.</p>
+          </div>
+        </div>
+        <div class="cta-actions">
+          <a id="downloadLink" class="btn primary" href="{{ download_link }}" download>Download CSV</a>
+          <a class="btn ghost" href="/">Back to Upload</a>
+        </div>
+      </article>
+    </section>
+
+    <footer>
+      Built for clarity and speed · Easy Debit Summary
+    </footer>
+  </div>
+
   <script>
     const opening = {{ opening_balance }};
     const debit = {{ total_debit }};
     const credit = {{ total_credit }};
     const closing = {{ closing_balance }};
+    const bankAccuracy = {{ bank_accuracy|tojson }};
 
-    const computed = opening + credit - debit;
-    const difference = closing - computed;
-    const absDiff = Math.abs(difference);
+    const accuracyData = [{
+      bank: 'Overall',
+      opening_balance: opening,
+      closing_balance: closing,
+      total_credit: credit,
+      total_debit: debit,
+    }].concat(bankAccuracy || []);
 
-    let resultBox = "";
-
-    if (absDiff < 0.01) {
-      resultBox = `
-        <div class="notice-box notice-pass">
-          ✅ <strong>Accuracy Check Passed:</strong> Balances match correctly.<br><br>
+    const accuracyContainer = document.getElementById('accuracy-check');
+    accuracyContainer.classList.add('accuracy-grid');
+    const accuracyCards = accuracyData.map((entry) => {
+      const computed = entry.opening_balance + entry.total_credit - entry.total_debit;
+      const difference = entry.closing_balance - computed;
+      const pass = Math.abs(difference) < 0.01;
+      const statusText = pass ? 'Accuracy Check Passed' : 'Mismatch Detected';
+      const statusIcon = pass ? '✅' : '⚠️';
+      return `
+        <article class="card accuracy-card ${pass ? 'pass' : 'fail'}">
+          <div class="status-pill ${pass ? 'pass' : 'fail'}">${statusIcon} ${entry.bank}: ${statusText}</div>
           <table class="accuracy-table">
-            <tr><th>Opening Balance</th><td>₹${opening.toFixed(2)}</td></tr>
-            <tr><th>Total Credits (+)</th><td>₹${credit.toFixed(2)}</td></tr>
-            <tr><th>Total Debits (−)</th><td>₹${debit.toFixed(2)}</td></tr>
-            <tr><th>Computed Closing Balance</th><td>₹${computed.toFixed(2)}</td></tr>
-            <tr><th>Reported Closing Balance</th><td>₹${closing.toFixed(2)}</td></tr>
-            <tr><th>Difference</th><td>₹${difference.toFixed(2)}</td></tr>
+            <tr><th>Opening Balance</th><td>₹${entry.opening_balance.toFixed(2)}</td></tr>
+            <tr><th>Total Credits (+)</th><td>₹${entry.total_credit.toFixed(2)}</td></tr>
+            <tr><th>Total Debits (−)</th><td>₹${entry.total_debit.toFixed(2)}</td></tr>
+            <tr><th>Computed Closing</th><td>₹${computed.toFixed(2)}</td></tr>
+            <tr><th>Reported Closing</th><td>₹${entry.closing_balance.toFixed(2)}</td></tr>
+            <tr><th>Difference</th><td style="color:${pass ? 'var(--success)' : 'var(--danger)'};">₹${difference.toFixed(2)}</td></tr>
           </table>
-        </div>`;
-    } else {
-      resultBox = `
-        <div class="notice-box notice-fail">
-          ❌ <strong>Error Detected:</strong> Balances do not match.<br>
-          Please verify extracted data.<br><br>
-          <table class="accuracy-table">
-            <tr><th>Opening Balance</th><td>₹${opening.toFixed(2)}</td></tr>
-            <tr><th>Total Credits (+)</th><td>₹${credit.toFixed(2)}</td></tr>
-            <tr><th>Total Debits (−)</th><td>₹${debit.toFixed(2)}</td></tr>
-            <tr><th>Computed Closing Balance</th><td>₹${computed.toFixed(2)}</td></tr>
-            <tr><th>Reported Closing Balance</th><td>₹${closing.toFixed(2)}</td></tr>
-            <tr><th>Difference</th><td><strong style="color:red;">₹${difference.toFixed(2)}</strong></td></tr>
-          </table>
-        </div>`;
-    }
-
-    document.getElementById("accuracy-check").innerHTML = resultBox;
+        </article>
+      `;
+    }).join('');
+    accuracyContainer.innerHTML = accuracyCards;
   </script>
 
-  <ul>
-    <li><strong>Opening Balance:</strong> ₹{{ '{:,.2f}'.format(opening_balance) }}</li>
-    <li><strong>Total Debits:</strong> ₹{{ '{:,.2f}'.format(total_debit) }}</li>
-    <li><strong>Total Credits:</strong> ₹{{ '{:,.2f}'.format(total_credit) }}</li>
-    <li><strong>Closing Balance:</strong> ₹{{ '{:,.2f}'.format(closing_balance) }}</li>
-  </ul>
-
-  <h2>📆 Daily Debit vs Credit</h2>
-  <canvas id="dailyChart" width="800" height="300"></canvas>
   <script>
-    const ctx = document.getElementById('dailyChart').getContext('2d');
-    const chart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: {{ daily_data["Date"]|tojson }},
-        datasets: [
+    const transactions = {{ transactions_js|tojson }};
+    const dailySeries = {{ daily_series|tojson }};
+    const bankDailySeries = {{ bank_daily_series|tojson }};
+    const bankTotals = {{ bank_totals|tojson }};
+    const defaultStart = "{{ date_min or '' }}";
+    const defaultEnd = "{{ date_max or '' }}";
+
+    const chartCtx = document.getElementById('dailyChart').getContext('2d');
+    const palette = ['#2563eb', '#16a34a', '#f97316', '#9333ea', '#0f766e', '#b91c1c', '#0891b2', '#d97706'];
+
+    function hexToRgba(hex, alpha) {
+      const clean = hex.replace('#', '');
+      const bigint = parseInt(clean, 16);
+      const r = (bigint >> 16) & 255;
+      const g = (bigint >> 8) & 255;
+      const b = bigint & 255;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function buildDailyDatasets(series) {
+      const dataForChart = buildChartArrays(series);
+      const combined = [
+        {
+          label: 'Overall Credit',
+          data: dataForChart.credits,
+          borderColor: 'rgba(16, 185, 129, 0.9)',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          fill: false,
+          tension: 0.35,
+          borderWidth: 2.5,
+          pointRadius: 2,
+        },
+        {
+          label: 'Overall Debit',
+          data: dataForChart.debits,
+          borderColor: 'rgba(239, 68, 68, 0.9)',
+          backgroundColor: 'rgba(239, 68, 68, 0.05)',
+          fill: false,
+          tension: 0.35,
+          borderWidth: 2.5,
+          pointRadius: 2,
+          borderDash: [6, 4],
+        },
+      ];
+
+      const bankSets = (bankDailySeries || []).flatMap((entry, idx) => {
+        const baseColor = palette[idx % palette.length];
+        const dataMap = new Map((entry.series || []).map(point => [point.Date, point]));
+        const credits = dataForChart.labels.map(date => (dataMap.get(date)?.Credit) || 0);
+        const debits = dataForChart.labels.map(date => (dataMap.get(date)?.Debit) || 0);
+        return [
           {
-            label: 'Credit',
-            data: {{ daily_data["Credit"]|tojson }},
-            borderColor: 'green',
+            label: `${entry.bank} Credit`,
+            data: credits,
+            borderColor: baseColor,
+            backgroundColor: hexToRgba(baseColor, 0.15),
+            tension: 0.3,
             fill: false,
-            tension: 0.3
+            borderWidth: 2,
+            pointRadius: 0,
           },
           {
-            label: 'Debit',
-            data: {{ daily_data["Debit"]|tojson }},
-            borderColor: 'red',
+            label: `${entry.bank} Debit`,
+            data: debits,
+            borderColor: hexToRgba(baseColor, 0.8),
+            backgroundColor: hexToRgba(baseColor, 0.05),
+            tension: 0.3,
             fill: false,
-            tension: 0.3
-          }
-        ]
-      },
+            borderWidth: 1.5,
+            pointRadius: 0,
+            borderDash: [4, 3],
+          },
+        ];
+      });
+
+      return {
+        labels: dataForChart.labels,
+        datasets: combined.concat(bankSets),
+      };
+    }
+
+    const initialDaily = buildDailyDatasets(dailySeries);
+    const dailyChart = new Chart(chartCtx, {
+      type: 'line',
+      data: initialDaily,
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         scales: {
           x: {
             type: 'time',
             time: {
               unit: 'day',
               tooltipFormat: 'MMM dd',
-              displayFormats: { day: 'MMM dd' }
+              displayFormats: { day: 'MMM dd' },
             },
-            title: { display: true, text: 'Date' }
+            ticks: { color: '#4b5563' },
+            title: { display: true, text: 'Date', color: '#111827', font: { weight: '600' } },
+            grid: { display: false },
           },
           y: {
             beginAtZero: true,
-            title: { display: true, text: 'Amount (₹)' }
-          }
-        }
-      }
+            ticks: { color: '#4b5563' },
+            title: { display: true, text: 'Amount (₹)', color: '#111827', font: { weight: '600' } },
+            grid: { color: 'rgba(15,23,42,0.08)' },
+          },
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { usePointStyle: false, color: '#111827' },
+          },
+          tooltip: {
+            intersect: false,
+            mode: 'index',
+            callbacks: {
+              label: (context) => `${context.dataset.label}: ₹${Number(context.parsed.y).toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+            },
+          },
+        },
+        interaction: { intersect: false, mode: 'index' },
+      },
     });
+
+    const totalsCtx = document.getElementById('bankTotalsChart').getContext('2d');
+    const bankLabels = (bankTotals || []).map(entry => entry.bank);
+    const creditTotals = (bankTotals || []).map(entry => entry.credit || 0);
+    const debitTotals = (bankTotals || []).map(entry => entry.debit || 0);
+
+    new Chart(totalsCtx, {
+      type: 'bar',
+      data: {
+        labels: bankLabels,
+        datasets: [
+          {
+            label: 'Credits',
+            data: creditTotals,
+            backgroundColor: 'rgba(16, 185, 129, 0.85)',
+            borderRadius: 6,
+            maxBarThickness: 32,
+          },
+          {
+            label: 'Debits',
+            data: debitTotals,
+            backgroundColor: 'rgba(239, 68, 68, 0.85)',
+            borderRadius: 6,
+            maxBarThickness: 32,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            ticks: { color: '#4b5563' },
+            grid: { display: false },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: '#4b5563' },
+            grid: { color: 'rgba(15,23,42,0.08)' },
+          },
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { color: '#111827' },
+          },
+          tooltip: {
+            callbacks: {
+              label: (context) => `${context.dataset.label}: ₹${Number(context.parsed.y).toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+            },
+          },
+        },
+      },
+    });
+
+    const startInput = document.getElementById('startDate');
+    const endInput = document.getElementById('endDate');
+    const resetBtn = document.getElementById('resetFilter');
+    const filterSummary = document.getElementById('filterSummary');
+
+    function buildChartArrays(series = []) {
+      const labels = (series || []).map((row) => row.Date);
+      return {
+        labels,
+        credits: (series || []).map((row) => Number(row.Credit) || 0),
+        debits: (series || []).map((row) => Number(row.Debit) || 0),
+      };
+    }
+
+    function parseDate(value) {
+      return value ? new Date(`${value}T00:00:00`) : null;
+    }
+
+    function withinRange(dateStr, start, end) {
+      if (!dateStr) return false;
+      const current = parseDate(dateStr);
+      if (!current) return false;
+      if (start && current < start) return false;
+      if (end && current > end) return false;
+      return true;
+    }
+
+    function filterDaily(series, start, end) {
+      if (!start && !end) return series;
+      return series.filter((row) => withinRange(row.Date, start, end));
+    }
+
+    function filterTransactions(records, start, end) {
+      if (!start && !end) return records;
+      return records.filter((row) => withinRange(row.Date, start, end));
+    }
+
+    function rebuildDailyChart(series) {
+      const next = buildDailyDatasets(series);
+      dailyChart.data.labels = next.labels;
+      dailyChart.data.datasets = next.datasets;
+      dailyChart.update('none');
+    }
+
+    function formatCurrency(value) {
+      return `₹${Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    function updateKpis(records) {
+      const avgEl = document.getElementById('avgTicketValue');
+      const activeEl = document.getElementById('activeDaysValue');
+      const ratioEl = document.getElementById('spendIncomeValue');
+
+      if (!records.length) {
+        avgEl.textContent = formatCurrency(0);
+        activeEl.textContent = '0';
+        ratioEl.textContent = '—';
+        return;
+      }
+
+      const aggregate = records.reduce((acc, row) => {
+        acc.debit += Number(row.Debit) || 0;
+        acc.credit += Number(row.Credit) || 0;
+        acc.count += 1;
+        acc.dates.add(row.Date);
+        return acc;
+      }, { debit: 0, credit: 0, count: 0, dates: new Set() });
+
+      const avgTicket = aggregate.count ? (aggregate.debit + aggregate.credit) / aggregate.count : 0;
+      const ratio = aggregate.credit ? aggregate.debit / aggregate.credit : null;
+
+      avgEl.textContent = formatCurrency(avgTicket);
+      activeEl.textContent = aggregate.dates.size.toString();
+      ratioEl.textContent = ratio !== null ? `${ratio.toFixed(2)}x` : '—';
+    }
+
+    function updateFilterMessage(start, end, count) {
+      if (!filterSummary) return;
+      if (!count) {
+        filterSummary.textContent = 'No transactions in the selected range.';
+        return;
+      }
+      const formatLabel = (value, fallback) => {
+        if (!value) return fallback;
+        return new Date(`${value}T00:00:00`).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      };
+      const fromLabel = formatLabel(startInput?.value, 'start of statement');
+      const toLabel = formatLabel(endInput?.value, 'end of statement');
+      filterSummary.textContent = `Showing ${count} transactions from ${fromLabel} to ${toLabel}.`;
+    }
+
+    function enforceBoundaries() {
+      if (startInput?.value && endInput?.value && startInput.value > endInput.value) {
+        endInput.value = startInput.value;
+      }
+    }
+
+    function applyFilter() {
+      const start = parseDate(startInput?.value);
+      const end = parseDate(endInput?.value);
+      const filteredDaily = filterDaily(dailySeries, start, end);
+      const filteredTx = filterTransactions(transactions, start, end);
+      rebuildDailyChart(filteredDaily.length ? filteredDaily : []);
+      updateKpis(filteredTx);
+      updateFilterMessage(start, end, filteredTx.length);
+    }
+
+    if (startInput && !startInput.value && defaultStart) startInput.value = defaultStart;
+    if (endInput && !endInput.value && defaultEnd) endInput.value = defaultEnd;
+
+    startInput?.addEventListener('change', () => {
+      enforceBoundaries();
+      applyFilter();
+    });
+    endInput?.addEventListener('change', () => {
+      enforceBoundaries();
+      applyFilter();
+    });
+    resetBtn?.addEventListener('click', () => {
+      if (startInput) startInput.value = defaultStart || '';
+      if (endInput) endInput.value = defaultEnd || '';
+      applyFilter();
+    });
+
+    applyFilter();
   </script>
 
-  <h2>🏆 Top 5 Debits</h2>
-  {{ top_debits|safe }}
+  <script>
+    (function() {
+      const ledgerData = {{ transactions_table|tojson }};
+      const ledgerColumns = {{ transactions_columns|tojson }};
+      const table = document.getElementById('ledgerTable');
+      const countEl = document.getElementById('ledgerCount');
+      const searchInput = document.getElementById('ledgerSearch');
+      let currentRows = ledgerData.slice();
+      let sortState = { key: null, asc: true };
 
-  <h2>💰 Top 5 Credits</h2>
-  {{ top_credits|safe }}
+      function formatCell(value) {
+        if (value === null || value === undefined || value === '') return '—';
+        return value;
+      }
 
-  <h2>📥 Download Extracted Data</h2>
-  <a href="{{ download_link }}" download>👉 Download CSV File</a>
+      function renderTable(rows) {
+        const head = `<thead><tr>${ledgerColumns.map(col => `<th data-key="${col}">${col}</th>`).join('')}</tr></thead>`;
+        const body = `<tbody>${rows.map(row => `<tr>${ledgerColumns.map(col => `<td>${formatCell(row[col])}</td>`).join('')}</tr>`).join('')}</tbody>`;
+        table.innerHTML = head + body;
+        if (countEl) countEl.textContent = `${rows.length} rows`;
+      }
 
-  <br><br><a href="/">🔙 Back to Upload</a>
+      function applySort() {
+        if (!sortState.key) return;
+        const { key, asc } = sortState;
+        currentRows.sort((a, b) => {
+          const av = a[key] ?? '';
+          const bv = b[key] ?? '';
+          const numA = parseFloat(av);
+          const numB = parseFloat(bv);
+          const bothNumeric = !isNaN(numA) && !isNaN(numB);
+          if (bothNumeric) {
+            return asc ? numA - numB : numB - numA;
+          }
+          return asc
+            ? String(av).localeCompare(String(bv))
+            : String(bv).localeCompare(String(av));
+        });
+      }
+
+      table.addEventListener('click', (event) => {
+        if (event.target.tagName !== 'TH') return;
+        const key = event.target.getAttribute('data-key');
+        if (!key) return;
+        if (sortState.key === key) {
+          sortState.asc = !sortState.asc;
+        } else {
+          sortState.key = key;
+          sortState.asc = true;
+        }
+        applySort();
+        renderTable(currentRows);
+      });
+
+      searchInput?.addEventListener('input', () => {
+        const needle = searchInput.value.trim().toLowerCase();
+        currentRows = ledgerData.filter((row) =>
+          ledgerColumns.some((col) => String(row[col] ?? '').toLowerCase().includes(needle))
+        );
+        applySort();
+        renderTable(currentRows);
+      });
+
+      renderTable(currentRows);
+    })();
+  </script>
+
+  <script>
+    function enhanceLeaderboard(wrapperId, isCredit) {
+      const wrapper = document.getElementById(wrapperId);
+      if (!wrapper) return;
+      const table = wrapper.querySelector('table');
+      if (!table) return;
+      const rows = Array.from(table.querySelectorAll('tbody tr'));
+      if (!rows.length) {
+        wrapper.innerHTML = '<p style="padding:16px;color:var(--text-muted);">No transactions available.</p>';
+        return;
+      }
+
+      const cards = rows.map((row, index) => {
+        const cells = Array.from(row.children).map((cell) => cell.textContent.trim());
+        const date = cells[0] || '—';
+        const hasBankColumn = cells.length >= 4;
+        const bank = hasBankColumn ? cells[1] : '';
+        const detailsStart = hasBankColumn ? 2 : 1;
+        const amountCell = cells[cells.length - 1] || '';
+        const detailsArray = cells.slice(detailsStart, cells.length - 1);
+        const details = detailsArray.length ? detailsArray.join(' ') : (cells[detailsStart] || 'Details unavailable');
+        const numeric = Number((amountCell || '').replace(/[^0-9.-]/g, ''));
+        const formattedAmount = Number.isFinite(numeric)
+          ? `₹${numeric.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          : amountCell;
+        const badge = isCredit ? 'credit' : 'debit';
+        return `
+          <div class="leader-card ${badge}">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+              <span class="leader-rank">${index + 1}</span>
+              <div style="flex:1;">
+                <div class="leader-date">${date || '—'}</div>
+                ${bank ? `<div class="leader-bank">${bank}</div>` : ''}
+                <div class="leader-details">${details || 'Details unavailable'}</div>
+              </div>
+            </div>
+            <div class="leader-amount">${formattedAmount || '₹0.00'}</div>
+          </div>
+        `;
+      }).join('');
+
+      wrapper.classList.add('leaderboard');
+      wrapper.innerHTML = cards;
+    }
+
+    enhanceLeaderboard('debitsTable', false);
+    enhanceLeaderboard('creditsTable', true);
+  </script>
 
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
     (function(){
-      const anchor = document.querySelector('a[href="{{ download_link }}"]');
+      const anchor = document.getElementById('downloadLink');
       if (!anchor) return;
-      anchor.style.pointerEvents = 'none';
-      anchor.style.opacity = '0.6';
+      anchor.classList.add('disabled');
+      anchor.setAttribute('aria-disabled', 'true');
       anchor.title = 'Unlock by completing payment';
 
-      const payBtn = document.createElement('button');
-      payBtn.id = 'payBtn';
-      payBtn.textContent = 'Pay & Unlock Download';
-      payBtn.style.marginLeft = '12px';
-      anchor.insertAdjacentElement('afterend', payBtn);
+      let payBtn = document.getElementById('payBtn');
+      if (!payBtn) {
+        payBtn = document.createElement('button');
+        payBtn.id = 'payBtn';
+        payBtn.className = 'btn accent';
+        payBtn.textContent = 'Pay & Unlock Download';
+        anchor.insertAdjacentElement('afterend', payBtn);
+      }
 
       const currency = "{{ razorpay_currency }}";
       const keyId = "{{ razorpay_key_id }}";
 
       async function createOrder() {
-        const res = await fetch('/create_order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+        const res = await fetch('/create_order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
         const data = await res.json();
         if (!res.ok || data.error) throw new Error(data.error || 'Failed to create order');
         return data;
@@ -178,6 +1278,8 @@
 
       payBtn.addEventListener('click', async () => {
         try {
+          payBtn.disabled = true;
+          payBtn.textContent = 'Initializing...';
           const order = await createOrder();
           const options = {
             key: order.key_id || keyId,
@@ -187,24 +1289,31 @@
             description: 'CSV Export Unlock',
             order_id: order.order_id,
             handler: async function (response) {
-              const verifyRes = await fetch('/verify_payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(response) });
+              const verifyRes = await fetch('/verify_payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(response)
+              });
               const verifyData = await verifyRes.json();
               if (verifyData.ok) {
-                anchor.style.pointerEvents = 'auto';
-                anchor.style.opacity = '1';
+                anchor.classList.remove('disabled');
+                anchor.removeAttribute('aria-disabled');
                 anchor.title = '';
                 window.location.href = anchor.href;
               } else {
                 alert('Payment verification failed: ' + (verifyData.error || 'Unknown error'));
               }
             },
-            theme: { color: '#3399cc' }
+            theme: { color: '#2563eb' }
           };
           const rzp = new Razorpay(options);
           rzp.on('payment.failed', function(){ alert('Payment failed. Please try again.'); });
           rzp.open();
         } catch (e) {
           alert('Error initializing payment: ' + e.message);
+        } finally {
+          payBtn.disabled = false;
+          payBtn.textContent = 'Pay & Unlock Download';
         }
       });
     })();
