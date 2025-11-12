@@ -762,6 +762,9 @@
       </article>
     </section>
 
+     <audio id="audio2">
+              <source src="{{ url_for('static', filename='whooshTrimed.mp3') }}" type="audio/mpeg">
+            </audio>
     <section class="section">
       <article class="card callout-card">
         <div>
@@ -788,6 +791,7 @@
     const credit = {{ total_credit }};
     const closing = {{ closing_balance }};
     const bankAccuracy = {{ bank_accuracy|tojson }};
+    const audio = document.getElementById("audio2");
 
     const accuracyData = [{
       bank: 'Overall',
@@ -1277,6 +1281,7 @@
       }
 
       payBtn.addEventListener('click', async () => {
+          audio.play();
         try {
           payBtn.disabled = true;
           payBtn.textContent = 'Initializing...';
