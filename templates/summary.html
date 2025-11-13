@@ -762,7 +762,7 @@
       </article>
     </section>
 
-     <audio id="audio2">
+     <audio id="audio2" preload="auto">
               <source src="{{ url_for('static', filename='whooshTrimed.mp3') }}" type="audio/mpeg">
             </audio>
     <section class="section">
@@ -1252,6 +1252,11 @@
   <script>
   const audio2 = document.getElementById('audio2');
   const backUplaod = document.getElementById('backUplaod');
+
+  if (audio2) {
+    audio2.preload = 'auto';
+    audio2.load();
+  }
 
   backUplaod.addEventListener('click', (e) => {
     e.preventDefault();

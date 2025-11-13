@@ -445,13 +445,13 @@
               </select>
             </div>
 
-            <audio id="audio3">
+            <audio id="audio3" preload="auto">
               <source src="{{ url_for('static', filename='popTrimed.mp3') }}" type="audio/mpeg">
             </audio>
-            <audio id="audio1">
+            <audio id="audio1" preload="auto">
               <source src="{{ url_for('static', filename='ClickTrimed.mp3') }}" type="audio/mpeg">
             </audio>
-            <audio id="audio4">
+            <audio id="audio4" preload="auto">
               <source src="{{ url_for('static', filename='whooshSwipe.mp3') }}" type="audio/mpeg">
             </audio>
            
@@ -514,6 +514,14 @@
       const bankSelect = document.querySelector('.bank-select');
 
       // Play sound when opening the file picker (Choose file click)
+      const audioElements = [audio1, audio3, audio4].filter(Boolean);
+      audioElements.forEach(audio => {
+        audio.preload = 'auto';
+        if (typeof audio.load === 'function') {
+          audio.load();
+        }
+      });
+
       if (pdfInput) {
         pdfInput.addEventListener('click', () => {
           try { audio3.currentTime = 0; audio3.play(); } catch (e) {}
