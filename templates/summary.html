@@ -775,7 +775,7 @@
         </div>
         <div class="cta-actions">
           <a id="downloadLink" class="btn primary" href="{{ download_link }}" download>Download CSV</a>
-          <a class="btn ghost" href="/">Back to Upload</a>
+          <a class="btn ghost" id="backUplaod" href="/">Back to Upload</a>
         </div>
       </article>
     </section>
@@ -1250,8 +1250,26 @@
 
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
+  const audio2 = document.getElementById('audio2');
+  const backUplaod = document.getElementById('backUplaod');
+
+  backUplaod.addEventListener('click', (e) => {
+    e.preventDefault();
+    audio2.currentTime = 0;
+    audio2.play().finally(() => {
+      setTimeout(() => window.location.href = backUplaod.href, 350); // or wait for audio2.onended
+    });
+  });
+</script>
+
+
+  <script>
     (function(){
-      const anchor = document.getElementById('downloadLink');
+       const anchor = document.getElementById('downloadLink');
+      const audio2 = document.getElementById("audio2");
+      anchor.addEventListener('click', (e) => {
+        audio2.play();
+      });
       if (!anchor) return;
       anchor.classList.add('disabled');
       anchor.setAttribute('aria-disabled', 'true');

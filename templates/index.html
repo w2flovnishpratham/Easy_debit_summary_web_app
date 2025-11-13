@@ -445,14 +445,20 @@
               </select>
             </div>
 
+            <audio id="audio3">
+              <source src="{{ url_for('static', filename='popTrimed.mp3') }}" type="audio/mpeg">
+            </audio>
             <audio id="audio1">
               <source src="{{ url_for('static', filename='ClickTrimed.mp3') }}" type="audio/mpeg">
+            </audio>
+            <audio id="audio4">
+              <source src="{{ url_for('static', filename='whooshSwipe.mp3') }}" type="audio/mpeg">
             </audio>
            
 
             <div class="form-group">
               <label>Upload PDF Statement</label>
-              <input type="file" name="pdf_file[]" accept="application/pdf" required>
+              <input type="file" name="pdf_file[]" id="choosePdf" accept="application/pdf" required>
             </div>
 
             <button type="button" class="remove-block">Remove</button>
@@ -501,9 +507,35 @@
       const addBtn = document.getElementById('addStatement');
       const form = document.getElementById('multiUploadForm');
       const img = document.getElementById('sample-img');
-      const audio = document.getElementById('audio1');
+      const audio1 = document.getElementById('audio1');
+      const audio3 = document.getElementById('audio3');
+      const audio4 = document.getElementById('audio4');
+      const pdfInput = document.getElementById('choosePdf');
+      const bankSelect = document.querySelector('.bank-select');
 
-    
+      // Play sound when opening the file picker (Choose file click)
+      if (pdfInput) {
+        pdfInput.addEventListener('click', () => {
+          try { audio3.currentTime = 0; audio3.play(); } catch (e) {}
+        });
+        // Already plays on selection; keep existing behavior
+        pdfInput.addEventListener('change', () => {
+          try { audio3.currentTime = 0; audio3.play(); } catch (e) {}
+        });
+      }
+
+      // Also handle dynamically added file inputs
+      statementList.addEventListener('click', (ev) => {
+        const el = ev.target;
+        if (el && el.matches && el.matches('input[type="file"]')) {
+          try { audio3.currentTime = 0; audio3.play(); } catch (e) {}
+        }
+      });
+
+    bankSelect.addEventListener('change', () => {
+          audio1.play();       
+    });
+
       const imageMap = {
         'HDFC': "{{ url_for('static', filename='IMAGE_1.png') }}",
         'ICICI': "{{ url_for('static', filename='IMAGE_3.png') }}",
@@ -572,10 +604,11 @@
       form.addEventListener('submit', function() {
         
         const submitBtn = this.querySelector('.primary-btn');
-          audio.play();
+        audio4.play();
         submitBtn.value = 'Processing...';
         submitBtn.style.opacity = '0.8';
         submitBtn.style.cursor = 'not-allowed';
+        audio4.play();
       });
     })();
   </script>
