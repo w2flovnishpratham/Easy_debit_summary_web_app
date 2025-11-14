@@ -17,7 +17,6 @@ EXTRACTOR_REGISTRY: Dict[str, ExtractorFn] = {
     "ICICI": extract_icici_transactions,
     "SBI": extract_sbi_transactions,
     "AXIS": extract_axis_transactions,
-    "YES": extract_yes_transactions,
 }
 
 RENAME_MAP = {
