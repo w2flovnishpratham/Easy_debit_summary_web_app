@@ -17,6 +17,7 @@ EXTRACTOR_REGISTRY: Dict[str, ExtractorFn] = {
     "ICICI": extract_icici_transactions,
     "SBI": extract_sbi_transactions,
     "AXIS": extract_axis_transactions,
+    "YES": extract_yes_transactions,
 }
 
 RENAME_MAP = {
@@ -32,6 +33,23 @@ RENAME_MAP = {
     "withdrawal": "Debit",
     "deposit": "Credit",
 }
+
+PAYMENT_CATEGORY_PATTERNS = [
+    ("UPI", r"\bUPI\b|\bVPA\b|BHIM"),
+    ("IMPS", r"\bIMPS\b"),
+    ("NEFT", r"\bNEFT\b"),
+    ("RTGS", r"\bRTGS\b"),
+    ("POS", r"\bPOS\b|POINT OF SALE"),
+    ("ATM", r"\bATM\b|\bNFS\b"),
+    ("CHEQUE", r"\bCHEQUE\b|\bCHQ\b"),
+    ("ACH", r"\bACH\b|ECS"),
+    ("CARD", r"DEBIT CARD|CREDIT CARD|VISA|MASTERCARD"),
+    ("CASH", r"\bCASH\b"),
+    ("TRANSFER", r"\bTRF\b|FUND TRANSFER|FT |\bIFT\b"),
+    ("CHARGES", r"CHARGE|FEE|GST|IGST"),
+    ("SALARY", r"SALARY|PAYROLL"),
+    ("REFUND", r"REFUND|REVERSAL|REVERS"),
+]
 
 
 def generate_summary(bank: str, pdf_path: str) -> Tuple[pd.DataFrame, Dict[str, Any]]:
@@ -66,6 +84,18 @@ def generate_summary(bank: str, pdf_path: str) -> Tuple[pd.DataFrame, Dict[str, 
     summary_payload["bank"] = bank_key
 
     return normalized_df, summary_payload
+
+
+def _derive_payment_category(details: Any) -> str:
+    if pd.isna(details):
+        text = ""
+    else:
+        text = str(details)
+    text = text.upper()
+    for label, pattern in PAYMENT_CATEGORY_PATTERNS:
+        if re.search(pattern, text):
+            return label
+    return "OTHER"
 
 
 def _standardize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
@@ -119,6 +149,8 @@ def _standardize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
             axis=1
         )
 
+    normalized["Payment Category"] = normalized["Details"].apply(_derive_payment_category)
+
     return normalized.reset_index(drop=True)
 
 
@@ -158,6 +190,9 @@ def _build_dashboard_summary(df: pd.DataFrame) -> Dict[str, Any]:
             "net_flow": 0.0,
             "avg_daily_debit": 0.0,
             "avg_daily_credit": 0.0,
+            "category_breakdown": [],
+            "category_topline": {},
+            "category_total_transactions": 0,
         }
 
     df = df.sort_values("Date").reset_index(drop=True)
@@ -170,6 +205,32 @@ def _build_dashboard_summary(df: pd.DataFrame) -> Dict[str, Any]:
 
     daily_df.rename(columns={"Date": "Date"}, inplace=True)
     daily_df["Net"] = daily_df["Credit"] - daily_df["Debit"]
+
+    if "Payment Category" in df.columns:
+        category_breakdown_df = (
+            df.groupby("Payment Category")
+            .agg(
+                transactions=("Payment Category", "size"),
+                debit=("Debit", "sum"),
+                credit=("Credit", "sum"),
+            )
+            .reset_index()
+            .sort_values(["transactions", "debit"], ascending=[False, False])
+        )
+    else:
+        category_breakdown_df = pd.DataFrame(columns=["Payment Category", "transactions", "debit", "credit"])
+
+    total_category_transactions = int(category_breakdown_df["transactions"].sum()) if not category_breakdown_df.empty else 0
+    category_topline = {}
+    if not category_breakdown_df.empty and total_category_transactions:
+        leader = category_breakdown_df.iloc[0]
+        category_topline = {
+            "label": leader["Payment Category"],
+            "transactions": int(leader["transactions"]),
+            "debit": float(leader["debit"]),
+            "credit": float(leader["credit"]),
+            "share": float(leader["transactions"] / total_category_transactions) if total_category_transactions else 0.0,
+        }
 
     debit_columns = ["Date", "Details", "Debit"]
     credit_columns = ["Date", "Details", "Credit"]
@@ -253,6 +314,9 @@ def _build_dashboard_summary(df: pd.DataFrame) -> Dict[str, Any]:
         "daily_series": daily_series.to_dict(orient="records"),
         "date_min": transactions_js["Date"].iloc[0] if not transactions_js.empty else "",
         "date_max": transactions_js["Date"].iloc[-1] if not transactions_js.empty else "",
+        "category_breakdown": category_breakdown_df.to_dict(orient="records"),
+        "category_topline": category_topline,
+        "category_total_transactions": total_category_transactions,
     }
 
     return summary

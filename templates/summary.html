@@ -59,6 +59,14 @@
 
     .section-heading {
       margin-bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .section-heading > div:first-child {
+      flex: 1;
     }
 
     .section-heading h2 {
@@ -71,6 +79,30 @@
       margin: 6px 0 0;
       color: var(--text-muted);
       font-size: 0.95rem;
+    }
+
+    .section-body {
+      transition: max-height 0.25s ease, opacity 0.2s ease;
+    }
+
+    .section.collapsed .section-body {
+      display: none;
+    }
+
+    .toggle-btn {
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.08);
+      color: var(--accent-strong);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .toggle-btn:hover {
+      background: rgba(37, 99, 235, 0.18);
     }
 
     .hero {
@@ -263,6 +295,51 @@
       color: rgba(255, 255, 255, 0.7);
     }
 
+    .pulse-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+
+    .pulse-card {
+      border-radius: 18px;
+      padding: 18px;
+      color: #0f172a;
+      background: linear-gradient(160deg, rgba(37, 99, 235, 0.12), rgba(59, 130, 246, 0.25));
+      border: 1px solid rgba(37, 99, 235, 0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .pulse-card.positive {
+      background: linear-gradient(160deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.2));
+      border-color: rgba(5, 150, 105, 0.25);
+    }
+
+    .pulse-card.warning {
+      background: linear-gradient(160deg, rgba(249, 115, 22, 0.12), rgba(234, 88, 12, 0.2));
+      border-color: rgba(234, 88, 12, 0.2);
+    }
+
+    .pulse-card h3 {
+      margin: 0;
+      font-size: 0.85rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(15, 23, 42, 0.7);
+    }
+
+    .pulse-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+
+    .pulse-detail {
+      font-size: 0.85rem;
+      color: rgba(15, 23, 42, 0.7);
+    }
+
     .accuracy-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -331,6 +408,18 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+    }
+
+    .category-highlight {
+      background: rgba(37, 99, 235, 0.08);
+      border-radius: 16px;
+      padding: 16px 18px;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .category-highlight strong {
+      color: var(--text);
     }
 
     .table-wrapper {
@@ -425,6 +514,56 @@
       margin-bottom: 4px;
     }
 
+    .bank-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+    }
+
+    .bank-card {
+      border-radius: 18px;
+      padding: 18px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: linear-gradient(150deg, #ffffff, #eef2ff);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    .bank-card h3 {
+      margin: 0;
+      font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #111827;
+    }
+
+    .bank-chip {
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.15);
+      font-size: 0.75rem;
+      color: var(--accent-strong);
+    }
+
+    .bank-meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 12px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .bank-net {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .bank-net.positive { color: var(--success); }
+    .bank-net.negative { color: var(--danger); }
+
     .split-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -467,6 +606,16 @@
     .btn.primary {
       background: var(--accent-strong);
       color: white;
+    }
+
+    .btn.secondary {
+      background: rgba(37, 99, 235, 0.12);
+      color: var(--accent-strong);
+      border: 1px solid rgba(37, 99, 235, 0.2);
+    }
+
+    .btn.secondary:hover {
+      background: rgba(37, 99, 235, 0.2);
     }
 
     .btn.ghost {
@@ -584,18 +733,18 @@
       <div class="eyebrow">Easy Debit Summary</div>
       <h1>Account Health Snapshot</h1>
       <p>View critical balances, daily movement, and the highest credit/debit events in one glance. Optimized for quick reviews on both desktop and mobile.</p>
-      <div class="hero-meta">
-        <span class="pill">Updated Today</span>
-        <span class="pill">Secure CSV Export</span>
-      </div>
     </header>
 
     {% if statement_sources %}
-    <section class="section">
+    <section class="section" data-section="statements">
       <div class="section-heading">
-        <h2>Included Statements</h2>
-        <p>Every PDF you uploaded in this batch is summarized below.</p>
+        <div>
+          <h2>Included Statements</h2>
+          <p>Every PDF you uploaded in this batch is summarized below.</p>
+        </div>
+        <button class="toggle-btn" data-target="body-statements">Collapse</button>
       </div>
+      <div class="section-body" id="body-statements">
       <div class="statement-grid">
         {% for stmt in statement_sources %}
         <article class="statement-card">
@@ -612,14 +761,19 @@
         </article>
         {% endfor %}
       </div>
+      </div>
     </section>
     {% endif %}
 
-    <section class="section">
+    <section class="section" data-section="balance-overview">
       <div class="section-heading">
-        <h2>Balance Overview</h2>
-        <p>High-level view of how the ledger evolved across the selected period.</p>
+        <div>
+          <h2>Balance Overview</h2>
+          <p>High-level view of how the ledger evolved across the selected period.</p>
+        </div>
+        <button class="toggle-btn" data-target="body-balance-overview">Collapse</button>
       </div>
+      <div class="section-body" id="body-balance-overview">
       <div class="stat-grid">
         <article class="stat-card">
           <h3>Opening Balance</h3>
@@ -642,55 +796,170 @@
           <div class="stat-trend">Ending balance after all transactions.</div>
         </article>
       </div>
+      </div>
     </section>
 
-    <section class="section">
+    {% set net_flow_value = (total_credit or 0) - (total_debit or 0) %}
+    {% set avg_daily_debit = insight_payload.avg_daily_debit if insight_payload and insight_payload.avg_daily_debit is not none else 0 %}
+    {% set avg_daily_credit = insight_payload.avg_daily_credit if insight_payload and insight_payload.avg_daily_credit is not none else 0 %}
+    {% set spend_ratio_value = kpi_spend_to_income %}
+    <section class="section" data-section="summary-pulse">
       <div class="section-heading">
-        <h2>Balance Integrity</h2>
-        <p>Automated reconciliation between reported closing balance and computed movement.</p>
+        <div>
+          <h2>Summary Pulse</h2>
+          <p>Key health indicators for the combined statements.</p>
+        </div>
+        <button class="toggle-btn" data-target="body-summary-pulse">Collapse</button>
       </div>
-      <div id="accuracy-check"></div>
+      <div class="section-body" id="body-summary-pulse">
+        <div class="pulse-grid">
+          <article class="pulse-card positive">
+            <h3>Net Cash Flow</h3>
+            <div class="pulse-value" id="netFlowValue">₹{{ '{:,.2f}'.format(net_flow_value) }}</div>
+            <span class="pulse-detail">Credits minus debits</span>
+          </article>
+          <article class="pulse-card">
+            <h3>Avg Daily Credit</h3>
+            <div class="pulse-value" id="avgCreditValue">₹{{ '{:,.2f}'.format(avg_daily_credit or 0) }}</div>
+            <span class="pulse-detail">Typical inflow each active day</span>
+          </article>
+          <article class="pulse-card warning">
+            <h3>Avg Daily Debit</h3>
+            <div class="pulse-value" id="avgDebitValue">₹{{ '{:,.2f}'.format(avg_daily_debit or 0) }}</div>
+            <span class="pulse-detail">Average outflow per day</span>
+          </article>
+          <article class="pulse-card">
+            <h3>Active Days</h3>
+            <div class="pulse-value" id="activeDaysValue">{{ kpi_active_days or 0 }}</div>
+            <span class="pulse-detail">Calendar days with activity</span>
+          </article>
+          <article class="pulse-card">
+            <h3>Spend / Income</h3>
+            <div class="pulse-value" id="spendIncomeValue">
+              {% if spend_ratio_value %}
+                {{ '{:.2f}x'.format(spend_ratio_value) }}
+              {% else %}
+                —
+              {% endif %}
+            </div>
+            <span class="pulse-detail">Debits relative to credits</span>
+          </article>
+        </div>
+      </div>
     </section>
 
-    <section class="section">
+    <section class="section" data-section="balance-integrity">
       <div class="section-heading">
-        <h2>Bank-wise Totals</h2>
-        <p>Compare inflows and outflows for each uploaded bank.</p>
+        <div>
+          <h2>Balance Integrity</h2>
+          <p>Automated reconciliation between reported closing balance and computed movement.</p>
+        </div>
+        <button class="toggle-btn" data-target="body-balance-integrity">Collapse</button>
       </div>
-      <article class="card chart-card">
-        <canvas id="bankTotalsChart"></canvas>
-      </article>
+      <div class="section-body" id="body-balance-integrity">
+        <div id="accuracy-check"></div>
+      </div>
     </section>
 
-    <section class="section">
-      <div class="split-grid">
-        <article class="card table-card">
-          <div class="section-heading">
-            <h2>Top 5 Debits</h2>
-            <p>Largest money-out instances to watch closely.</p>
-          </div>
-          <div class="table-wrapper" id="debitsTable">
-            {{ top_debits|safe }}
-          </div>
-        </article>
-        <article class="card table-card">
-          <div class="section-heading">
-            <h2>Top 5 Credits</h2>
-            <p>Biggest inflows powering the current balance.</p>
-          </div>
-          <div class="table-wrapper" id="creditsTable">
-            {{ top_credits|safe }}
-          </div>
+    <section class="section" data-section="bank-totals">
+      <div class="section-heading">
+        <div>
+          <h2>Bank-wise Totals</h2>
+          <p>Compare inflows and outflows for each uploaded bank.</p>
+        </div>
+        <button class="toggle-btn" data-target="body-bank-totals">Collapse</button>
+      </div>
+      <div class="section-body" id="body-bank-totals">
+        <article class="card chart-card">
+          <canvas id="bankTotalsChart"></canvas>
         </article>
       </div>
     </section>
 
-    <section class="section">
-      <article class="card filter-card">
-        <div class="section-heading">
+    <section class="section" data-section="bank-snapshots">
+      <div class="section-heading">
+        <div>
+          <h2>Individual Bank Snapshots</h2>
+          <p>Side-by-side look at each bank’s opening, closing, and net activity.</p>
+        </div>
+        <button class="toggle-btn" data-target="body-bank-snapshots">Collapse</button>
+      </div>
+      <div class="section-body" id="body-bank-snapshots">
+        {% if bank_totals %}
+        <div class="bank-grid">
+          {% for entry in bank_totals %}
+            {% set metrics = namespace(open=0, close=0) %}
+            {% for acc in bank_accuracy %}
+              {% if acc.bank == entry.bank %}
+                {% set metrics.open = acc.opening_balance %}
+                {% set metrics.close = acc.closing_balance %}
+              {% endif %}
+            {% endfor %}
+            {% set net = (entry.credit or 0) - (entry.debit or 0) %}
+            <article class="bank-card">
+              <h3>{{ entry.bank }} <span class="bank-chip">{{ 'Net +' if net >= 0 else 'Net -' }}</span></h3>
+              <div class="bank-net {{ 'positive' if net >= 0 else 'negative' }}">₹{{ '{:,.2f}'.format(net) }}</div>
+              <div class="bank-meta">
+                <span>Credits</span><strong>₹{{ '{:,.2f}'.format(entry.credit or 0) }}</strong>
+                <span>Debits</span><strong>₹{{ '{:,.2f}'.format(entry.debit or 0) }}</strong>
+                <span>Opening</span><strong>₹{{ '{:,.2f}'.format(metrics.open or 0) }}</strong>
+                <span>Closing</span><strong>₹{{ '{:,.2f}'.format(metrics.close or 0) }}</strong>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+        {% else %}
+          <p style="margin:0;color:var(--text-muted);">Bank-level totals will appear once statements are uploaded.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="section" data-section="top-movements">
+      <div class="section-heading">
+        <div>
+          <h2>Top Money Movers</h2>
+          <p>Largest inflow and outflow events to keep on your radar.</p>
+        </div>
+        <button class="toggle-btn" data-target="body-top-movements">Collapse</button>
+      </div>
+      <div class="section-body" id="body-top-movements">
+        <div class="split-grid">
+          <article class="card table-card">
+            <div class="section-heading">
+              <div>
+                <h2>Top 5 Debits</h2>
+                <p>Largest money-out instances to watch closely.</p>
+              </div>
+            </div>
+            <div class="table-wrapper" id="debitsTable">
+              {{ top_debits|safe }}
+            </div>
+          </article>
+          <article class="card table-card">
+            <div class="section-heading">
+              <div>
+                <h2>Top 5 Credits</h2>
+                <p>Biggest inflows powering the current balance.</p>
+              </div>
+            </div>
+            <div class="table-wrapper" id="creditsTable">
+              {{ top_credits|safe }}
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" data-section="date-range">
+      <div class="section-heading">
+        <div>
           <h2>Date Range</h2>
           <p>Focus the KPIs and chart on a specific window from this statement.</p>
         </div>
+        <button class="toggle-btn" data-target="body-date-range">Collapse</button>
+      </div>
+      <div class="section-body" id="body-date-range">
+      <article class="card filter-card">
         <div class="filter-controls">
           <label>
             From
@@ -704,80 +973,119 @@
         </div>
         <p class="filter-note" id="filterSummary">Showing full statement period.</p>
       </article>
+      </div>
     </section>
 
-    <section class="section">
+    <section class="section" data-section="daily-chart">
       <div class="section-heading">
-        <h2>Operational KPIs</h2>
-        <p>Live indicators that react to the date range selection above.</p>
+        <div>
+          <h2>Daily Debit vs Credit</h2>
+          <p>Trendlines highlight spikes and dips across the selected date range.</p>
+        </div>
+        <button class="toggle-btn" data-target="body-daily-chart">Collapse</button>
       </div>
-      <div class="stat-grid kpi-grid">
-        <article class="stat-card">
-          <h3>Average Ticket Size</h3>
-          <div class="stat-value" id="avgTicketValue">₹{{ '{:,.2f}'.format(kpi_avg_ticket or 0) }}</div>
-          <div class="stat-trend">Typical amount per transaction.</div>
+      <div class="section-body" id="body-daily-chart">
+        <article class="card chart-card">
+          <canvas id="dailyChart"></canvas>
         </article>
-        <article class="stat-card">
-          <h3>Active Transaction Days</h3>
-          <div class="stat-value" id="activeDaysValue">{{ kpi_active_days or 0 }}</div>
-          <div class="stat-trend">Unique calendar days with activity.</div>
-        </article>
-        <article class="stat-card">
-          <h3>Spend-to-Income Ratio</h3>
-          <div class="stat-value" id="spendIncomeValue">
-            {% if kpi_spend_to_income is not none %}
-              {{ '{:.2f}x'.format(kpi_spend_to_income) }}
+      </div>
+    </section>
+
+    <section class="section" data-section="payment-category">
+      <div class="section-heading">
+        <div>
+          <h2>Payment Category Mix</h2>
+          <p>Auto-tagged from narration keywords like UPI, IMPS, POS, Cheque and more.</p>
+        </div>
+        <button class="toggle-btn" data-target="body-payment-category">Collapse</button>
+      </div>
+      <div class="section-body" id="body-payment-category">
+        <article class="card table-card">
+          <div class="category-highlight">
+            {% if category_topline %}
+              <strong>{{ category_topline.label }}</strong> appears {{ category_topline.transactions }} time{{ 's' if category_topline.transactions != 1 else '' }}
+              ({{ '{:.0%}'.format(category_topline.share or 0) }}) across the uploaded statements.
             {% else %}
-              —
+              Unable to detect payment category hints from the transaction details.
             {% endif %}
           </div>
-          <div class="stat-trend">How aggressively debits draw against credits.</div>
+          {% if category_breakdown %}
+          <div class="table-wrapper" style="max-height:320px;overflow:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Transactions</th>
+                  <th>Share</th>
+                  <th>Total Credit</th>
+                  <th>Total Debit</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in category_breakdown %}
+                  {% set share = (row['transactions'] or 0) / category_total_transactions if category_total_transactions else 0 %}
+                  <tr>
+                    <td>{{ row['Payment Category'] }}</td>
+                    <td>{{ row['transactions'] }}</td>
+                    <td>{{ '{:.0%}'.format(share) }}</td>
+                    <td>₹{{ '{:,.2f}'.format(row['credit'] or 0) }}</td>
+                    <td>₹{{ '{:,.2f}'.format(row['debit'] or 0) }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+            <p style="margin:0;color:var(--text-muted);font-size:0.9rem;">Once we spot familiar payment codes in the narration we will populate the split here.</p>
+          {% endif %}
         </article>
       </div>
     </section>
 
-    <section class="section">
+    <section class="section" data-section="ledger">
       <div class="section-heading">
-        <h2>Daily Debit vs Credit</h2>
-        <p>Trendlines highlight spikes and dips across the selected date range.</p>
-      </div>
-      <article class="card chart-card">
-        <canvas id="dailyChart"></canvas>
-      </article>
-    </section>
-
-    <section class="section">
-      <div class="section-heading">
-        <h2>Full Transaction Ledger</h2>
-        <p>Filter and sort every row extracted from the uploaded statements.</p>
-      </div>
-      <article class="card table-card">
-        <div class="ledger-controls">
-          <input type="search" id="ledgerSearch" placeholder="Search by any field...">
-          <span id="ledgerCount" style="font-size:0.9rem;color:var(--text-muted);"></span>
+        <div>
+          <h2>Full Transaction Ledger</h2>
+          <p>Filter and sort every row extracted from the uploaded statements.</p>
         </div>
-        <div class="table-wrapper" style="max-height:480px;overflow:auto;">
-          <table id="ledgerTable"></table>
-        </div>
-      </article>
+        <button class="toggle-btn" data-target="body-ledger">Collapse</button>
+      </div>
+      <div class="section-body" id="body-ledger">
+        <article class="card table-card">
+          <div class="ledger-controls">
+            <input type="search" id="ledgerSearch" placeholder="Search by any field...">
+            <span id="ledgerCount" style="font-size:0.9rem;color:var(--text-muted);"></span>
+          </div>
+          <div class="table-wrapper" style="max-height:480px;overflow:auto;">
+            <table id="ledgerTable"></table>
+          </div>
+        </article>
+      </div>
     </section>
 
      <audio id="audio2" preload="auto">
               <source src="{{ url_for('static', filename='whooshTrimed.mp3') }}" type="audio/mpeg">
             </audio>
-    <section class="section">
-      <article class="card callout-card">
+    <section class="section" data-section="download">
+      <div class="section-heading">
         <div>
-          <div class="section-heading">
-            <h2>Download Extracted Data</h2>
-            <p>Get the enriched CSV to continue analysis in Excel, GSheets, or BI tools.</p>
-          </div>
+          <h2>Download Extracted Data</h2>
+          <p>Get the enriched CSV to continue analysis in Excel, GSheets, or BI tools.</p>
         </div>
+        <button class="toggle-btn" data-target="body-download">Collapse</button>
+      </div>
+      <div class="section-body" id="body-download">
+      <article class="card callout-card">
         <div class="cta-actions">
-          <a id="downloadLink" class="btn primary" href="{{ download_link }}" download>Download CSV</a>
+          {% set csv_classes = 'btn primary' + (' locked-download' if payment_required else '') %}
+          <a id="downloadLink" class="{{ csv_classes }}" href="{{ download_link }}" download>Download CSV</a>
           <a class="btn ghost" id="backUplaod" href="/">Back to Upload</a>
         </div>
+        {% if not payment_required %}
+          <p style="margin:0;color:var(--text-muted);font-size:0.9rem;">Payment gate disabled – downloads are ready instantly.</p>
+        {% endif %}
       </article>
+      </div>
     </section>
 
     <footer>
@@ -824,6 +1132,26 @@
       `;
     }).join('');
     accuracyContainer.innerHTML = accuracyCards;
+  </script>
+
+  <script>
+    (function(){
+      const toggles = document.querySelectorAll('.toggle-btn');
+      toggles.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.getAttribute('data-target');
+          const body = document.getElementById(targetId);
+          if (!body) return;
+          const section = btn.closest('.section');
+          const collapsed = section?.classList.toggle('collapsed');
+          if (collapsed) {
+            btn.textContent = 'Expand';
+          } else {
+            btn.textContent = 'Collapse';
+          }
+        });
+      });
+    })();
   </script>
 
   <script>
@@ -1054,12 +1382,17 @@
     }
 
     function updateKpis(records) {
-      const avgEl = document.getElementById('avgTicketValue');
+      const netFlowEl = document.getElementById('netFlowValue');
+      const avgCreditEl = document.getElementById('avgCreditValue');
+      const avgDebitEl = document.getElementById('avgDebitValue');
       const activeEl = document.getElementById('activeDaysValue');
       const ratioEl = document.getElementById('spendIncomeValue');
+      if (!netFlowEl || !avgCreditEl || !avgDebitEl || !activeEl || !ratioEl) return;
 
       if (!records.length) {
-        avgEl.textContent = formatCurrency(0);
+        netFlowEl.textContent = formatCurrency(0);
+        avgCreditEl.textContent = formatCurrency(0);
+        avgDebitEl.textContent = formatCurrency(0);
         activeEl.textContent = '0';
         ratioEl.textContent = '—';
         return;
@@ -1073,11 +1406,16 @@
         return acc;
       }, { debit: 0, credit: 0, count: 0, dates: new Set() });
 
-      const avgTicket = aggregate.count ? (aggregate.debit + aggregate.credit) / aggregate.count : 0;
+      const dayCount = aggregate.dates.size || 0;
+      const avgCreditPerDay = dayCount ? aggregate.credit / dayCount : 0;
+      const avgDebitPerDay = dayCount ? aggregate.debit / dayCount : 0;
       const ratio = aggregate.credit ? aggregate.debit / aggregate.credit : null;
+      const netFlow = aggregate.credit - aggregate.debit;
 
-      avgEl.textContent = formatCurrency(avgTicket);
-      activeEl.textContent = aggregate.dates.size.toString();
+      netFlowEl.textContent = formatCurrency(netFlow);
+      avgCreditEl.textContent = formatCurrency(avgCreditPerDay);
+      avgDebitEl.textContent = formatCurrency(avgDebitPerDay);
+      activeEl.textContent = dayCount.toString();
       ratioEl.textContent = ratio !== null ? `${ratio.toFixed(2)}x` : '—';
     }
 
@@ -1248,7 +1586,9 @@
     enhanceLeaderboard('creditsTable', true);
   </script>
 
+  {% if payment_required %}
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  {% endif %}
   <script>
   const audio2 = document.getElementById('audio2');
   const backUplaod = document.getElementById('backUplaod');
@@ -1268,17 +1608,23 @@
 </script>
 
 
+  {% if payment_required %}
   <script>
     (function(){
-       const anchor = document.getElementById('downloadLink');
-      const audio2 = document.getElementById("audio2");
-      anchor.addEventListener('click', (e) => {
-        audio2.play();
+      const downloadAnchors = Array.from(document.querySelectorAll('.locked-download'));
+      if (!downloadAnchors.length) return;
+      const primaryAnchor = document.getElementById('downloadLink');
+      if (!primaryAnchor) return;
+
+      const audioEl = document.getElementById('audio2');
+      downloadAnchors.forEach((link) => {
+        link.classList.add('disabled');
+        link.setAttribute('aria-disabled', 'true');
+        link.title = 'Unlock by completing payment';
+        if (audioEl) {
+          link.addEventListener('click', () => audioEl.play());
+        }
       });
-      if (!anchor) return;
-      anchor.classList.add('disabled');
-      anchor.setAttribute('aria-disabled', 'true');
-      anchor.title = 'Unlock by completing payment';
 
       let payBtn = document.getElementById('payBtn');
       if (!payBtn) {
@@ -1286,7 +1632,7 @@
         payBtn.id = 'payBtn';
         payBtn.className = 'btn accent';
         payBtn.textContent = 'Pay & Unlock Download';
-        anchor.insertAdjacentElement('afterend', payBtn);
+        primaryAnchor.insertAdjacentElement('afterend', payBtn);
       }
 
       const currency = "{{ razorpay_currency }}";
@@ -1324,10 +1670,12 @@
               });
               const verifyData = await verifyRes.json();
               if (verifyData.ok) {
-                anchor.classList.remove('disabled');
-                anchor.removeAttribute('aria-disabled');
-                anchor.title = '';
-                window.location.href = anchor.href;
+                downloadAnchors.forEach((link) => {
+                  link.classList.remove('disabled');
+                  link.removeAttribute('aria-disabled');
+                  link.title = '';
+                });
+                window.location.href = primaryAnchor.href;
               } else {
                 alert('Payment verification failed: ' + (verifyData.error || 'Unknown error'));
               }
@@ -1346,5 +1694,6 @@
       });
     })();
   </script>
+  {% endif %}
 </body>
 </html>

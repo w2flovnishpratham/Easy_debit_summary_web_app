@@ -11,6 +11,8 @@ import hashlib
 import urllib.request
 import urllib.error
 
+PAYMENT_GATE_ENABLED = os.environ.get('ENABLE_PAYMENT_GATE', 'true').lower() in {'1', 'true', 'yes', 'on'}
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -126,7 +128,8 @@ def upload_file():
     combined_df.to_csv(output_csv_path, index=False)
 
     session['download_file'] = output_csv_name
-    session['paid'] = False
+    session['download_files'] = [output_csv_name]
+    session['paid'] = not PAYMENT_GATE_ENABLED
 
     return render_template(
         'summary.html',
@@ -150,7 +153,11 @@ def upload_file():
         bank_totals=bank_totals,
         transactions_table=table_rows,
         transactions_columns=table_columns,
+        category_breakdown=combined_summary.get('category_breakdown', []),
+        category_topline=combined_summary.get('category_topline', {}),
+        category_total_transactions=combined_summary.get('category_total_transactions', 0),
         download_link=f"/download/{output_csv_name}",
+        payment_required=PAYMENT_GATE_ENABLED,
         razorpay_key_id=os.environ.get('RAZORPAY_KEY_ID', ''),
         razorpay_amount=int(os.environ.get('RAZORPAY_AMOUNT', '0')),
         razorpay_currency=os.environ.get('RAZORPAY_CURRENCY', 'INR'),
@@ -160,18 +167,27 @@ def upload_file():
             "avg_daily_credit": combined_summary.get("avg_daily_credit"),
             "peak_debit_day": combined_summary.get("peak_debit_day"),
             "peak_credit_day": combined_summary.get("peak_credit_day"),
+            "top_category": combined_summary.get("category_topline", {}),
         }
     )
 
 @app.route('/download/<path:filename>')
 def download_file(filename):
     # Enforce payment check and ensure filename matches the one created this session
-    expected = session.get('download_file')
-    if not expected or expected != filename:
+    allowed = []
+    stored = session.get('download_files')
+    if isinstance(stored, list):
+        allowed.extend(stored)
+    legacy = session.get('download_file')
+    if isinstance(legacy, str):
+        allowed.append(legacy)
+
+    if not allowed or filename not in allowed:
         abort(403)
-    if not session.get('paid'):
+    if PAYMENT_GATE_ENABLED and not session.get('paid'):
         abort(402)  # Payment Required
     return send_file(os.path.join(OUTPUT_FOLDER, filename), as_attachment=True)
+
 
 
 def _create_razorpay_order(amount: int, currency: str, receipt: str):
@@ -211,6 +227,8 @@ def _create_razorpay_order(amount: int, currency: str, receipt: str):
 
 @app.route('/create_order', methods=['POST'])
 def create_order():
+    if not PAYMENT_GATE_ENABLED:
+        return jsonify({"error": "Payment gateway disabled"}), 400
     # Amount and currency from env
     amount = int(os.environ.get('RAZORPAY_AMOUNT', '0'))
     currency = os.environ.get('RAZORPAY_CURRENCY', 'INR')
@@ -237,6 +255,8 @@ def create_order():
 
 @app.route('/verify_payment', methods=['POST'])
 def verify_payment():
+    if not PAYMENT_GATE_ENABLED:
+        return jsonify({"ok": False, "error": "Payment gateway disabled"}), 400
     data = request.get_json(silent=True) or {}
     razorpay_order_id = data.get('razorpay_order_id')
     razorpay_payment_id = data.get('razorpay_payment_id')
