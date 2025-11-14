@@ -30,6 +30,8 @@ RENAME_MAP = {
     "value date": "Date",
     "closing balance": "Balance",
     "balance amount": "Balance",
+    "withdrawal": "Debit",
+    "deposit": "Credit",
 }
 
 
