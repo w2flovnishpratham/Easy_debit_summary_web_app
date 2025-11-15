@@ -453,52 +453,85 @@
     }
 
     .leaderboard {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 16px;
-      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
     }
 
     .leader-card {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 16px;
       border-radius: 16px;
-      padding: 18px;
       border: 1px solid rgba(15, 23, 42, 0.05);
-      background: linear-gradient(180deg, #fff, #f8fafc);
-      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 16px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    .leader-card.credit {
+      border-color: rgba(16, 185, 129, 0.25);
+    }
+
+    .leader-card.debit {
+      border-color: rgba(248, 113, 113, 0.25);
     }
 
     .leader-rank {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: rgba(37, 99, 235, 0.1);
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: rgba(37, 99, 235, 0.12);
       color: var(--accent-strong);
       font-weight: 600;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.95rem;
+      font-size: 1rem;
+    }
+
+    .leader-card.credit .leader-rank {
+      background: rgba(16, 185, 129, 0.18);
+      color: #0f766e;
+    }
+
+    .leader-card.debit .leader-rank {
+      background: rgba(248, 113, 113, 0.18);
+      color: #b91c1c;
+    }
+
+    .leader-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
     .leader-date {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: var(--text-muted);
+    }
+
+    .leader-bank {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: rgba(15, 23, 42, 0.65);
     }
 
     .leader-details {
       font-weight: 600;
       font-size: 0.95rem;
       line-height: 1.4;
-      color: #111827;
+      color: #0f172a;
     }
 
     .leader-amount {
-      margin-top: auto;
-      font-size: 1.25rem;
-      font-weight: 600;
+      font-size: 1.2rem;
+      font-weight: 700;
       color: var(--danger);
     }
 
@@ -506,12 +539,8 @@
       color: var(--success);
     }
 
-    .leader-bank {
-      font-size: 0.8rem;
-      color: var(--accent-strong);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 4px;
+    .movement-body.leaderboard {
+      padding: 12px;
     }
 
     .bank-grid {
@@ -566,8 +595,85 @@
 
     .split-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 20px;
+    }
+
+    .movement-card {
+      border-radius: 24px;
+      padding: 22px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: linear-gradient(135deg, #ffffff, #eef2ff);
+      box-shadow: 0 25px 45px rgba(15, 23, 42, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .movement-card.debit {
+      background: linear-gradient(140deg, #fff1f2, #ffe4e6);
+    }
+
+    .movement-card.credit {
+      background: linear-gradient(140deg, #ecfeff, #e0f2fe);
+    }
+
+    .movement-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+    }
+
+    .movement-eyebrow {
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .movement-header h3 {
+      margin: 8px 0 6px;
+      font-size: 1.25rem;
+      color: #0f172a;
+    }
+
+    .movement-note {
+      margin: 0;
+      font-size: 0.9rem;
+      color: rgba(15, 23, 42, 0.75);
+      line-height: 1.5;
+    }
+
+    .movement-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      color: #0f172a;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+    }
+
+    .movement-card.debit .movement-icon {
+      background: rgba(248, 113, 113, 0.18);
+      color: #b91c1c;
+    }
+
+    .movement-card.credit .movement-icon {
+      background: rgba(34, 197, 94, 0.18);
+      color: #047857;
+    }
+
+    .movement-body {
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(15, 23, 42, 0.06);
+      padding: 12px;
     }
 
     .callout-card {
@@ -658,44 +764,105 @@
       font-size: 0.85rem;
     }
 
-    .ledger-controls {
+    .chat-ledger {
       display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 12px;
-      align-items: center;
+      flex-direction: column;
+      gap: 16px;
     }
 
-    .ledger-controls input {
-      flex: 1;
-      min-width: 220px;
+    .chat-ledger-toolbar {
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      border-radius: 16px;
+      padding: 14px 16px;
+      background: var(--card-muted);
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    .chat-ledger-toolbar label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      flex: 1 1 220px;
+    }
+
+    .chat-ledger-toolbar input,
+    .chat-ledger-toolbar select {
       border-radius: 10px;
       border: 1px solid var(--border);
-      padding: 10px 14px;
+      padding: 10px 12px;
       font-size: 0.95rem;
+      font-family: inherit;
     }
 
-    #ledgerTable {
-      width: 100%;
-      border-collapse: collapse;
+    .chat-ledger-response {
+      border: 1px dashed rgba(15, 23, 42, 0.15);
+      border-radius: 16px;
+      padding: 18px;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.02);
+    }
+
+    .chat-ledger-response strong {
+      font-size: 1rem;
+      color: var(--accent-strong);
+    }
+
+    .chat-ledger-cards {
+      display: grid;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .chat-ledger-card {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .chat-ledger-card h4 {
+      margin: 0 0 4px;
+      font-size: 0.95rem;
+      color: #0f172a;
+    }
+
+    .chat-ledger-card p {
+      margin: 0;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .chat-ledger-amount {
+      font-weight: 700;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      color: var(--accent-strong);
+    }
+
+    .chat-ledger-empty {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.04);
+      color: var(--text-muted);
       font-size: 0.9rem;
     }
 
-    #ledgerTable th,
-    #ledgerTable td {
-      padding: 10px 12px;
-      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-    }
-
-    #ledgerTable th {
-      background: rgba(15, 23, 42, 0.04);
-      text-align: left;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    #ledgerTable tr:nth-child(even) td {
-      background: rgba(15, 23, 42, 0.015);
+    .chat-ledger-hint {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.85rem;
     }
 
     @media (max-width: 600px) {
@@ -705,6 +872,11 @@
 
       .hero h1 {
         font-size: 1.6rem;
+      }
+
+      .chat-ledger-toolbar {
+        flex-direction: column;
+        align-items: stretch;
       }
 
       .cta-actions {
@@ -924,25 +1096,29 @@
       </div>
       <div class="section-body" id="body-top-movements">
         <div class="split-grid">
-          <article class="card table-card">
-            <div class="section-heading">
+          <article class="movement-card debit">
+            <div class="movement-header">
               <div>
-                <h2>Top 5 Debits</h2>
-                <p>Largest money-out instances to watch closely.</p>
+                <p class="movement-eyebrow">Money Out</p>
+                <h3>Top 5 Debits</h3>
+                <p class="movement-note">Largest money-out instances to watch closely.</p>
               </div>
+              <div class="movement-icon">⇩</div>
             </div>
-            <div class="table-wrapper" id="debitsTable">
+            <div class="movement-body table-wrapper" id="debitsTable">
               {{ top_debits|safe }}
             </div>
           </article>
-          <article class="card table-card">
-            <div class="section-heading">
+          <article class="movement-card credit">
+            <div class="movement-header">
               <div>
-                <h2>Top 5 Credits</h2>
-                <p>Biggest inflows powering the current balance.</p>
+                <p class="movement-eyebrow">Money In</p>
+                <h3>Top 5 Credits</h3>
+                <p class="movement-note">Biggest inflows powering the current balance.</p>
               </div>
+              <div class="movement-icon">⇧</div>
             </div>
-            <div class="table-wrapper" id="creditsTable">
+            <div class="movement-body table-wrapper" id="creditsTable">
               {{ top_credits|safe }}
             </div>
           </article>
@@ -1042,22 +1218,35 @@
       </div>
     </section>
 
-    <section class="section" data-section="ledger">
+    <section class="section" data-section="ledger-chat">
       <div class="section-heading">
         <div>
-          <h2>Full Transaction Ledger</h2>
-          <p>Filter and sort every row extracted from the uploaded statements.</p>
+          <h2>Ledger Chatbot</h2>
+          <p>Pick one of the planning prompts, optionally filter by a keyword, and we will surface the relevant ledger insights.</p>
         </div>
-        <button class="toggle-btn" data-target="body-ledger">Collapse</button>
+        <button class="toggle-btn" data-target="body-ledger-chat">Collapse</button>
       </div>
-      <div class="section-body" id="body-ledger">
+      <div class="section-body" id="body-ledger-chat">
         <article class="card table-card">
-          <div class="ledger-controls">
-            <input type="search" id="ledgerSearch" placeholder="Search by any field...">
-            <span id="ledgerCount" style="font-size:0.9rem;color:var(--text-muted);"></span>
-          </div>
-          <div class="table-wrapper" style="max-height:480px;overflow:auto;">
-            <table id="ledgerTable"></table>
+          <div class="chat-ledger">
+            <div class="chat-ledger-toolbar">
+              <label style="flex:2 1 300px;">
+                Pick a question
+                <select id="chatLedgerSelect">
+                  <option value="">Select a planning prompt</option>
+                </select>
+              </label>
+              <label style="flex:1 1 220px;">
+                Keyword filter (required)
+                <input type="text" id="chatLedgerFilter" placeholder="e.g. rent, salary, vendor name">
+              </label>
+              <button type="button" class="btn primary" id="chatLedgerRun" style="flex:0 0 auto;">Ask</button>
+            </div>
+            <div class="chat-ledger-response" id="chatLedgerResponse">
+              <strong>Ledger assistant ready</strong>
+              <p class="chat-ledger-hint">Choose a question, enter a keyword, and hit Ask to interrogate the ledger.</p>
+              <div class="chat-ledger-cards" id="chatLedgerCards"></div>
+            </div>
           </div>
         </article>
       </div>
@@ -1470,121 +1659,809 @@
     applyFilter();
   </script>
 
+
   <script>
     (function() {
       const ledgerData = {{ transactions_table|tojson }};
-      const ledgerColumns = {{ transactions_columns|tojson }};
-      const table = document.getElementById('ledgerTable');
-      const countEl = document.getElementById('ledgerCount');
-      const searchInput = document.getElementById('ledgerSearch');
-      let currentRows = ledgerData.slice();
-      let sortState = { key: null, asc: true };
+      const promptSelect = document.getElementById('chatLedgerSelect');
+      const responseContainer = document.getElementById('chatLedgerResponse');
+      const filterInput = document.getElementById('chatLedgerFilter');
+      const runButton = document.getElementById('chatLedgerRun');
 
-      function formatCell(value) {
-        if (value === null || value === undefined || value === '') return '—';
-        return value;
-      }
+      if (!promptSelect || !responseContainer || !runButton) return;
 
-      function renderTable(rows) {
-        const head = `<thead><tr>${ledgerColumns.map(col => `<th data-key="${col}">${col}</th>`).join('')}</tr></thead>`;
-        const body = `<tbody>${rows.map(row => `<tr>${ledgerColumns.map(col => `<td>${formatCell(row[col])}</td>`).join('')}</tr>`).join('')}</tbody>`;
-        table.innerHTML = head + body;
-        if (countEl) countEl.textContent = `${rows.length} rows`;
-      }
+      const prompts = [
+        { id: 'credit_total', label: 'Total Credit Received from keyword' },
+        { id: 'debit_total', label: 'Total Debit Paid to keyword' },
+        { id: 'transaction_count', label: 'Number of transactions with keyword' },
+        { id: 'max_credit', label: 'Maximum single credit from keyword' },
+        { id: 'max_debit', label: 'Maximum single debit to keyword' },
+        { id: 'first_transaction', label: 'First transaction date with keyword' },
+        { id: 'last_transaction', label: 'Last transaction date with keyword' },
+        { id: 'all_transaction_dates', label: 'All transaction dates for keyword' },
+        { id: 'monthly_summary', label: 'Month-wise summary for keyword' },
+        { id: 'average_transaction', label: 'Average transaction value for keyword' },
+        { id: 'credit_vs_debit_count', label: 'Count of credits vs debits' },
+        { id: 'net_impact', label: 'Net impact (credit – debit)' },
+        { id: 'full_ledger', label: 'Full ledger extract for keyword' },
+        { id: 'busiest_day', label: 'Day with highest activity' },
+        { id: 'top_transactions', label: 'Top 5 largest transactions' },
+        { id: 'smallest_transaction', label: 'Smallest transaction involving keyword' },
+        { id: 'avg_credit_debit', label: 'Average credit vs average debit' },
+        { id: 'recent_credit_total', label: 'Credit total (last 30 days)' },
+        { id: 'recent_debit_total', label: 'Debit total (last 30 days)' },
+        { id: 'bank_distribution', label: 'Bank distribution for keyword' },
+      ];
 
-      function applySort() {
-        if (!sortState.key) return;
-        const { key, asc } = sortState;
-        currentRows.sort((a, b) => {
-          const av = a[key] ?? '';
-          const bv = b[key] ?? '';
-          const numA = parseFloat(av);
-          const numB = parseFloat(bv);
-          const bothNumeric = !isNaN(numA) && !isNaN(numB);
-          if (bothNumeric) {
-            return asc ? numA - numB : numB - numA;
-          }
-          return asc
-            ? String(av).localeCompare(String(bv))
-            : String(bv).localeCompare(String(av));
-        });
-      }
+      const moneyFormatter = typeof formatCurrency === 'function'
+        ? formatCurrency
+        : (value) => `₹${Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      const detailFields = ['Description', 'Narration', 'Details', 'Transaction Details', 'Particulars', 'Reference', 'Category', 'Mode', 'Remark'];
+      const keywordFields = detailFields.concat(['Bank', 'Account Name', 'Transaction Type']);
 
-      table.addEventListener('click', (event) => {
-        if (event.target.tagName !== 'TH') return;
-        const key = event.target.getAttribute('data-key');
-        if (!key) return;
-        if (sortState.key === key) {
-          sortState.asc = !sortState.asc;
-        } else {
-          sortState.key = key;
-          sortState.asc = true;
+      function toNumber(value) {
+        if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+        if (typeof value === 'string') {
+          const parsed = parseFloat(value.replace(/,/g, '').replace(/[^0-9.-]/g, ''));
+          return Number.isFinite(parsed) ? parsed : 0;
         }
-        applySort();
-        renderTable(currentRows);
+        return 0;
+      }
+
+      function parseLedgerDate(value) {
+        if (!value) return null;
+        const direct = new Date(value);
+        if (!Number.isNaN(direct.getTime())) return direct;
+        const fallback = new Date(`${value}T00:00:00`);
+        return Number.isNaN(fallback.getTime()) ? null : fallback;
+      }
+
+      function formatDateLabel(date) {
+        if (!date) return 'Date unavailable';
+        return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? '').replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function getRowDetails(row) {
+        for (const key of detailFields) {
+          if (row[key]) return row[key];
+        }
+        return row['Remarks'] || row['Details'] || row['Narration'] || '';
+      }
+
+      const normalizedLedger = (ledgerData || [])
+        .map((row) => {
+          const parsed = parseLedgerDate(row.Date);
+          if (!parsed) return null;
+          return { ...row, _date: parsed };
+        })
+        .filter(Boolean);
+
+      const latestDate = normalizedLedger.reduce(
+        (max, row) => row._date > max ? row._date : max,
+        new Date(0)
+      );
+
+      function keywordMatches(row, term) {
+        if (!term) return true;
+        const needle = term.toLowerCase();
+        const fields = keywordFields.filter((field) => row[field]);
+        if (fields.some((field) => String(row[field]).toLowerCase().includes(needle))) return true;
+        return Object.values(row).some((value) => typeof value === 'string' && value.toLowerCase().includes(needle));
+      }
+
+      function filterLedger(keyword) {
+        const trimmed = keyword?.trim();
+        if (!trimmed) return normalizedLedger;
+        return normalizedLedger.filter((row) => keywordMatches(row, trimmed));
+      }
+
+      function debitRows(rows) {
+        return rows.filter((row) => toNumber(row.Debit) > 0);
+      }
+
+      function creditRows(rows) {
+        return rows.filter((row) => toNumber(row.Credit) > 0);
+      }
+
+      function filterRecent(rows, lookbackDays) {
+        if (!rows.length) return [];
+        const anchor = latestDate && Number(latestDate) ? new Date(latestDate) : new Date();
+        const boundary = new Date(anchor);
+        boundary.setDate(anchor.getDate() - lookbackDays);
+        boundary.setHours(0, 0, 0, 0);
+        return rows.filter((row) => row._date && row._date >= boundary);
+      }
+
+      function startOfWeek(date) {
+        const clone = new Date(date);
+        const day = clone.getDay();
+        const diff = day === 0 ? -6 : 1 - day;
+        clone.setDate(clone.getDate() + diff);
+        clone.setHours(0, 0, 0, 0);
+        return clone;
+      }
+
+      function endOfWeek(start) {
+        const end = new Date(start);
+        end.setDate(end.getDate() + 6);
+        end.setHours(23, 59, 59, 999);
+        return end;
+      }
+
+      function startOfMonth(date) {
+        const clone = new Date(date.getFullYear(), date.getMonth(), 1);
+        clone.setHours(0, 0, 0, 0);
+        return clone;
+      }
+
+      function endOfMonth(date) {
+        const clone = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        clone.setHours(23, 59, 59, 999);
+        return clone;
+      }
+
+      function formatRange(start, end) {
+        if (!start || !end) return 'Date range unavailable';
+        const startLabel = start.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+        const endLabel = end.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        return `${startLabel} – ${endLabel}`;
+      }
+
+      function groupByPeriod(rows, period, includeCredits = false) {
+        const buckets = new Map();
+        rows.forEach((row) => {
+          if (!row._date) return;
+          const debitAmount = toNumber(row.Debit);
+          const creditAmount = includeCredits ? toNumber(row.Credit) : 0;
+          const amount = debitAmount + creditAmount;
+          if (!amount) return;
+          let key;
+          let label;
+          let start;
+          let end;
+          if (period === 'day') {
+            key = row._date.toISOString().slice(0, 10);
+            start = end = row._date;
+            label = formatDateLabel(row._date);
+          } else if (period === 'week') {
+            start = startOfWeek(row._date);
+            end = endOfWeek(start);
+            key = `${start.getFullYear()}-W${start.getMonth()}-${start.getDate()}`;
+            label = formatRange(start, end);
+          } else if (period === 'month') {
+            start = startOfMonth(row._date);
+            end = endOfMonth(row._date);
+            key = `${start.getFullYear()}-${start.getMonth()}`;
+            label = start.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+          }
+          if (!key) return;
+          const bucket = buckets.get(key) || { key, total: 0, debit: 0, credit: 0, label, start, end, count: 0 };
+          bucket.total += amount;
+          bucket.debit += debitAmount;
+          bucket.credit += creditAmount;
+          bucket.count += 1;
+          buckets.set(key, bucket);
+        });
+        return Array.from(buckets.values()).sort((a, b) => b.total - a.total);
+      }
+
+      function buildTransactionCard(row) {
+        const debit = toNumber(row.Debit);
+        const credit = toNumber(row.Credit);
+        const isCredit = credit >= debit;
+        const detail = getRowDetails(row) || 'Details unavailable';
+        const bank = row.Bank || row.bank || '';
+        const date = formatDateLabel(row._date || parseLedgerDate(row.Date));
+        return `
+          <div class="chat-ledger-card">
+            <div>
+              <h4>${escapeHtml(detail)}</h4>
+              <p>${escapeHtml(date)}${bank ? ` · ${escapeHtml(bank)}` : ''}</p>
+            </div>
+            <div class="chat-ledger-amount">${isCredit ? 'Credit' : 'Debit'} ${escapeHtml(moneyFormatter(Math.abs(isCredit ? credit : debit)))}</div>
+          </div>
+        `;
+      }
+
+      function buildAggregateCards(items, type) {
+        if (!items.length) return '';
+        return items.map((item, index) => `
+          <div class="leader-card ${type}">
+            <span class="leader-rank">${index + 1}</span>
+            <div class="leader-info">
+              <div class="leader-date">${escapeHtml(item.label || '')}</div>
+              <div class="leader-details">${escapeHtml(item.subtitle || '')}</div>
+            </div>
+            <div class="leader-amount">${moneyFormatter(item.total || 0)}</div>
+          </div>
+        `).join('');
+      }
+
+      function renderList(items) {
+        if (!items.length) return '';
+        return `
+          <ul style="margin:0;padding-left:18px;display:grid;gap:4px;">
+            ${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}
+          </ul>
+        `;
+      }
+
+      function calculateDailyStats(rows, windowDays = 30) {
+        const recent = filterRecent(rows, windowDays);
+        const grouped = groupByPeriod(recent, 'day');
+        if (!grouped.length) {
+          return { total: 0, average: 0, days: 0 };
+        }
+        const total = grouped.reduce((sum, bucket) => sum + (bucket.total || 0), 0);
+        const days = grouped.length;
+        return { total, average: days ? total / days : 0, days };
+      }
+
+      const blueprints = {
+        credit_total: {
+          handler: (keyword) => {
+            const credits = creditRows(filterLedger(keyword));
+            const total = credits.reduce((sum, row) => sum + toNumber(row.Credit), 0);
+            return {
+              title: 'Total credit received from keyword',
+              summary: credits.length
+                ? `${moneyFormatter(total)} was credited across ${credits.length} transaction${credits.length === 1 ? '' : 's'} containing the keyword.`
+                : 'No credit transactions match this keyword.',
+              rows: credits,
+              limit: 5,
+            };
+          },
+        },
+        debit_total: {
+          handler: (keyword) => {
+            const debits = debitRows(filterLedger(keyword));
+            const total = debits.reduce((sum, row) => sum + toNumber(row.Debit), 0);
+            return {
+              title: 'Total debit paid to keyword',
+              summary: debits.length
+                ? `${moneyFormatter(total)} was debited across ${debits.length} transaction${debits.length === 1 ? '' : 's'} containing the keyword.`
+                : 'No debit transactions match this keyword.',
+              rows: debits,
+              limit: 5,
+            };
+          },
+        },
+        transaction_count: {
+          handler: (keyword) => {
+            const matches = filterLedger(keyword);
+            return {
+              title: 'Number of transactions with keyword',
+              summary: matches.length
+                ? `${matches.length} transaction${matches.length === 1 ? '' : 's'} include the keyword.`
+                : 'No transactions mention this keyword.',
+              rows: matches,
+              limit: 5,
+            };
+          },
+        },
+        max_credit: {
+          handler: (keyword) => {
+            const credits = creditRows(filterLedger(keyword));
+            if (!credits.length) {
+              return {
+                title: 'Maximum single credit',
+                summary: 'No credit transactions contain this keyword.',
+                emptyMessage: 'Try another keyword or upload statements with credits.',
+              };
+            }
+            const sorted = credits.slice().sort((a, b) => toNumber(b.Credit) - toNumber(a.Credit));
+            const top = sorted[0];
+            return {
+              title: 'Maximum single credit',
+              summary: `Highest credit was ${moneyFormatter(toNumber(top.Credit))} on ${formatDateLabel(top._date)}.`,
+              rows: sorted,
+              limit: 5,
+            };
+          },
+        },
+        max_debit: {
+          handler: (keyword) => {
+            const debits = debitRows(filterLedger(keyword));
+            if (!debits.length) {
+              return {
+                title: 'Maximum single debit',
+                summary: 'No debit transactions contain this keyword.',
+                emptyMessage: 'Try another keyword or upload statements with spends.',
+              };
+            }
+            const sorted = debits.slice().sort((a, b) => toNumber(b.Debit) - toNumber(a.Debit));
+            const top = sorted[0];
+            return {
+              title: 'Maximum single debit',
+              summary: `Highest debit was ${moneyFormatter(toNumber(top.Debit))} on ${formatDateLabel(top._date)}.`,
+              rows: sorted,
+              limit: 5,
+            };
+          },
+        },
+        first_transaction: {
+          handler: (keyword) => {
+            const matches = filterLedger(keyword).slice().sort((a, b) => a._date - b._date);
+            const first = matches[0];
+            return {
+              title: 'First transaction date',
+              summary: first
+                ? `First tracked transaction was on ${formatDateLabel(first._date)}.`
+                : 'No transactions match this keyword.',
+              rows: first ? [first] : [],
+              limit: 1,
+            };
+          },
+        },
+        last_transaction: {
+          handler: (keyword) => {
+            const matches = filterLedger(keyword).slice().sort((a, b) => b._date - a._date);
+            const last = matches[0];
+            return {
+              title: 'Most recent transaction date',
+              summary: last
+                ? `Latest transaction landed on ${formatDateLabel(last._date)}.`
+                : 'No transactions match this keyword.',
+              rows: last ? [last] : [],
+              limit: 1,
+            };
+          },
+        },
+        all_transaction_dates: {
+          handler: (keyword) => {
+            const dates = Array.from(new Set(filterLedger(keyword).map((row) => row._date ? row._date.toISOString().slice(0, 10) : null).filter(Boolean)));
+            const formatted = dates.map((iso) => {
+              const parsed = parseLedgerDate(iso);
+              return formatDateLabel(parsed);
+            });
+            return {
+              title: 'All transaction dates',
+              summary: formatted.length
+                ? `Transactions happened on ${formatted.length} distinct date${formatted.length === 1 ? '' : 's'}.`
+                : 'No transaction dates available for this keyword.',
+              listHtml: renderList(formatted),
+            };
+          },
+        },
+        monthly_summary: {
+          handler: (keyword) => {
+            const rows = filterLedger(keyword);
+            const buckets = groupByPeriod(rows, 'month', true);
+            if (!buckets.length) {
+              return {
+                title: 'Month-wise summary',
+                summary: 'No monthly activity detected for this keyword.',
+                emptyMessage: 'Upload more statements or adjust the keyword filter.',
+              };
+            }
+            const cards = buckets.slice(0, 6).map((bucket, index) => `
+              <div class="leader-card ${bucket.debit >= bucket.credit ? 'debit' : 'credit'}">
+                <span class="leader-rank">${index + 1}</span>
+                <div class="leader-info">
+                  <div class="leader-date">${escapeHtml(bucket.label || '')}</div>
+                  <div class="leader-details">Credit: ${moneyFormatter(bucket.credit)} · Debit: ${moneyFormatter(bucket.debit)}</div>
+                </div>
+                <div class="leader-amount">${moneyFormatter(bucket.credit - bucket.debit)}</div>
+              </div>
+            `).join('');
+            return {
+              title: 'Month-wise summary',
+              summary: 'Top months ranked by combined credit and debit impact.',
+              cardsHtml: cards,
+            };
+          },
+        },
+        average_transaction: {
+          handler: (keyword) => {
+            const rows = filterLedger(keyword);
+            if (!rows.length) {
+              return {
+                title: 'Average transaction value',
+                summary: 'Need at least one transaction to compute an average.',
+                emptyMessage: 'Adjust the keyword filter to include active rows.',
+              };
+            }
+            const amounts = rows.map((row) => Math.abs(toNumber(row.Credit) || toNumber(row.Debit)));
+            const avg = amounts.reduce((sum, value) => sum + value, 0) / amounts.length;
+            return {
+              title: 'Average transaction value',
+              summary: `Average line item against this keyword is ${moneyFormatter(avg)}.`,
+              rows,
+              limit: 5,
+            };
+          },
+        },
+        credit_vs_debit_count: {
+          handler: (keyword) => {
+            const rows = filterLedger(keyword);
+            const creditCount = rows.filter((row) => toNumber(row.Credit) > 0).length;
+            const debitCount = rows.filter((row) => toNumber(row.Debit) > 0).length;
+            const cards = `
+              <div class="leader-card credit">
+                <span class="leader-rank">+</span>
+                <div class="leader-info">
+                  <div class="leader-date">Credits</div>
+                  <div class="leader-details">Matching rows</div>
+                </div>
+                <div class="leader-amount">${creditCount}</div>
+              </div>
+              <div class="leader-card debit">
+                <span class="leader-rank">-</span>
+                <div class="leader-info">
+                  <div class="leader-date">Debits</div>
+                  <div class="leader-details">Matching rows</div>
+                </div>
+                <div class="leader-amount">${debitCount}</div>
+              </div>
+            `;
+            return {
+              title: 'Credit vs debit count',
+              summary: rows.length
+                ? 'Breakdown of credit vs debit occurrences for this keyword.'
+                : 'No transactions match this keyword.',
+              cardsHtml: rows.length ? cards : '',
+              emptyMessage: rows.length ? '' : 'Try another keyword to see counts.',
+            };
+          },
+        },
+        net_impact: {
+          handler: (keyword) => {
+            const rows = filterLedger(keyword);
+            if (!rows.length) {
+              return {
+                title: 'Net impact',
+                summary: 'No transactions match this keyword.',
+                emptyMessage: 'Upload more statements or adjust the keyword.',
+              };
+            }
+            const totalCredit = rows.reduce((sum, row) => sum + toNumber(row.Credit), 0);
+            const totalDebit = rows.reduce((sum, row) => sum + toNumber(row.Debit), 0);
+            const net = totalCredit - totalDebit;
+            return {
+              title: 'Net impact (credit – debit)',
+              summary: `Net balance shift is ${moneyFormatter(net)} (Credits ${moneyFormatter(totalCredit)} minus Debits ${moneyFormatter(totalDebit)}).`,
+              rows,
+              limit: 5,
+            };
+          },
+        },
+        full_ledger: {
+          handler: (keyword) => {
+            const rows = filterLedger(keyword);
+            return {
+              title: 'Full ledger extract for keyword',
+              summary: rows.length
+                ? `Showing up to 10 rows matching the keyword (total ${rows.length}).`
+                : 'No ledger rows match this keyword.',
+              rows,
+              limit: 10,
+            };
+          },
+        },
+        busiest_day: {
+          handler: (keyword) => {
+            const rows = filterLedger(keyword);
+            const buckets = groupByPeriod(rows, 'day', true);
+            if (!buckets.length) {
+              return {
+                title: 'Day with highest activity',
+                summary: 'No ledger rows were found for this keyword.',
+                emptyMessage: 'Add more statements or try another keyword.',
+              };
+            }
+            buckets.sort((a, b) => b.count - a.count || b.total - a.total);
+            const top = buckets[0];
+            const busyBuckets = buckets.slice(0, 5).map((bucket) => ({
+              ...bucket,
+              subtitle: `${bucket.count} transaction${bucket.count === 1 ? '' : 's'}`,
+              total: bucket.total || 0,
+            }));
+            return {
+              title: 'Day with highest activity',
+              summary: `${top.label} had ${top.count} transaction${top.count === 1 ? '' : 's'} involving this keyword.`,
+              cardsHtml: buildAggregateCards(busyBuckets, 'debit'),
+            };
+          },
+        },
+        top_transactions: {
+          handler: (keyword) => {
+            const rows = filterLedger(keyword);
+            if (!rows.length) {
+              return {
+                title: 'Top 5 largest transactions',
+                summary: 'No rows match this keyword.',
+                emptyMessage: 'Upload statements containing this keyword.',
+              };
+            }
+            const sorted = rows.slice().sort((a, b) => {
+              const aVal = Math.max(toNumber(a.Debit), toNumber(a.Credit));
+              const bVal = Math.max(toNumber(b.Debit), toNumber(b.Credit));
+              return bVal - aVal;
+            });
+            return {
+              title: 'Top 5 largest transactions',
+              summary: 'Largest line items involving the keyword.',
+              rows: sorted,
+              limit: 5,
+            };
+          },
+        },
+        smallest_transaction: {
+          handler: (keyword) => {
+            const rows = filterLedger(keyword);
+            if (!rows.length) {
+              return {
+                title: 'Smallest transaction',
+                summary: 'No rows match this keyword.',
+                emptyMessage: 'Upload statements containing this keyword.',
+              };
+            }
+            const sorted = rows.slice().sort((a, b) => {
+              const aVal = Math.abs(toNumber(a.Credit)) || Math.abs(toNumber(a.Debit));
+              const bVal = Math.abs(toNumber(b.Credit)) || Math.abs(toNumber(b.Debit));
+              return aVal - bVal;
+            });
+            return {
+              title: 'Smallest transaction',
+              summary: 'Smallest amount tagged with the keyword.',
+              rows: sorted,
+              limit: 5,
+            };
+          },
+        },
+        avg_credit_debit: {
+          handler: (keyword) => {
+            const rows = filterLedger(keyword);
+            const credits = creditRows(rows);
+            const debits = debitRows(rows);
+            if (!rows.length) {
+              return {
+                title: 'Average credit vs average debit',
+                summary: 'No transactions match this keyword.',
+                emptyMessage: 'Upload more statements or adjust the filter.',
+              };
+            }
+            const avgCredit = credits.length ? credits.reduce((sum, row) => sum + toNumber(row.Credit), 0) / credits.length : 0;
+            const avgDebit = debits.length ? debits.reduce((sum, row) => sum + toNumber(row.Debit), 0) / debits.length : 0;
+            const cards = `
+              <div class="leader-card credit">
+                <span class="leader-rank">Avg+</span>
+                <div class="leader-info">
+                  <div class="leader-date">Average credit</div>
+                  <div class="leader-details">${credits.length} transaction${credits.length === 1 ? '' : 's'}</div>
+                </div>
+                <div class="leader-amount">${moneyFormatter(avgCredit)}</div>
+              </div>
+              <div class="leader-card debit">
+                <span class="leader-rank">Avg-</span>
+                <div class="leader-info">
+                  <div class="leader-date">Average debit</div>
+                  <div class="leader-details">${debits.length} transaction${debits.length === 1 ? '' : 's'}</div>
+                </div>
+                <div class="leader-amount">${moneyFormatter(avgDebit)}</div>
+              </div>
+            `;
+            return {
+              title: 'Average credit vs average debit',
+              summary: 'Quick comparison of averages for this keyword.',
+              cardsHtml: cards,
+            };
+          },
+        },
+        recent_credit_total: {
+          handler: (keyword) => {
+            const credits = creditRows(filterLedger(keyword));
+            const recent = filterRecent(credits, 30);
+            const total = recent.reduce((sum, row) => sum + toNumber(row.Credit), 0);
+            return {
+              title: 'Credit total (last 30 days)',
+              summary: recent.length
+                ? `${recent.length} credit transaction${recent.length === 1 ? '' : 's'} credited ${moneyFormatter(total)} in the last 30 days.`
+                : 'No credit transactions landed in the last 30 days for this keyword.',
+              rows: recent,
+              limit: 5,
+            };
+          },
+        },
+        recent_debit_total: {
+          handler: (keyword) => {
+            const debits = debitRows(filterLedger(keyword));
+            const recent = filterRecent(debits, 30);
+            const total = recent.reduce((sum, row) => sum + toNumber(row.Debit), 0);
+            return {
+              title: 'Debit total (last 30 days)',
+              summary: recent.length
+                ? `${recent.length} debit transaction${recent.length === 1 ? '' : 's'} consumed ${moneyFormatter(total)} in the last 30 days.`
+                : 'No debit transactions landed in the last 30 days for this keyword.',
+              rows: recent,
+              limit: 5,
+            };
+          },
+        },
+        bank_distribution: {
+          handler: (keyword) => {
+            const rows = filterLedger(keyword);
+            const counts = rows.reduce((acc, row) => {
+              const bank = row.Bank || row.bank || 'Unknown';
+              acc[bank] = (acc[bank] || 0) + 1;
+              return acc;
+            }, {});
+            const ranked = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+            if (!ranked.length) {
+              return {
+                title: 'Bank distribution',
+                summary: 'No rows available to rank banks.',
+                emptyMessage: 'Upload statements or adjust the keyword filter.',
+              };
+            }
+            const cards = ranked.slice(0, 6).map(([bank, count], index) => `
+              <div class="leader-card credit">
+                <span class="leader-rank">${index + 1}</span>
+                <div class="leader-info">
+                  <div class="leader-date">${escapeHtml(bank)}</div>
+                  <div class="leader-details">Matching rows</div>
+                </div>
+                <div class="leader-amount">${count}</div>
+              </div>
+            `).join('');
+            return {
+              title: 'Bank distribution',
+              summary: 'Banks ranked by number of transactions involving the keyword.',
+              cardsHtml: cards,
+            };
+          },
+        },
+      };
+
+      function renderResult(result) {
+        const title = result?.title || 'Ledger insight';
+        const summary = result?.summary || 'No summary available.';
+        const detail = result?.detail;
+        responseContainer.innerHTML = `
+          <strong>${escapeHtml(title)}</strong>
+          <p class="chat-ledger-hint">${escapeHtml(summary)}</p>
+          ${detail ? `<p class="chat-ledger-hint">${escapeHtml(detail)}</p>` : ''}
+          <div class="chat-ledger-cards" id="chatLedgerCards"></div>
+        `;
+        const cardsHost = document.getElementById('chatLedgerCards');
+        if (!cardsHost) return;
+        if (result?.listHtml) {
+          cardsHost.innerHTML = result.listHtml;
+          return;
+        }
+        if (result?.cardsHtml) {
+          cardsHost.innerHTML = result.cardsHtml;
+          return;
+        }
+        if (result?.rows && result.rows.length) {
+          const limit = typeof result.limit === 'number' ? result.limit : 5;
+          cardsHost.innerHTML = result.rows.slice(0, limit).map(buildTransactionCard).join('');
+        } else {
+          cardsHost.innerHTML = `<p class="chat-ledger-empty">${escapeHtml(result?.emptyMessage || 'No matching transactions for this prompt.')}</p>`;
+        }
+      }
+
+      function runPrompt(id) {
+        const blueprint = blueprints[id];
+        if (!blueprint) {
+          renderResult({
+            title: 'Prompt unavailable',
+            summary: 'Please pick one of the listed prompts.',
+            emptyMessage: 'Select another option to continue.',
+          });
+          return;
+        }
+        const keyword = filterInput?.value?.trim();
+        const payload = blueprint.handler(keyword);
+        renderResult(payload);
+      }
+
+      let activePrompt = '';
+      promptSelect.innerHTML += prompts.map((prompt, index) => `
+        <option value="${prompt.id}">${index + 1}. ${escapeHtml(prompt.label)}</option>
+      `).join('');
+
+      promptSelect.addEventListener('change', () => {
+        activePrompt = promptSelect.value;
       });
 
-      searchInput?.addEventListener('input', () => {
-        const needle = searchInput.value.trim().toLowerCase();
-        currentRows = ledgerData.filter((row) =>
-          ledgerColumns.some((col) => String(row[col] ?? '').toLowerCase().includes(needle))
-        );
-        applySort();
-        renderTable(currentRows);
+      function handleRun(event) {
+        event?.preventDefault();
+        if (!activePrompt) {
+          renderResult({
+            title: 'Pick a question',
+            summary: 'Select one of the dropdown options before asking the ledger.',
+            emptyMessage: 'No prompt selected yet.',
+          });
+          return;
+        }
+        const keyword = filterInput?.value?.trim();
+        if (!keyword) {
+          renderResult({
+            title: 'Keyword required',
+            summary: 'All questions need a keyword. Enter one (e.g. client name, payee) and try again.',
+            emptyMessage: 'Waiting for a keyword.',
+          });
+          return;
+        }
+        runPrompt(activePrompt);
+      }
+
+      runButton.addEventListener('click', handleRun);
+      filterInput?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          handleRun(event);
+        }
       });
 
-      renderTable(currentRows);
+      renderResult({
+        title: 'Ledger assistant ready',
+        summary: 'Select a question, enter a keyword (client, vendor, etc.), and press Ask.',
+        rows: [],
+        emptyMessage: 'Results will appear once a prompt is selected.',
+      });
     })();
   </script>
 
   <script>
-    function enhanceLeaderboard(wrapperId, isCredit) {
-      const wrapper = document.getElementById(wrapperId);
-      if (!wrapper) return;
-      const table = wrapper.querySelector('table');
-      if (!table) return;
-      const rows = Array.from(table.querySelectorAll('tbody tr'));
-      if (!rows.length) {
-        wrapper.innerHTML = '<p style="padding:16px;color:var(--text-muted);">No transactions available.</p>';
-        return;
-      }
-
-      const cards = rows.map((row, index) => {
-        const cells = Array.from(row.children).map((cell) => cell.textContent.trim());
-        const date = cells[0] || '—';
-        const hasBankColumn = cells.length >= 4;
-        const bank = hasBankColumn ? cells[1] : '';
-        const detailsStart = hasBankColumn ? 2 : 1;
-        const amountCell = cells[cells.length - 1] || '';
-        const detailsArray = cells.slice(detailsStart, cells.length - 1);
-        const details = detailsArray.length ? detailsArray.join(' ') : (cells[detailsStart] || 'Details unavailable');
-        const numeric = Number((amountCell || '').replace(/[^0-9.-]/g, ''));
-        const formattedAmount = Number.isFinite(numeric)
-          ? `₹${numeric.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-          : amountCell;
-        const badge = isCredit ? 'credit' : 'debit';
-        return `
-          <div class="leader-card ${badge}">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+    (function() {
+      function enhanceLeaderboard(wrapperId, isCredit) {
+        const wrapper = document.getElementById(wrapperId);
+        if (!wrapper) return;
+        const table = wrapper.querySelector('table');
+        if (!table) {
+          wrapper.innerHTML = '<p style="padding:16px;color:var(--text-muted);">No transactions available.</p>';
+          return;
+        }
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+        if (!rows.length) {
+          wrapper.innerHTML = '<p style="padding:16px;color:var(--text-muted);">No transactions available.</p>';
+          return;
+        }
+        const cards = rows.map((row, index) => {
+          const cells = Array.from(row.children).map((cell) => cell.textContent.trim());
+          const date = cells[0] || '—';
+          const hasBankColumn = cells.length >= 4;
+          const bank = hasBankColumn ? cells[1] : '';
+          const detailsStart = hasBankColumn ? 2 : 1;
+          const amountCell = cells[cells.length - 1] || '';
+          const detailsArray = cells.slice(detailsStart, cells.length - 1);
+          const details = detailsArray.length ? detailsArray.join(' ') : (cells[detailsStart] || 'Details unavailable');
+          const numeric = Number((amountCell || '').replace(/[^0-9.-]/g, ''));
+          const formattedAmount = Number.isFinite(numeric)
+            ? `₹${numeric.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : amountCell;
+          const badge = isCredit ? 'credit' : 'debit';
+          return `
+            <div class="leader-card ${badge}">
               <span class="leader-rank">${index + 1}</span>
-              <div style="flex:1;">
+              <div class="leader-info">
                 <div class="leader-date">${date || '—'}</div>
                 ${bank ? `<div class="leader-bank">${bank}</div>` : ''}
                 <div class="leader-details">${details || 'Details unavailable'}</div>
               </div>
+              <div class="leader-amount">${formattedAmount || '₹0.00'}</div>
             </div>
-            <div class="leader-amount">${formattedAmount || '₹0.00'}</div>
-          </div>
-        `;
-      }).join('');
+          `;
+        }).join('');
 
-      wrapper.classList.add('leaderboard');
-      wrapper.innerHTML = cards;
-    }
+        wrapper.classList.add('leaderboard');
+        wrapper.innerHTML = cards;
+      }
 
-    enhanceLeaderboard('debitsTable', false);
-    enhanceLeaderboard('creditsTable', true);
+      enhanceLeaderboard('debitsTable', false);
+      enhanceLeaderboard('creditsTable', true);
+    })();
   </script>
+
 
   {% if payment_required %}
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
