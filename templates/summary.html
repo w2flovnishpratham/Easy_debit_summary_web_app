@@ -816,41 +816,6 @@
       color: var(--accent-strong);
     }
 
-    .chat-ledger-cards {
-      display: grid;
-      gap: 12px;
-      margin-top: 6px;
-    }
-
-    .chat-ledger-card {
-      padding: 12px 14px;
-      border-radius: 12px;
-      border: 1px solid rgba(15, 23, 42, 0.08);
-      background: #fff;
-      display: flex;
-      justify-content: space-between;
-      gap: 14px;
-    }
-
-    .chat-ledger-card h4 {
-      margin: 0 0 4px;
-      font-size: 0.95rem;
-      color: #0f172a;
-    }
-
-    .chat-ledger-card p {
-      margin: 0;
-      font-size: 0.82rem;
-      color: var(--text-muted);
-    }
-
-    .chat-ledger-amount {
-      font-weight: 700;
-      font-size: 0.95rem;
-      white-space: nowrap;
-      color: var(--accent-strong);
-    }
-
     .chat-ledger-empty {
       padding: 12px;
       border-radius: 12px;
@@ -863,6 +828,49 @@
       margin: 0;
       color: var(--text-muted);
       font-size: 0.85rem;
+    }
+
+    .chat-ledger-table {
+      margin-top: 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: rgba(255, 255, 255, 0.95);
+      overflow-x: auto;
+    }
+
+    .chat-ledger-table table {
+      width: 100%;
+      min-width: 520px;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .chat-ledger-table th,
+    .chat-ledger-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .chat-ledger-table th {
+      background: rgba(15, 23, 42, 0.04);
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .chat-ledger-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .chat-ledger-table td.credit {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .chat-ledger-table td.debit {
+      color: var(--danger);
+      font-weight: 600;
     }
 
     @media (max-width: 600px) {
@@ -1246,6 +1254,7 @@
               <strong>Ledger assistant ready</strong>
               <p class="chat-ledger-hint">Choose a question, enter a keyword, and hit Ask to interrogate the ledger.</p>
               <div class="chat-ledger-cards" id="chatLedgerCards"></div>
+              <div class="chat-ledger-table" id="chatLedgerTable"></div>
             </div>
           </div>
         </article>
@@ -1729,13 +1738,6 @@
           .replace(/'/g, '&#39;');
       }
 
-      function getRowDetails(row) {
-        for (const key of detailFields) {
-          if (row[key]) return row[key];
-        }
-        return row['Remarks'] || row['Details'] || row['Narration'] || '';
-      }
-
       const normalizedLedger = (ledgerData || [])
         .map((row) => {
           const parsed = parseLedgerDate(row.Date);
@@ -1853,22 +1855,8 @@
         return Array.from(buckets.values()).sort((a, b) => b.total - a.total);
       }
 
-      function buildTransactionCard(row) {
-        const debit = toNumber(row.Debit);
-        const credit = toNumber(row.Credit);
-        const isCredit = credit >= debit;
-        const detail = getRowDetails(row) || 'Details unavailable';
-        const bank = row.Bank || row.bank || '';
-        const date = formatDateLabel(row._date || parseLedgerDate(row.Date));
-        return `
-          <div class="chat-ledger-card">
-            <div>
-              <h4>${escapeHtml(detail)}</h4>
-              <p>${escapeHtml(date)}${bank ? ` · ${escapeHtml(bank)}` : ''}</p>
-            </div>
-            <div class="chat-ledger-amount">${isCredit ? 'Credit' : 'Debit'} ${escapeHtml(moneyFormatter(Math.abs(isCredit ? credit : debit)))}</div>
-          </div>
-        `;
+      function getCategory(row) {
+        return row['Payment Category'] || row['Category'] || row['Mode'] || row['Transaction Type'] || '—';
       }
 
       function buildAggregateCards(items, type) {
@@ -1891,6 +1879,41 @@
           <ul style="margin:0;padding-left:18px;display:grid;gap:4px;">
             ${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}
           </ul>
+        `;
+      }
+
+      function buildTransactionTable(rows, limit = 30) {
+        if (!rows.length) return '';
+        const subset = rows.slice(0, limit);
+        const body = subset.map((row) => {
+          const date = formatDateLabel(row._date || parseLedgerDate(row.Date));
+          const debit = toNumber(row.Debit);
+          const credit = toNumber(row.Credit);
+          const isCredit = credit >= debit;
+          const amount = moneyFormatter(Math.abs(isCredit ? credit : debit));
+          const symbol = isCredit ? '+' : '-';
+          const category = getCategory(row);
+          const bank = row.Bank || row.bank || '—';
+          const amountClass = isCredit ? 'credit' : 'debit';
+          return `<tr>
+            <td>${escapeHtml(date)}</td>
+            <td class="${amountClass}">${symbol}${escapeHtml(amount)}</td>
+            <td>${escapeHtml(category)}</td>
+            <td>${escapeHtml(bank)}</td>
+          </tr>`;
+        }).join('');
+        return `
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Payment Category</th>
+                <th>Bank</th>
+              </tr>
+            </thead>
+            <tbody>${body}</tbody>
+          </table>
         `;
       }
 
@@ -2330,22 +2353,23 @@
           <p class="chat-ledger-hint">${escapeHtml(summary)}</p>
           ${detail ? `<p class="chat-ledger-hint">${escapeHtml(detail)}</p>` : ''}
           <div class="chat-ledger-cards" id="chatLedgerCards"></div>
+          <div class="chat-ledger-table" id="chatLedgerTable"></div>
         `;
         const cardsHost = document.getElementById('chatLedgerCards');
-        if (!cardsHost) return;
+        const tableHost = document.getElementById('chatLedgerTable');
+        if (!cardsHost || !tableHost) return;
         if (result?.listHtml) {
           cardsHost.innerHTML = result.listHtml;
-          return;
-        }
-        if (result?.cardsHtml) {
+        } else if (result?.cardsHtml) {
           cardsHost.innerHTML = result.cardsHtml;
-          return;
-        }
-        if (result?.rows && result.rows.length) {
-          const limit = typeof result.limit === 'number' ? result.limit : 5;
-          cardsHost.innerHTML = result.rows.slice(0, limit).map(buildTransactionCard).join('');
         } else {
-          cardsHost.innerHTML = `<p class="chat-ledger-empty">${escapeHtml(result?.emptyMessage || 'No matching transactions for this prompt.')}</p>`;
+          cardsHost.innerHTML = '';
+        }
+
+        if (result?.rows && result.rows.length) {
+          tableHost.innerHTML = buildTransactionTable(result.rows, 50);
+        } else {
+          tableHost.innerHTML = '';
         }
       }
 
