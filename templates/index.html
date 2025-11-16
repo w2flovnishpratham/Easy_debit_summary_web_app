@@ -123,7 +123,7 @@
       font-size: 1.1rem;
     }
 
-    select, input[type="file"] {
+    select, input[type="file"], input[type="password"] {
       width: 100%;
       padding: 14px 16px;
       border-radius: 12px;
@@ -135,10 +135,17 @@
       font-family: "Poppins", sans-serif;
     }
 
-    select:focus, input[type="file"]:focus {
+    select:focus, input[type="file"]:focus, input[type="password"]:focus {
       outline: none;
       border-color: var(--accent-cyan);
       box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
+    }
+
+    .password-hint {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: -6px;
+      line-height: 1.3;
     }
 
     .primary-btn {
@@ -407,7 +414,7 @@
       .primary-btn {
         width: 100%;
       }
-      select, input[type="file"] {
+      select, input[type="file"], input[type="password"] {
         font-size: 16px; /* prevent iOS zoom */
       }
       footer {
@@ -460,6 +467,12 @@
             <div class="form-group">
               <label>Upload PDF Statement</label>
               <input type="file" name="pdf_file[]" id="choosePdf" accept="application/pdf" required>
+            </div>
+
+            <div class="form-group">
+              <label>Statement Password (optional)</label>
+              <input type="password" name="pdf_password[]" placeholder="Enter password if the PDF is locked">
+              <small class="password-hint" data-default-hint="Optional: only needed when your bank locks the PDF.">Optional: only needed when your bank locks the PDF.</small>
             </div>
 
             <button type="button" class="remove-block">Remove</button>
@@ -552,6 +565,14 @@
         'AXIS': "{{ url_for('static', filename='IMAGE_4.png') }}",
         'YES': "{{ url_for('static', filename='IMAGE_5.png') }}"
       };
+      const passwordHintMap = {
+        'HDFC': 'Common pattern: first 4 digits of your Customer ID + birth year (YYYY).',
+        'ICICI': 'Common pattern: your date of birth in DDMMYYYY or the password set on the ICICI portal.',
+        'SBI': 'Common pattern: 11-digit account number or DOB in DDMMYYYY.',
+        'AXIS': 'Common pattern: registered mobile number (last 4 digits) + DOB year.',
+        'YES': 'Common pattern: Customer ID or DOB in DDMMYYYY.'
+      };
+      const defaultPasswordHint = 'Optional: only needed when your bank locks the PDF.';
 
       function updateImage(bank) {
         const fallback = 'HDFC';
@@ -563,6 +584,16 @@
           img.style.opacity = '1';
           img.style.transform = 'scale(1)';
         }, 200);
+      }
+
+      function updatePasswordHint(selectEl) {
+        if (!selectEl) return;
+        const block = selectEl.closest('.statement-block');
+        if (!block) return;
+        const hintEl = block.querySelector('.password-hint');
+        if (!hintEl) return;
+        const bank = selectEl.value || '';
+        hintEl.textContent = passwordHintMap[bank] || hintEl.dataset.defaultHint || defaultPasswordHint;
       }
 
       function updateRemoveButtons() {
@@ -578,8 +609,17 @@
         const clone = template.cloneNode(true);
         const select = clone.querySelector('select');
         const fileInput = clone.querySelector('input[type="file"]');
+        const passwordInput = clone.querySelector('input[name="pdf_password[]"]');
+        const hintEl = clone.querySelector('.password-hint');
         select.selectedIndex = 0;
         fileInput.value = '';
+        if (passwordInput) {
+          passwordInput.value = '';
+        }
+        if (hintEl) {
+          hintEl.textContent = hintEl.dataset.defaultHint || defaultPasswordHint;
+        }
+        updatePasswordHint(select);
         return clone;
       }
 
@@ -605,12 +645,16 @@
       statementList.addEventListener('change', (event) => {
         if (event.target.classList.contains('bank-select')) {
           updateImage(event.target.value);
+          updatePasswordHint(event.target);
         }
       });
 
       updateRemoveButtons();
       const firstSelect = statementList.querySelector('.bank-select');
       updateImage(firstSelect ? firstSelect.value : 'HDFC');
+      if (firstSelect) {
+        updatePasswordHint(firstSelect);
+      }
 
       form.addEventListener('submit', function() {
         
