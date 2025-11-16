@@ -14,6 +14,7 @@ import tempfile
 from typing import Optional, Tuple
 
 from PyPDF2 import PdfReader, PdfWriter
+from PyPDF2.errors import DependencyError
 
 PAYMENT_GATE_ENABLED = os.environ.get('ENABLE_PAYMENT_GATE', 'true').lower() in {'1', 'true', 'yes', 'on'}
 
@@ -37,7 +38,12 @@ def _prepare_pdf_for_processing(source_path: str, password: Optional[str], displ
 
     try:
         with open(source_path, "rb") as input_file:
-            reader = PdfReader(input_file)
+            try:
+                reader = PdfReader(input_file)
+            except DependencyError as exc:
+                raise ValueError(
+                    f"{display_name or 'PDF'} uses AES encryption. PyCryptodome must be installed on the server to decrypt it. ({exc})"
+                )
 
             if not reader.is_encrypted:
                 return source_path, None

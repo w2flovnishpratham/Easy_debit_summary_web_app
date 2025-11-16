@@ -9,3 +9,4 @@ PyPDF2==3.0.1
 openpyxl==3.1.5
 python-dotenv==1.0.1
 gunicorn==23.0.0
+pycryptodome==3.21.0
