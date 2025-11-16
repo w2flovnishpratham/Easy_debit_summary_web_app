@@ -42,15 +42,24 @@ def _prepare_pdf_for_processing(source_path: str, password: Optional[str], displ
             if not reader.is_encrypted:
                 return source_path, None
 
-            if not cleaned_password:
-                raise ValueError(f"{display_name or 'PDF'} is password protected. Please provide the password.")
-
-            try:
-                decrypt_ok = reader.decrypt(cleaned_password)
-            except Exception as exc:
-                raise ValueError(f"Failed to decrypt {display_name or 'PDF'}: {exc}")
-            if decrypt_ok == 0:
-                raise ValueError(f"Incorrect password for {display_name or 'PDF'}.")
+            decrypt_ok = 0
+            if cleaned_password:
+                try:
+                    decrypt_ok = reader.decrypt(cleaned_password)
+                except Exception as exc:
+                    raise ValueError(f"Failed to decrypt {display_name or 'PDF'}: {exc}")
+                if decrypt_ok == 0:
+                    raise ValueError(f"Incorrect password for {display_name or 'PDF'}.")
+            else:
+                # Some banks ship PDFs marked as encrypted but readable with a blank password.
+                try:
+                    decrypt_ok = reader.decrypt("")
+                    if decrypt_ok == 0:
+                        decrypt_ok = reader.decrypt(b"")
+                except Exception as exc:
+                    raise ValueError(f"Failed to inspect {display_name or 'PDF'} encryption: {exc}")
+                if decrypt_ok == 0:
+                    raise ValueError(f"{display_name or 'PDF'} is password protected. Please provide the password.")
 
             writer = PdfWriter()
             for page in reader.pages:
