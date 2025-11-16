@@ -10,6 +10,10 @@ import hmac
 import hashlib
 import urllib.request
 import urllib.error
+import tempfile
+from typing import Optional, Tuple
+
+from PyPDF2 import PdfReader, PdfWriter
 
 PAYMENT_GATE_ENABLED = os.environ.get('ENABLE_PAYMENT_GATE', 'true').lower() in {'1', 'true', 'yes', 'on'}
 
@@ -22,6 +26,49 @@ OUTPUT_FOLDER = 'outputs'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
+
+def _prepare_pdf_for_processing(source_path: str, password: Optional[str], display_name: str) -> Tuple[str, Optional[str]]:
+    """
+    Returns the path that should be fed into the extractor and, if we had to
+    create a decrypted copy, the temporary file that needs cleanup.
+    """
+    cleaned_password = (password or "").strip()
+    writer: Optional[PdfWriter] = None
+
+    try:
+        with open(source_path, "rb") as input_file:
+            reader = PdfReader(input_file)
+
+            if not reader.is_encrypted:
+                return source_path, None
+
+            if not cleaned_password:
+                raise ValueError(f"{display_name or 'PDF'} is password protected. Please provide the password.")
+
+            try:
+                decrypt_ok = reader.decrypt(cleaned_password)
+            except Exception as exc:
+                raise ValueError(f"Failed to decrypt {display_name or 'PDF'}: {exc}")
+            if decrypt_ok == 0:
+                raise ValueError(f"Incorrect password for {display_name or 'PDF'}.")
+
+            writer = PdfWriter()
+            for page in reader.pages:
+                writer.add_page(page)
+    except ValueError:
+        raise
+    except Exception as exc:
+        raise ValueError(f"Unable to read {display_name or 'PDF'}: {exc}")
+
+    if writer is None:
+        return source_path, None
+
+    fd, temp_path = tempfile.mkstemp(suffix=".pdf")
+    with os.fdopen(fd, "wb") as tmp_file:
+        writer.write(tmp_file)
+    return temp_path, temp_path
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -30,11 +77,14 @@ def index():
 def upload_file():
     banks = request.form.getlist('bank[]') or request.form.getlist('bank')
     files = request.files.getlist('pdf_file[]') or request.files.getlist('pdf_file')
+    passwords = request.form.getlist('pdf_password[]') or request.form.getlist('pdf_password')
 
     entries = []
-    for bank, file in zip(banks, files):
+    for idx, file in enumerate(files):
+        bank = banks[idx] if idx < len(banks) else ""
+        password = passwords[idx] if idx < len(passwords) else ""
         if bank and file and file.filename:
-            entries.append((bank, file))
+            entries.append((bank, file, password))
 
     if not entries:
         return 'No file uploaded', 400
@@ -43,15 +93,24 @@ def upload_file():
     normalized_frames = []
     statement_sources = []
 
-    for idx, (bank, file) in enumerate(entries, start=1):
+    for idx, (bank, file, password) in enumerate(entries, start=1):
         safe_filename = f"{batch_id}_{idx}_{file.filename}".replace(" ", "_")
         filepath = os.path.join(UPLOAD_FOLDER, safe_filename)
         file.save(filepath)
 
+        pdf_to_process = filepath
+        temp_copy = None
         try:
-            df, summary = generate_summary(bank, filepath)
+            pdf_to_process, temp_copy = _prepare_pdf_for_processing(filepath, password, file.filename)
+            df, summary = generate_summary(bank, pdf_to_process)
         except ValueError as exc:
             return str(exc), 400
+        finally:
+            if temp_copy and os.path.exists(temp_copy):
+                try:
+                    os.remove(temp_copy)
+                except OSError:
+                    pass
 
         bank_label = summary.get("bank", (bank or "").upper())
         df["Bank"] = bank_label
