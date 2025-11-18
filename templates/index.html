@@ -148,6 +148,13 @@
       line-height: 1.3;
     }
 
+    .file-name {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+      word-break: break-word;
+    }
+
     .primary-btn {
       background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
       color: white;
@@ -466,7 +473,8 @@
 
             <div class="form-group">
               <label>Upload PDF Statement</label>
-              <input type="file" name="pdf_file[]" id="choosePdf" accept="application/pdf" required>
+              <input type="file" name="pdf_file[]" id="choosePdf" accept="application/pdf" multiple required>
+              <small class="file-name" data-default-text="No file selected">No file selected</small>
             </div>
 
             <div class="form-group">
@@ -604,23 +612,94 @@
         });
       }
 
-      function createBlock() {
+      function updateFileNameLabel(input) {
+        if (!input) return;
+        const group = input.closest('.form-group');
+        if (!group) return;
+        const labelEl = group.querySelector('.file-name');
+        if (!labelEl) return;
+        const defaultText = labelEl.dataset.defaultText || 'No file selected';
+        if (!input.files || !input.files.length) {
+          labelEl.textContent = defaultText;
+          return;
+        }
+        const names = Array.from(input.files).map(file => file.name).join(', ');
+        labelEl.textContent = names;
+      }
+
+      function createBlock(options = {}) {
         const template = statementList.querySelector('.statement-block');
         const clone = template.cloneNode(true);
         const select = clone.querySelector('select');
         const fileInput = clone.querySelector('input[type="file"]');
         const passwordInput = clone.querySelector('input[name="pdf_password[]"]');
         const hintEl = clone.querySelector('.password-hint');
-        select.selectedIndex = 0;
-        fileInput.value = '';
+        if (select) {
+          if (Object.prototype.hasOwnProperty.call(options, 'bankValue')) {
+            select.value = options.bankValue;
+          } else {
+            select.selectedIndex = 0;
+          }
+        }
+        if (fileInput) {
+          fileInput.value = '';
+          updateFileNameLabel(fileInput);
+        }
         if (passwordInput) {
-          passwordInput.value = '';
+          if (Object.prototype.hasOwnProperty.call(options, 'passwordValue')) {
+            passwordInput.value = options.passwordValue;
+          } else {
+            passwordInput.value = '';
+          }
         }
         if (hintEl) {
           hintEl.textContent = hintEl.dataset.defaultHint || defaultPasswordHint;
         }
         updatePasswordHint(select);
         return clone;
+      }
+
+      function setSingleFileOnInput(input, file) {
+        if (!input || !file || typeof DataTransfer === 'undefined') {
+          return;
+        }
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        input.files = dataTransfer.files;
+        updateFileNameLabel(input);
+      }
+
+      function handleMultiFileSelection(fileInput) {
+        if (!fileInput || !fileInput.files || fileInput.files.length <= 1) {
+          return;
+        }
+        const block = fileInput.closest('.statement-block');
+        if (!block) {
+          return;
+        }
+        const files = Array.from(fileInput.files);
+        const bankSelectEl = block.querySelector('.bank-select');
+        const passwordInput = block.querySelector('input[name="pdf_password[]"]');
+        const presetOptions = {};
+        if (bankSelectEl) {
+          presetOptions.bankValue = bankSelectEl.value;
+        }
+        if (passwordInput) {
+          presetOptions.passwordValue = passwordInput.value;
+        }
+
+        const firstFile = files.shift();
+        setSingleFileOnInput(fileInput, firstFile);
+
+        let lastBlock = block;
+        files.forEach((file) => {
+          const newBlock = createBlock(presetOptions);
+          const newFileInput = newBlock.querySelector('input[type="file"]');
+          setSingleFileOnInput(newFileInput, file);
+          statementList.insertBefore(newBlock, lastBlock.nextElementSibling);
+          lastBlock = newBlock;
+        });
+        updateRemoveButtons();
       }
 
       addBtn.addEventListener('click', () => {
@@ -643,9 +722,14 @@
       });
 
       statementList.addEventListener('change', (event) => {
-        if (event.target.classList.contains('bank-select')) {
-          updateImage(event.target.value);
-          updatePasswordHint(event.target);
+        const target = event.target;
+        if (target.classList.contains('bank-select')) {
+          updateImage(target.value);
+          updatePasswordHint(target);
+        }
+        if (target.matches('input[type="file"]')) {
+          handleMultiFileSelection(target);
+          updateFileNameLabel(target);
         }
       });
 
