@@ -934,7 +934,51 @@
         margin-top: 6px;
       }
     }
-  </style>
+  
+/* === 3D Glassy Glow Enhanced === */
+.card, .glass-card {
+  background: rgba(255,255,255,0.06) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  border: 1.6px solid rgba(120,200,255,0.55) !important;
+  border-radius: 24px !important;
+
+  /* 3D effect */
+  box-shadow:
+    0 0 40px rgba(0,160,255,0.38),
+    inset 0 0 18px rgba(255,255,255,0.15),
+    0 8px 24px rgba(0,0,0,0.45);
+}
+
+/* Positive state (green glow) */
+.positive, .green, .success {
+  box-shadow:
+    0 0 40px rgba(0,255,140,0.45) !important,
+    inset 0 0 22px rgba(0,255,140,0.20) !important,
+    0 8px 22px rgba(0,255,140,0.25) !important;
+  border-color: rgba(0,255,140,0.55) !important;
+}
+
+/* Negative state (red glow) */
+.negative, .fail, .danger {
+  box-shadow:
+    0 0 40px rgba(255,80,80,0.45) !important,
+    inset 0 0 22px rgba(255,80,80,0.20) !important,
+    0 8px 22px rgba(255,80,80,0.25) !important;
+  border-color: rgba(255,80,80,0.55) !important;
+}
+
+/* White chart panel */
+.chart-card canvas {
+  background: rgba(255,255,255,0.95) !important;
+  border-radius: 22px !important;
+  padding: 20px !important;
+  box-shadow:
+    inset 0 0 28px rgba(0,0,0,0.25),
+    0 4px 18px rgba(0,0,0,0.15) !important;
+}
+
+</style>
 </head>
 <body>
   <div class="page">
