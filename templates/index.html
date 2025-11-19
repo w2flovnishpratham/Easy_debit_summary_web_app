@@ -235,7 +235,8 @@
       text-align: center;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
+      align-items: center;
     }
 
     .sample-image h3 {
@@ -246,6 +247,114 @@
       align-items: center;
       justify-content: center;
       gap: 10px;
+    }
+
+    .sample-card-copy {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      max-width: 360px;
+    }
+
+    .sample-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(10, 22, 60, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      text-align: left;
+      width: 100%;
+      max-width: 340px;
+    }
+
+    .sample-form label::before {
+      content: none;
+    }
+
+    .sample-selector {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sample-pill {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .sample-pill input[type="radio"] {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .sample-pill input[type="radio"]::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: transparent;
+      transition: background 0.2s ease;
+    }
+
+    .sample-pill.active {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 212, 255, 0.08);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(0, 120, 255, 0.15);
+    }
+
+    .sample-pill.active input[type="radio"] {
+      border-color: var(--accent-cyan);
+    }
+
+    .sample-pill.active input[type="radio"]::after {
+      background: var(--accent-cyan);
+    }
+
+    .sample-pill strong {
+      font-size: 0.95rem;
+      display: block;
+      color: var(--text-light);
+    }
+
+    .sample-pill small {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+
+    .secondary-btn {
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      background: transparent;
+      color: var(--text-light);
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .secondary-btn:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      box-shadow: 0 8px 20px rgba(0, 120, 255, 0.2);
+      transform: translateY(-2px);
     }
 
     .sample-image img {
@@ -497,6 +606,34 @@
     <div class="card sample-image">
       <h3>📊 Sample Statement Preview</h3>
       <img id="sample-img" src="{{ url_for('static', filename='image_1.png') }}" alt="Sample Statement">
+      <p class="sample-card-copy">Explore a ready-made dashboard before uploading your own data.</p>
+      <form class="sample-form" action="/sample" method="post">
+        <p class="sample-card-copy">Choose your sample statement:</p>
+        <div class="sample-selector">
+          <label class="sample-pill active">
+            <input type="radio" name="sample_option" value="hdfc" checked>
+            <div>
+              <strong>HDFC Demo</strong>
+              <small>Retail savings statement</small>
+            </div>
+          </label>
+          <label class="sample-pill">
+            <input type="radio" name="sample_option" value="sbi">
+            <div>
+              <strong>SBI Demo</strong>
+              <small>Classic salary account</small>
+            </div>
+          </label>
+          <label class="sample-pill">
+            <input type="radio" name="sample_option" value="both">
+            <div>
+              <strong>Both Statements</strong>
+              <small>See multi-bank consolidation</small>
+            </div>
+          </label>
+        </div>
+        <button type="submit" class="secondary-btn">Run Sample Insights</button>
+      </form>
     </div>
   </div>
 
@@ -534,6 +671,7 @@
       const audio4 = document.getElementById('audio4');
       const pdfInput = document.getElementById('choosePdf');
       const bankSelect = document.querySelector('.bank-select');
+      const sampleOptionInputs = document.querySelectorAll('input[name="sample_option"]');
 
       // Play sound when opening the file picker (Choose file click)
       const audioElements = [audio1, audio3, audio4].filter(Boolean);
@@ -561,10 +699,11 @@
           try { audio3.currentTime = 0; audio3.play(); } catch (e) {}
         }
       });
-
-    bankSelect.addEventListener('change', () => {
-          audio1.play();       
-    });
+      if (bankSelect) {
+        bankSelect.addEventListener('change', () => {
+          audio1.play();
+        });
+      }
 
       const imageMap = {
         'HDFC': "{{ url_for('static', filename='IMAGE_1.png') }}",
@@ -592,6 +731,25 @@
           img.style.opacity = '1';
           img.style.transform = 'scale(1)';
         }, 200);
+      }
+
+      function updateSamplePillState() {
+        sampleOptionInputs.forEach((input) => {
+          const pill = input.closest('.sample-pill');
+          if (!pill) return;
+          pill.classList.toggle('active', input.checked);
+        });
+      }
+
+      function updateSampleImagePreview(value) {
+        if (!value) {
+          return;
+        }
+        if (value === 'sbi') {
+          updateImage('SBI');
+        } else {
+          updateImage('HDFC');
+        }
       }
 
       function updatePasswordHint(selectEl) {
@@ -738,6 +896,16 @@
       updateImage(firstSelect ? firstSelect.value : 'HDFC');
       if (firstSelect) {
         updatePasswordHint(firstSelect);
+      }
+
+      if (sampleOptionInputs.length) {
+        sampleOptionInputs.forEach((input) => {
+          input.addEventListener('change', (event) => {
+            updateSamplePillState();
+            updateSampleImagePreview(event.target.value);
+          });
+        });
+        updateSamplePillState();
       }
 
       form.addEventListener('submit', function() {

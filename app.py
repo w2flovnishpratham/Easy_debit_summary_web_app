@@ -22,8 +22,21 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret-change-me")
-UPLOAD_FOLDER = 'uploads'
-OUTPUT_FOLDER = 'outputs'
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
+OUTPUT_FOLDER = os.path.join(BASE_DIR, 'outputs')
+SAMPLE_PDF_DIR = os.path.join(BASE_DIR, 'Sample pdf')
+SAMPLE_STATEMENT_FILES = {
+    "hdfc": {"filename": "sample_hdfc.pdf", "bank": "HDFC"},
+    "sbi": {"filename": "sample_sbi.pdf", "bank": "SBI"},
+}
+SAMPLE_SELECTIONS = {
+    "hdfc": ["hdfc"],
+    "sbi": ["sbi"],
+    "both": ["hdfc", "sbi"],
+}
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
@@ -84,42 +97,32 @@ def _prepare_pdf_for_processing(source_path: str, password: Optional[str], displ
     return temp_path, temp_path
 
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    banks = request.form.getlist('bank[]') or request.form.getlist('bank')
-    files = request.files.getlist('pdf_file[]') or request.files.getlist('pdf_file')
-    passwords = request.form.getlist('pdf_password[]') or request.form.getlist('pdf_password')
-
-    entries = []
-    for idx, file in enumerate(files):
-        bank = banks[idx] if idx < len(banks) else ""
-        password = passwords[idx] if idx < len(passwords) else ""
-        if bank and file and file.filename:
-            entries.append((bank, file, password))
-
+def _render_summary_from_entries(entries, batch_id: Optional[str] = None):
     if not entries:
-        return 'No file uploaded', 400
+        raise ValueError('No file uploaded')
 
-    batch_id = datetime.now().strftime('%Y%m%d_%H%M%S')
     normalized_frames = []
     statement_sources = []
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    batch_identifier = batch_id or timestamp
 
-    for idx, (bank, file, password) in enumerate(entries, start=1):
-        safe_filename = f"{batch_id}_{idx}_{file.filename}".replace(" ", "_")
-        filepath = os.path.join(UPLOAD_FOLDER, safe_filename)
-        file.save(filepath)
+    for entry in entries:
+        bank = entry.get("bank", "")
+        password = entry.get("password", "")
+        source_path = entry.get("source_path")
+        display_name = entry.get("display_name") or os.path.basename(source_path or "")
+        if not source_path or not os.path.exists(source_path):
+            raise ValueError(f"Missing or invalid file for {display_name or 'statement'}.")
 
-        pdf_to_process = filepath
+        pdf_to_process = source_path
         temp_copy = None
         try:
-            pdf_to_process, temp_copy = _prepare_pdf_for_processing(filepath, password, file.filename)
+            pdf_to_process, temp_copy = _prepare_pdf_for_processing(source_path, password, display_name)
             df, summary = generate_summary(bank, pdf_to_process)
-        except ValueError as exc:
-            return str(exc), 400
+        except ValueError:
+            raise
+        except Exception as exc:
+            raise ValueError(str(exc))
         finally:
             if temp_copy and os.path.exists(temp_copy):
                 try:
@@ -133,19 +136,18 @@ def upload_file():
 
         date_min = df["Date"].min() if not df["Date"].empty else None
         date_max = df["Date"].max() if not df["Date"].empty else None
-        source_entry = {
+        statement_sources.append({
             "bank": bank_label,
-            "filename": file.filename,
+            "filename": display_name,
             "transactions": int(len(df)),
             "date_min": date_min.strftime("%Y-%m-%d") if pd.notna(date_min) else "",
             "date_max": date_max.strftime("%Y-%m-%d") if pd.notna(date_max) else "",
             "total_credit": float(df["Credit"].sum()),
             "total_debit": float(df["Debit"].sum()),
-        }
-        statement_sources.append(source_entry)
+        })
 
     if not normalized_frames:
-        return 'Failed to process uploads', 400
+        raise ValueError('Failed to process uploads')
 
     combined_df = pd.concat(normalized_frames, ignore_index=True)
     combined_summary = _build_dashboard_summary(combined_df)
@@ -196,8 +198,7 @@ def upload_file():
     table_columns = table_df.columns.tolist()
     table_rows = table_df.to_dict(orient="records")
 
-    # Save combined CSV
-    output_csv_name = f"{batch_id}_combined_output.csv"
+    output_csv_name = f"{batch_identifier}_combined_output.csv"
     output_csv_path = os.path.join(OUTPUT_FOLDER, output_csv_name)
     combined_df.to_csv(output_csv_path, index=False)
 
@@ -244,6 +245,81 @@ def upload_file():
             "top_category": combined_summary.get("category_topline", {}),
         }
     )
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+def _build_sample_entries(selection_key: str):
+    keys = SAMPLE_SELECTIONS.get(selection_key.lower())
+    if not keys:
+        raise ValueError('Select at least one sample statement to continue.')
+
+    entries = []
+    for key in keys:
+        config = SAMPLE_STATEMENT_FILES.get(key)
+        if not config:
+            continue
+        source_path = os.path.join(SAMPLE_PDF_DIR, config["filename"])
+        if not os.path.exists(source_path):
+            raise ValueError(f"Sample file {config['filename']} is unavailable.")
+        entries.append({
+            "bank": config.get("bank", ""),
+            "password": config.get("password", ""),
+            "source_path": source_path,
+            "display_name": f"{config.get('bank', key).upper()} Sample Statement",
+        })
+
+    if not entries:
+        raise ValueError('No sample statements to process.')
+    return entries
+
+
+@app.route('/sample', methods=['POST'])
+def run_sample_statements():
+    selection = (request.form.get('sample_option') or '').lower()
+
+    try:
+        entries = _build_sample_entries(selection)
+    except ValueError as exc:
+        return str(exc), 400
+
+    demo_batch = f"demo_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    try:
+        return _render_summary_from_entries(entries, batch_id=demo_batch)
+    except ValueError as exc:
+        return str(exc), 400
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    banks = request.form.getlist('bank[]') or request.form.getlist('bank')
+    files = request.files.getlist('pdf_file[]') or request.files.getlist('pdf_file')
+    passwords = request.form.getlist('pdf_password[]') or request.form.getlist('pdf_password')
+
+    entries = []
+    batch_id = datetime.now().strftime('%Y%m%d_%H%M%S')
+    for idx, file in enumerate(files):
+        bank = banks[idx] if idx < len(banks) else ""
+        password = passwords[idx] if idx < len(passwords) else ""
+        if bank and file and file.filename:
+            safe_filename = f"{batch_id}_{idx + 1}_{file.filename}".replace(" ", "_")
+            filepath = os.path.join(UPLOAD_FOLDER, safe_filename)
+            file.save(filepath)
+            entries.append({
+                "bank": bank,
+                "password": password,
+                "source_path": filepath,
+                "display_name": file.filename,
+            })
+
+    if not entries:
+        return 'No file uploaded', 400
+    try:
+        return _render_summary_from_entries(entries, batch_id=batch_id)
+    except ValueError as exc:
+        return str(exc), 400
 
 @app.route('/download/<path:filename>')
 def download_file(filename):
