@@ -115,6 +115,7 @@
       background: linear-gradient(120deg, rgba(91, 142, 243, 0.15), rgba(37, 99, 235, 0.25)), var(--card);
       position: relative;
       overflow: hidden;
+      z-index: 0;
     }
 
     .hero::after {
@@ -123,6 +124,12 @@
       inset: 0;
       background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.5), transparent 45%);
       pointer-events: none;
+      z-index: 0;
+    }
+
+    .hero > * {
+      position: relative;
+      z-index: 1;
     }
 
     .hero h1 {
@@ -721,6 +728,13 @@
       box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2);
     }
 
+    .btn:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
     .btn.primary {
       background: var(--accent-strong);
       color: white;
@@ -746,6 +760,66 @@
       background: #f97316;
       color: white;
       box-shadow: 0 12px 30px rgba(249, 115, 22, 0.25);
+    }
+
+    .pdf-export-active .page {
+      box-shadow: none;
+      background: white;
+    }
+
+    .pdf-export-active .pdf-hidden {
+      display: none !important;
+    }
+
+    .pdf-export-active .section {
+      break-inside: avoid;
+      page-break-inside: avoid;
+      margin-top: 20px;
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 0.65in;
+    }
+
+    @media print {
+      body {
+        background: white;
+      }
+
+      .hero,
+      .hero * {
+        color: #0f172a !important;
+      }
+
+      .page {
+        max-width: none;
+        padding: 0;
+        margin: 0;
+        box-shadow: none;
+      }
+
+      .section,
+      .card,
+      .hero {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .leader-details,
+      .leader-bank,
+      .leader-date {
+        word-break: normal;
+        overflow-wrap: break-word;
+      }
+
+      .btn,
+      .toggle-btn,
+      #saveSummaryBtn,
+      #backUplaod,
+      .cta-actions {
+        display: none !important;
+      }
     }
 
     .btn.disabled {
@@ -886,6 +960,9 @@
     }
 
     @media (max-width: 600px) {
+      body{
+        padding-top: 80px;
+      }
       .card {
         padding: 20px;
       }
@@ -1350,6 +1427,7 @@
         <div class="cta-actions">
           {% set csv_classes = 'btn primary' + (' locked-download' if payment_required else '') %}
           <a id="downloadLink" class="{{ csv_classes }}" href="{{ download_link }}" download>Download CSV</a>
+          <button type="button" class="btn accent" id="saveSummaryBtn">Save Summary as PDF</button>
           <a class="btn ghost" id="backUplaod" href="/">Back to Upload</a>
         </div>
         {% if not payment_required %}
@@ -2579,6 +2657,121 @@
       setTimeout(() => window.location.href = backUplaod.href, 350); // or wait for audio2.onended
     });
   });
+</script>
+
+<script>
+  (function () {
+    const saveBtn = document.getElementById('saveSummaryBtn');
+    if (!saveBtn) return;
+
+    const defaultLabel = saveBtn.textContent;
+    const pdfSectionsToKeep = new Set([
+      'statements',
+      'balance-overview',
+      'summary-pulse',
+      'balance-integrity',
+      'bank-totals',
+      'bank-snapshots',
+      'top-movements',
+      'date-range',
+      'daily-chart',
+      'payment-category'
+    ]);
+
+    function enablePdfMode(root) {
+      if (!root) return () => {};
+      const cleanup = [];
+      const docRoot = document.documentElement;
+      docRoot.classList.add('pdf-export-active');
+      cleanup.push(() => docRoot.classList.remove('pdf-export-active'));
+
+      root.querySelectorAll('[data-section]').forEach((section) => {
+        const key = section.getAttribute('data-section');
+        const isCollapsed = section.classList.contains('collapsed');
+        if ((key && !pdfSectionsToKeep.has(key)) || isCollapsed) {
+          section.classList.add('pdf-hidden');
+          cleanup.push(() => section.classList.remove('pdf-hidden'));
+        }
+      });
+
+      root.querySelectorAll('.toggle-btn, #payBtn, .cta-actions, audio, video').forEach((node) => {
+        node.classList.add('pdf-hidden');
+        cleanup.push(() => node.classList.remove('pdf-hidden'));
+      });
+
+      return () => cleanup.forEach((fn) => fn());
+    }
+
+    async function exportSummaryAsPdf() {
+      if (saveBtn.disabled) return;
+      const captureTarget = document.querySelector('.page') || document.body;
+      if (!captureTarget) return;
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Preparing print view...';
+
+      const teardownPdfMode = enablePdfMode(captureTarget);
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+      let cleanedUp = false;
+      let mediaQueryCleanup;
+      let fallbackTimer;
+
+      const cleanup = () => {
+        if (cleanedUp) return;
+        cleanedUp = true;
+        if (fallbackTimer) {
+          clearTimeout(fallbackTimer);
+        }
+        teardownPdfMode?.();
+        saveBtn.disabled = false;
+        saveBtn.textContent = defaultLabel;
+        window.removeEventListener('afterprint', handleAfterPrint);
+        mediaQueryCleanup?.();
+      };
+
+      const handleAfterPrint = () => cleanup();
+      window.addEventListener('afterprint', handleAfterPrint);
+
+      const mediaQuery = window.matchMedia ? window.matchMedia('print') : null;
+      if (mediaQuery) {
+        if (mediaQuery.addEventListener) {
+          const handler = (event) => {
+            if (!event.matches) {
+              mediaQuery.removeEventListener('change', handler);
+              cleanup();
+            }
+          };
+          mediaQuery.addEventListener('change', handler);
+          mediaQueryCleanup = () => mediaQuery.removeEventListener('change', handler);
+        } else if (mediaQuery.addListener) {
+          const legacyHandler = (event) => {
+            if (!event.matches) {
+              mediaQuery.removeListener(legacyHandler);
+              cleanup();
+            }
+          };
+          mediaQuery.addListener(legacyHandler);
+          mediaQueryCleanup = () => mediaQuery.removeListener(legacyHandler);
+        }
+      }
+
+      fallbackTimer = window.setTimeout(() => cleanup(), 20000);
+
+      try {
+        window.print();
+      } catch (err) {
+        console.error('Print export failed', err);
+        alert('Unable to open the PDF preview. Please use your browser\'s print dialog manually.');
+        cleanup();
+      }
+    }
+
+    saveBtn.addEventListener('click', (event) => {
+      event.preventDefault();
+      exportSummaryAsPdf();
+    });
+  })();
 </script>
 
 
