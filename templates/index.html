@@ -610,25 +610,26 @@
       <h3>📊 Sample Statement Preview</h3>
       <img id="sample-img" src="{{ url_for('static', filename='image_1.png') }}" alt="Sample Statement">
       <p class="sample-card-copy">Explore a ready-made dashboard before uploading your own data.</p>
+
       <form class="sample-form" action="/sample" method="post">
         <p class="sample-card-copy">Choose your sample statement:</p>
         <div class="sample-selector">
           <label class="sample-pill active">
-            <input type="radio" name="sample_option" value="hdfc" checked>
+            <input type="radio" name="sample_option" class="sampleSt" value="hdfc" checked>
             <div>
               <strong>HDFC Demo</strong>
               <small>Retail savings statement</small>
             </div>
           </label>
           <label class="sample-pill">
-            <input type="radio" name="sample_option" value="sbi">
+            <input type="radio" name="sample_option" class="sampleSt" value="sbi">
             <div>
               <strong>SBI Demo</strong>
               <small>Classic salary account</small>
             </div>
           </label>
           <label class="sample-pill">
-            <input type="radio" name="sample_option" value="both">
+            <input type="radio" name="sample_option" class="sampleSt" value="both">
             <div>
               <strong>Both Statements</strong>
               <small>See multi-bank consolidation</small>
@@ -652,7 +653,7 @@
         Developed by <span class="highlight">@Pratham</span>
         <span class="separator">|</span>
         <span class="footer-icon">🛡️</span>
-        Protected & Deployed by <span class="highlight">@Lovnish</span>
+       <a href="https://www.linkedin.com/in/lovnish-kumar/">Protected & Deployed by <span class="highlight">@Lovnish</span></a> 
       </div>
       
       <div class="footer-line copyright">
@@ -675,6 +676,8 @@
       const pdfInput = document.getElementById('choosePdf');
       const bankSelect = document.querySelector('.bank-select');
       const sampleOptionInputs = document.querySelectorAll('input[name="sample_option"]');
+      const SampleSt = document.querySelectorAll('.sampleSt');
+      
 
       // Play sound when opening the file picker (Choose file click)
       const audioElements = [audio1, audio3, audio4].filter(Boolean);
@@ -906,9 +909,27 @@
           input.addEventListener('change', (event) => {
             updateSamplePillState();
             updateSampleImagePreview(event.target.value);
+            if (audio1) {
+              try {
+                audio1.currentTime = 0;
+                audio1.play();
+              } catch (err) {}
+            }
           });
         });
         updateSamplePillState();
+      }
+
+      const sampleRunBtn = document.querySelector('.sample-form .secondary-btn');
+      if (sampleRunBtn) {
+        sampleRunBtn.addEventListener('click', () => {
+          if (audio4) {
+            try {
+              audio4.currentTime = 0;
+              audio4.play();
+            } catch (err) {}
+          }
+        });
       }
 
       form.addEventListener('submit', function() {

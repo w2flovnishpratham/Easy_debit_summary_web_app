@@ -40,15 +40,47 @@
     body {
       margin: 0;
       font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #edf1f7;
+      background:
+        radial-gradient(circle at top left, rgba(91, 142, 243, 0.2), transparent 45%),
+        radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.2), transparent 55%),
+        #e6ebff;
       color: var(--text);
       min-height: 100vh;
+      position: relative;
+    }
+
+    body::before,
+    body::after {
+      content: '';
+      position: fixed;
+      width: 480px;
+      height: 480px;
+      border-radius: 50%;
+      filter: blur(140px);
+      opacity: 0.55;
+      pointer-events: none;
+      z-index: 0;
+      transform: translateZ(0);
+    }
+
+    body::before {
+      top: -15%;
+      left: -5%;
+      background: radial-gradient(circle, rgba(91, 142, 243, 0.45), transparent 65%);
+    }
+
+    body::after {
+      bottom: -20%;
+      right: -5%;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.35), transparent 60%);
     }
 
     .page {
       max-width: 1200px;
       margin: 0 auto;
       padding: 32px 20px 64px;
+      position: relative;
+      z-index: 1;
     }
 
     .card {
@@ -787,6 +819,11 @@
         background: white;
       }
 
+      body::before,
+      body::after {
+        display: none;
+      }
+
       .hero,
       .hero * {
         color: #0f172a !important;
@@ -1012,47 +1049,93 @@
       }
     }
   
-/* === 3D Glassy Glow Enhanced === */
-.card, .glass-card {
-  background: rgba(255,255,255,0.06) !important;
-  backdrop-filter: blur(28px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
-  border: 1.6px solid rgba(120,200,255,0.55) !important;
-  border-radius: 24px !important;
-
-  /* 3D effect */
-  box-shadow:
-    0 0 40px rgba(0,160,255,0.38),
-    inset 0 0 18px rgba(255,255,255,0.15),
-    0 8px 24px rgba(0,0,0,0.45);
+/* === Glassmorphism system === */
+.card,
+.glass-card {
+  background: rgba(255, 255, 255, 0.82);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  position: relative;
 }
 
-/* Positive state (green glow) */
-.positive, .green, .success {
-  box-shadow:
-    0 0 40px rgba(0,255,140,0.45) !important,
-    inset 0 0 22px rgba(0,255,140,0.20) !important,
-    0 8px 22px rgba(0,255,140,0.25) !important;
-  border-color: rgba(0,255,140,0.55) !important;
+.card > *,
+.glass-card > * {
+  position: relative;
+  z-index: 1;
 }
 
-/* Negative state (red glow) */
-.negative, .fail, .danger {
-  box-shadow:
-    0 0 40px rgba(255,80,80,0.45) !important,
-    inset 0 0 22px rgba(255,80,80,0.20) !important,
-    0 8px 22px rgba(255,80,80,0.25) !important;
-  border-color: rgba(255,80,80,0.55) !important;
+.card::after,
+.glass-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0));
+  pointer-events: none;
+  z-index: 0;
 }
 
-/* White chart panel */
+.hero.card {
+  background: linear-gradient(120deg, rgba(91, 142, 243, 0.18), rgba(37, 99, 235, 0.3)), rgba(255, 255, 255, 0.25);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .card,
+  .glass-card {
+    background: rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(28px) saturate(175%);
+    -webkit-backdrop-filter: blur(28px) saturate(175%);
+  }
+
+  .hero.card {
+    background: linear-gradient(120deg, rgba(91, 142, 243, 0.35), rgba(255, 255, 255, 0.08));
+  }
+}
+
+.stat-card,
+.pulse-card,
+.statement-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .stat-card,
+  .pulse-card,
+  .statement-card {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+}
+
+.stat-card.positive,
+.pulse-card.positive {
+  border-color: rgba(13, 148, 136, 0.55);
+  box-shadow: 0 25px 55px rgba(13, 148, 136, 0.25);
+}
+
+.stat-card.negative,
+.pulse-card.negative {
+  border-color: rgba(220, 38, 38, 0.5);
+  box-shadow: 0 25px 55px rgba(220, 38, 38, 0.22);
+}
+
 .chart-card canvas {
-  background: rgba(255,255,255,0.95) !important;
-  border-radius: 22px !important;
-  padding: 20px !important;
-  box-shadow:
-    inset 0 0 28px rgba(0,0,0,0.25),
-    0 4px 18px rgba(0,0,0,0.15) !important;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .chart-card canvas {
+    background: rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
 }
 
 </style>
@@ -2664,6 +2747,7 @@
     const saveBtn = document.getElementById('saveSummaryBtn');
     if (!saveBtn) return;
 
+    const swooshAudio = document.getElementById('audio2');
     const defaultLabel = saveBtn.textContent;
     const pdfSectionsToKeep = new Set([
       'statements',
@@ -2768,6 +2852,12 @@
     }
 
     saveBtn.addEventListener('click', (event) => {
+      if (swooshAudio) {
+        try {
+          swooshAudio.currentTime = 0;
+          swooshAudio.play();
+        } catch (err) {}
+      }
       event.preventDefault();
       exportSummaryAsPdf();
     });
