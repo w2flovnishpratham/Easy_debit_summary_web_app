@@ -99,7 +99,8 @@ def login_required(view_func):
         if not LOGIN_REQUIRED:
             return view_func(*args, **kwargs)
         if not session.get('user_email'):
-            return redirect(url_for('login', next=request.path))
+            next_target = request.full_path.rstrip('?') if request.method == 'GET' else url_for('dashboard')
+            return redirect(url_for('login', next=next_target))
         return view_func(*args, **kwargs)
     return wrapped_view
 
