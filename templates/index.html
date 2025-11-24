@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Easy Debit Summary – Bank Statement Uploader</title>
+  <title>Easy Debit Summary - Bank Statement Uploader</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -30,6 +30,94 @@
       color: var(--text-light);
       min-height: 100vh;
       line-height: 1.6;
+      padding-top: 110px;
+    }
+
+    .navbar {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(1200px, 94%);
+      padding: 14px 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      z-index: 999;
+    }
+
+    .nav-brand {
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-decoration: none;
+      font-size: 1.05rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      box-shadow: 0 0 12px rgba(0, 212, 255, 0.7);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav-user {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .nav-btn {
+      text-decoration: none;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #0b1c3d;
+      background: linear-gradient(120deg, var(--accent-cyan), var(--accent-blue));
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 8px 20px rgba(0, 120, 255, 0.25);
+      transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(0, 120, 255, 0.35);
+    }
+
+    .nav-btn.ghost {
+      background: transparent;
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.35);
+      box-shadow: none;
     }
 
     header {
@@ -464,6 +552,22 @@
         min-width: 100%;
       }
 
+      .navbar {
+        width: 94%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .nav-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      body {
+        padding-top: 130px;
+      }
+
       .sample-image {
         order: -1;
       }
@@ -533,7 +637,7 @@
 
     @media (max-width: 640px) {
       body{
-        padding-top: 80px;
+        padding-top: 110px;
       }
       header {
         padding: 28px 16px 20px;
@@ -583,6 +687,25 @@
 </head>
 <body>
 
+  <nav class="navbar">
+    <a href="{{ url_for('index') }}" class="nav-brand">
+      <span class="nav-dot"></span>
+      Easy Debit Summary
+    </a>
+    <div class="nav-actions">
+      {% if user_email %}
+      <span class="nav-user">
+        <span class="nav-dot"></span>
+        {{ full_name or user_email }}
+      </span>
+      <a class="nav-btn ghost" href="{{ url_for('dashboard') }}">Dashboard</a>
+      <a class="nav-btn" href="{{ url_for('logout') }}">Logout</a>
+      {% else %}
+      <a class="nav-btn" href="{{ url_for('login') }}">Login</a>
+      {% endif %}
+    </div>
+  </nav>
+  
   <header>
     <h1>Easy Debit Summary</h1>
     <p>Upload your bank statement PDF and get instant insights & CSV exports</p>
@@ -978,4 +1101,3 @@
 
 </body>
 </html>
-

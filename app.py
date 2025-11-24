@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, session, jsonify, abort
+from flask import Flask, render_template, request, send_file, session, jsonify, abort, redirect, url_for
 import os
 import pandas as pd
 from datetime import datetime
@@ -12,16 +12,36 @@ import urllib.request
 import urllib.error
 import tempfile
 from typing import Optional, Tuple
+from functools import wraps
 
+from pymongo import MongoClient, errors as pymongo_errors
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 from PyPDF2 import PdfReader, PdfWriter
 from PyPDF2.errors import DependencyError
 
-PAYMENT_GATE_ENABLED = os.environ.get('ENABLE_PAYMENT_GATE', 'true').lower() in {'1', 'true', 'yes', 'on'}
-
 load_dotenv()
 
+
+def _env(key: str, default: str = "") -> str:
+    value = os.environ.get(key, default)
+    return value.strip() if isinstance(value, str) else value
+
+
+PAYMENT_GATE_ENABLED = (_env('ENABLE_PAYMENT_GATE', 'true') or 'true').lower() in {'1', 'true', 'yes', 'on'}
+GOOGLE_CLIENT_ID = _env("GOOGLE_CLIENT_ID")
+MONGO_URI = _env("MONGO_URI")
+MONGO_DB_NAME = _env("MONGO_DB_NAME")
+GOOGLE_CLOCK_SKEW = int(_env("GOOGLE_CLOCK_SKEW", "120") or "120")
+LOGIN_REQUIRED = (_env("LOGIN_REQUIRED", "false") or "false").lower() in {"1", "true", "yes", "on"}
+
 app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret-change-me")
+app.secret_key = _env("SECRET_KEY") or _env("FLASK_SECRET_KEY") or "dev-secret-change-me"
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=(_env("SESSION_COOKIE_SECURE", "false") or "false").lower() in {"1", "true", "yes", "on"},
+)
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
@@ -39,6 +59,86 @@ SAMPLE_SELECTIONS = {
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+
+mongo_client: Optional[MongoClient] = None
+users_collection = None
+
+if MONGO_URI:
+    try:
+        mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+        mongo_client.admin.command("ping")
+        db = mongo_client[MONGO_DB_NAME] if MONGO_DB_NAME else mongo_client.get_default_database()
+        if db is None:
+            raise RuntimeError("Mongo URI must include a database name or set MONGO_DB_NAME.")
+        users_collection = db["users"]
+        users_collection.create_index("email", unique=True)
+    except Exception as exc:
+        print(f"MongoDB connection failed: {exc}")
+        users_collection = None
+
+
+def get_users_collection():
+    if users_collection is None:
+        raise RuntimeError("User store unavailable. Check MONGO_URI configuration.")
+    return users_collection
+
+
+@app.context_processor
+def inject_user():
+    return {
+        "user_email": session.get("user_email"),
+        "full_name": session.get("full_name"),
+        "user_picture": session.get("picture"),
+        "login_required": LOGIN_REQUIRED,
+    }
+
+
+def login_required(view_func):
+    @wraps(view_func)
+    def wrapped_view(*args, **kwargs):
+        if not LOGIN_REQUIRED:
+            return view_func(*args, **kwargs)
+        if not session.get('user_email'):
+            return redirect(url_for('login', next=request.path))
+        return view_func(*args, **kwargs)
+    return wrapped_view
+
+
+def _require_login_json():
+    """Guard JSON/API calls that should require auth when LOGIN_REQUIRED is enabled."""
+    if not LOGIN_REQUIRED:
+        return None
+    if not session.get("user_email"):
+        return jsonify({"ok": False, "error": "Login required"}), 401
+    return None
+
+
+def _verify_google_credential(token: str):
+    if not GOOGLE_CLIENT_ID:
+        raise RuntimeError("GOOGLE_CLIENT_ID is not configured on the server.")
+    return id_token.verify_oauth2_token(
+        token,
+        google_requests.Request(),
+        GOOGLE_CLIENT_ID,
+        clock_skew_in_seconds=GOOGLE_CLOCK_SKEW,
+    )
+
+
+def _upsert_user(email: str, full_name: str, picture: str):
+    users = get_users_collection()
+    now = datetime.utcnow()
+    try:
+        users.update_one(
+            {"email": email},
+            {
+                "$set": {"full_name": full_name, "picture": picture},
+                "$setOnInsert": {"created_at": now},
+            },
+            upsert=True,
+        )
+    except pymongo_errors.PyMongoError as exc:
+        raise RuntimeError(f"User database error: {exc}") from exc
+    return users.find_one({"email": email})
 
 
 def _prepare_pdf_for_processing(source_path: str, password: Optional[str], display_name: str) -> Tuple[str, Optional[str]]:
@@ -247,6 +347,76 @@ def _render_summary_from_entries(entries, batch_id: Optional[str] = None):
     )
 
 
+@app.route('/login')
+def login():
+    if session.get('user_email'):
+        return redirect(url_for('dashboard'))
+
+    client_error = None if GOOGLE_CLIENT_ID else "Google client ID is not configured. Set GOOGLE_CLIENT_ID in .env."
+    return render_template('login.html', google_client_id=GOOGLE_CLIENT_ID or "", google_client_error=client_error)
+
+
+@app.route('/google_auth', methods=['POST'])
+def google_auth():
+    data = request.get_json(silent=True) or {}
+    credential = data.get('credential')
+    if not credential:
+        return jsonify({"ok": False, "error": "Missing credential"}), 400
+
+    if not GOOGLE_CLIENT_ID:
+        return jsonify({"ok": False, "error": "Server missing Google client ID"}), 500
+
+    try:
+        id_info = _verify_google_credential(credential)
+    except Exception as exc:
+        return jsonify({"ok": False, "error": f"Token verification failed: {exc}"}), 401
+
+    email = id_info.get("email")
+    full_name = id_info.get("name") or email or ""
+    picture = id_info.get("picture") or ""
+    if not email:
+        return jsonify({"ok": False, "error": "Email not available in Google profile"}), 400
+
+    if users_collection is None:
+        return jsonify({"ok": False, "error": "User store unavailable. Configure MONGO_URI / MONGO_DB_NAME."}), 500
+
+    try:
+        user = _upsert_user(email=email, full_name=full_name, picture=picture)
+    except Exception as exc:
+        return jsonify({"ok": False, "error": f"Unable to save user: {exc}"}), 500
+
+    session.permanent = True
+    session["user_email"] = email
+    session["full_name"] = user.get("full_name") or full_name or email
+    session["picture"] = user.get("picture") or picture
+
+    return jsonify({"ok": True, "redirect": url_for('dashboard')})
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    return render_template(
+        'dashboard.html',
+        full_name=session.get('full_name'),
+        email=session.get('user_email'),
+        picture=session.get('picture'),
+    )
+
+
+@app.route('/summary')
+@login_required
+
+def summary():
+    return redirect(url_for('index'))
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -293,6 +463,7 @@ def run_sample_statements():
         return str(exc), 400
 
 @app.route('/upload', methods=['POST'])
+@login_required
 def upload_file():
     banks = request.form.getlist('bank[]') or request.form.getlist('bank')
     files = request.files.getlist('pdf_file[]') or request.files.getlist('pdf_file')
@@ -322,7 +493,10 @@ def upload_file():
         return str(exc), 400
 
 @app.route('/download/<path:filename>')
+@login_required
 def download_file(filename):
+    if LOGIN_REQUIRED and not session.get('user_email'):
+        return redirect(url_for('login', next=request.path))
     # Enforce payment check and ensure filename matches the one created this session
     allowed = []
     stored = session.get('download_files')
@@ -376,7 +550,11 @@ def _create_razorpay_order(amount: int, currency: str, receipt: str):
 
 
 @app.route('/create_order', methods=['POST'])
+@login_required
 def create_order():
+    auth_block = _require_login_json()
+    if auth_block:
+        return auth_block
     if not PAYMENT_GATE_ENABLED:
         return jsonify({"error": "Payment gateway disabled"}), 400
     # Amount and currency from env
@@ -404,7 +582,11 @@ def create_order():
 
 
 @app.route('/verify_payment', methods=['POST'])
+@login_required
 def verify_payment():
+    auth_block = _require_login_json()
+    if auth_block:
+        return auth_block
     if not PAYMENT_GATE_ENABLED:
         return jsonify({"ok": False, "error": "Payment gateway disabled"}), 400
     data = request.get_json(silent=True) or {}
@@ -433,4 +615,4 @@ def verify_payment():
         return jsonify({"ok": False, "error": "Signature verification failed"}), 400
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=os.environ.get("FLASK_DEBUG", "false").lower() in {"1", "true", "yes", "on"})

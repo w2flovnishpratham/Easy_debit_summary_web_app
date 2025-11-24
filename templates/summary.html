@@ -2942,13 +2942,18 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({})
         });
+        if (res.status === 401) {
+          const nextUrl = encodeURIComponent(window.location.pathname + window.location.search);
+          window.location.href = `/login?next=${nextUrl}`;
+          throw new Error('login-required');
+        }
         const data = await res.json();
         if (!res.ok || data.error) throw new Error(data.error || 'Failed to create order');
         return data;
       }
 
       payBtn.addEventListener('click', async () => {
-          audio.play();
+        audio.play();
         try {
           payBtn.disabled = true;
           payBtn.textContent = 'Initializing...';

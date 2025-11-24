@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Easy Debit Summary</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root {
+      --bg-1: #0b1c3d;
+      --bg-2: #0f3d6e;
+      --accent: #00d4ff;
+      --text: #e8f1ff;
+      --muted: #9cb7d9;
+      --card: rgba(255, 255, 255, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Poppins", "Segoe UI", system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      background: radial-gradient(circle at 20% 20%, rgba(0, 212, 255, 0.12), transparent 30%),
+                  radial-gradient(circle at 80% 0%, rgba(0, 120, 255, 0.12), transparent 32%),
+                  linear-gradient(135deg, var(--bg-1), var(--bg-2));
+      color: var(--text);
+      padding: 32px 18px 48px;
+    }
+
+    .topbar {
+      max-width: 960px;
+      margin: 0 auto 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+    }
+
+    .brand .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00d4ff, #0078ff);
+      box-shadow: 0 0 14px rgba(0, 212, 255, 0.8);
+    }
+
+    .top-link {
+      color: var(--text);
+      text-decoration: none;
+      opacity: 0.9;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.06);
+      transition: all 0.2s ease;
+    }
+
+    .top-link:hover { opacity: 1; }
+
+    .auth-wrapper {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 20px;
+      padding: 28px 26px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 0.72rem;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+    }
+
+    .muted {
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .alert {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 140, 0, 0.5);
+      color: #ffe3c4;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+    }
+
+    .hidden { display: none; }
+
+    .g_id_signin { margin: 10px 0 16px; }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 18px 12px 36px; }
+      .topbar { flex-direction: column; align-items: flex-start; }
+      h1 { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      Easy Debit Summary
+    </div>
+    <a class="top-link" href="{{ url_for('index') }}">Back to home</a>
+  </div>
+
+  <main class="auth-wrapper">
+    <div class="card">
+      <p class="eyebrow">Sign in</p>
+      <h1>Continue with Google</h1>
+      <p class="muted">Use your Google account to enter your dashboard. We never ask for a password here.</p>
+
+      {% if google_client_error %}
+        <div class="alert">{{ google_client_error }}</div>
+      {% endif %}
+
+      {% if google_client_id %}
+        <div id="g_id_onload"
+          data-client_id="{{ google_client_id }}"
+          data-context="signin"
+          data-ux_mode="popup"
+          data-callback="handleCredentialResponse"
+          data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin"
+          data-type="standard"
+          data-shape="rectangular"
+          data-theme="outline"
+          data-text="continue_with"
+          data-size="large"
+          data-logo_alignment="left">
+        </div>
+      {% else %}
+        <div class="alert">Google client ID is not configured yet. Add GOOGLE_CLIENT_ID in your .env file.</div>
+      {% endif %}
+
+      <div id="login-error" class="alert hidden"></div>
+      <p class="hint">We only store your email, full name, and profile photo to secure your session.</p>
+    </div>
+  </main>
+
+  <script>
+    const errorBox = document.getElementById('login-error');
+    function showError(message) {
+      if (!errorBox) return;
+      errorBox.textContent = message || 'Sign-in failed. Please try again.';
+      errorBox.classList.remove('hidden');
+    }
+
+    function handleCredentialResponse(response) {
+      if (!response || !response.credential) {
+        showError('No credential received from Google.');
+        return;
+      }
+
+      fetch('/google_auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: response.credential })
+      })
+        .then((resp) => resp.json().then((body) => ({ ok: resp.ok && body && body.ok, body })))
+        .then(({ ok, body }) => {
+          if (ok) {
+            const params = new URLSearchParams(window.location.search);
+            const nextUrl = params.get('next') || (body && body.redirect) || '/dashboard';
+            window.location.href = nextUrl;
+            return;
+          }
+          showError((body && body.error) || 'Unable to log in right now.');
+        })
+        .catch(() => showError('Network error while contacting the server.'));
+    }
+  </script>
+</body>
+</html>
