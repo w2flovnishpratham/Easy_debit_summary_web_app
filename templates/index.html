@@ -820,6 +820,10 @@
 
 
   <script>
+      window.submitUploadFormAfterAd = function () {
+    const form = document.getElementById("multiUploadForm");
+    if (form) form.submit();
+  };
     (function() {
       const statementList = document.getElementById('statementList');
       const addBtn = document.getElementById('addStatement');
