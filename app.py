@@ -615,5 +615,93 @@ def verify_payment():
     else:
         return jsonify({"ok": False, "error": "Signature verification failed"}), 400
 
+
+@app.route('/save_normalized', methods=['POST'])
+@login_required
+def save_normalized():
+    auth_block = _require_login_json()
+    if auth_block:
+        return auth_block
+    user_email = session.get("user_email")
+    if not user_email:
+        return jsonify({"ok": False, "error": "User not logged in"}), 401
+
+    filenames = []
+    stored = session.get('download_files')
+    if isinstance(stored, list):
+        filenames.extend(stored)
+    legacy = session.get('download_file')
+    if isinstance(legacy, str):
+        filenames.append(legacy)
+
+    if not filenames:
+        return jsonify({"ok": False, "error": "No normalized data found for this session"}), 400
+
+    latest_file = filenames[-1]
+    csv_path = os.path.join(OUTPUT_FOLDER, latest_file)
+    if not os.path.exists(csv_path):
+        return jsonify({"ok": False, "error": "Normalized file missing on server"}), 400
+
+    try:
+        df = pd.read_csv(csv_path)
+    except Exception as exc:
+        return jsonify({"ok": False, "error": f"Unable to load normalized data: {exc}"}), 500
+
+    df = df.fillna("")
+    new_columns = df.columns.tolist()
+    new_rows = df.to_dict(orient="records")
+
+    try:
+        collection = get_normalized_collection()
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+    try:
+        existing = collection.find_one({"user_email": user_email}) or {}
+    except Exception as exc:
+        return jsonify({"ok": False, "error": f"Unable to read existing normalized data: {exc}"}), 500
+
+    existing_rows = existing.get("rows") or []
+    existing_columns = existing.get("columns") or []
+    merged_columns = list(existing_columns)
+    for col in new_columns:
+        if col not in merged_columns:
+            merged_columns.append(col)
+
+    def to_primitive(value):
+        try:
+            if pd.isna(value):
+                return ""
+        except Exception:
+            pass
+        if isinstance(value, (int, float, str, bool)):
+            return value
+        if hasattr(value, "item"):
+            try:
+                return value.item()
+            except Exception:
+                pass
+        return str(value)
+
+    def normalize_row(row):
+        return {col: to_primitive(row.get(col, "")) for col in merged_columns}
+
+    merged_rows = [normalize_row(r) for r in existing_rows] + [normalize_row(r) for r in new_rows]
+
+    payload = {
+        "user_email": user_email,
+        "full_name": session.get("full_name", ""),
+        "columns": merged_columns,
+        "rows": merged_rows,
+        "saved_at": datetime.utcnow(),
+    }
+
+    try:
+        collection.update_one({"user_email": user_email}, {"$set": payload}, upsert=True)
+    except Exception as exc:
+        return jsonify({"ok": False, "error": f"Unable to save normalized data: {exc}"}), 500
+
+    return jsonify({"ok": True, "saved": len(merged_rows)})
+
 if __name__ == '__main__':
     app.run(debug=os.environ.get("FLASK_DEBUG", "false").lower() in {"1", "true", "yes", "on"})

@@ -51,6 +51,13 @@
       justify-content: space-between;
       gap: 12px;
       z-index: 999;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+
+    .navbar.hidden {
+      transform: translate(-50%, -140%);
+      opacity: 0;
+      pointer-events: none;
     }
 
     .nav-brand {
@@ -820,6 +827,10 @@
 
 
   <script>
+      window.submitUploadFormAfterAd = function () {
+    const form = document.getElementById("multiUploadForm");
+    if (form) form.submit();
+  };
     (function() {
       const statementList = document.getElementById('statementList');
       const addBtn = document.getElementById('addStatement');
@@ -1096,6 +1107,33 @@
         submitBtn.style.cursor = 'not-allowed';
         audio4.play();
       });
+    })();
+  </script>
+
+  <script>
+    (function() {
+      const navbar = document.querySelector('.navbar');
+      if (!navbar) return;
+      let lastY = window.scrollY;
+      let hidePoint = window.innerHeight * 0.3;
+
+      function updateHidePoint() {
+        hidePoint = window.innerHeight * 0.3;
+      }
+
+      function handleScroll() {
+        const current = window.scrollY;
+        if (current > hidePoint && current > lastY) {
+          navbar.classList.add('hidden');
+        } else {
+          navbar.classList.remove('hidden');
+        }
+        lastY = current;
+      }
+
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      window.addEventListener('resize', updateHidePoint, { passive: true });
+      updateHidePoint();
     })();
   </script>
 
