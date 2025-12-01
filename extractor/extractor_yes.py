@@ -73,10 +73,11 @@ def extract_yes_transactions(pdf_path):
 
                         w,d,b = (_amt(cells[-3]), _amt(cells[-2]), _amt(cells[-1])) if len(cells)>=3 else (0,0,0)
 
+                        full_narr = f"{ref} {narr}".strip() if ref else narr
+
                         rows.append({
                             "Date": date,
-                            "ChequeRef": ref,
-                            "Narration": narr,
+                            "Narration": full_narr,
                             "Withdrawal": w,
                             "Deposit": d,
                             "Balance": b
