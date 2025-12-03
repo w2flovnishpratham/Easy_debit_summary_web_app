@@ -30,28 +30,28 @@
       color: var(--text-light);
       min-height: 100vh;
       line-height: 1.6;
-      padding-top: 110px;
+      padding-top: 72px;
     }
 
     .navbar {
       position: fixed;
-      top: 16px;
+      top: 10px;
       left: 50%;
       transform: translateX(-50%);
-      width: min(1200px, 94%);
-      padding: 14px 18px;
-      border-radius: 18px;
+      width: min(1100px, 92%);
+      padding: 10px 14px;
+      border-radius: 14px;
       background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
       z-index: 999;
-      transition: transform 0.25s ease, opacity 0.25s ease;
+      transition: transform 0.2s ease, opacity 0.2s ease;
     }
 
     .navbar.hidden {
@@ -374,7 +374,7 @@
       background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 24px;
-      padding: clamp(16px, 2.5vw, 26px);
+      padding: clamp(12px, 2vw, 20px);
       box-shadow: 0 16px 44px rgba(0, 0, 0, 0.32);
       overflow: hidden;
     }
@@ -395,7 +395,7 @@
     }
 
     .how-title {
-      font-size: clamp(1.4rem, 3vw, 1.8rem);
+      font-size: clamp(1.2rem, 2.4vw, 1.6rem);
       font-weight: 700;
       color: #fff;
     }
@@ -423,7 +423,8 @@
     }
 
     .how-slider {
-      margin-top: 10px;
+      margin: 10px auto 0;
+      max-width: 960px;
       position: relative;
     }
 
@@ -437,8 +438,8 @@
       display: grid;
       grid-template-columns: 1.1fr 0.9fr;
       align-items: center;
-      gap: clamp(14px, 2.5vw, 24px);
-      padding: clamp(12px, 2.5vw, 18px) 0 6px;
+      gap: clamp(12px, 2vw, 18px);
+      padding: clamp(8px, 2vw, 12px) 0 4px;
     }
 
     .how-text {
@@ -492,20 +493,45 @@
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 18px;
-      padding: 18px;
+      padding: 10px;
       box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
       display: grid;
       gap: 12px;
     }
 
+    .how-visual img {
+      width: 100%;
+      max-height: 440px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      object-fit: contain;
+      display: block;
+      background: #0b1224;
+    }
+
     .how-number {
-      font-size: clamp(2.4rem, 6vw, 3rem);
+      font-size: clamp(1.8rem, 4.5vw, 2.5rem);
       font-weight: 800;
       color: #fff;
       background: linear-gradient(120deg, var(--accent-cyan), var(--accent-blue));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       letter-spacing: 2px;
+    }
+
+    .how-slide.image-only {
+      grid-template-columns: 1fr;
+      text-align: center;
+    }
+
+    .how-slide.image-only .how-visual {
+      justify-items: center;
+    }
+
+    .how-slide.image-only .how-footnote {
+      margin: 0;
+      color: #dbeafe;
+      text-align: center;
     }
 
     .how-footnote {
@@ -837,8 +863,8 @@
       <div class="how-header">
         <div>
           <p class="how-eyebrow">How it works</p>
-          <h2 class="how-title">Use Easy Debit Summary in three quick steps</h2>
-          <p class="how-subtitle">Upload PDF statements from HDFC, ICICI, SBI, Axis, or Yes Bank, unlock them with passwords if needed, and export clean insights instantly.</p>
+          <h2 class="how-title">Step-by-step walkthrough</h2>
+          <p class="how-subtitle">Swipe through the live “How to use” walkthrough — each slide is a captured step so you can follow along visually.</p>
         </div>
         <div class="how-badges">
           <span class="how-chip">Multi-bank uploads</span>
@@ -849,52 +875,60 @@
 
       <div class="how-slider" data-how-slider>
         <div class="how-track">
-          <article class="how-slide">
-            <div class="how-text">
-              <span class="step-tag">Step 1</span>
-              <h3 class="how-step-title">Login to your Easy Debit Summary account</h3>
-              <p>Sign in so we can prepare your dashboard and keep your uploads tied to your profile.</p>
-              <ul class="how-points">
-                <li>Use the Login button in the top navigation bar.</li>
-                <li>New here? Create an account from the login page in a few seconds.</li>
-              </ul>
-            </div>
+          <article class="how-slide image-only">
             <div class="how-visual">
               <div class="how-number">01</div>
-              <p class="how-footnote">Tip: stay signed in to reuse your dashboard and exports without re-uploading.</p>
+              <img src="{{ url_for('how_to_use_asset', filename='step1.jpeg') }}" alt="Step 1 walkthrough screenshot" loading="lazy">
             </div>
+            <p class="how-footnote">Step 1</p>
           </article>
 
-          <article class="how-slide">
-            <div class="how-text">
-              <span class="step-tag">Step 2</span>
-              <h3 class="how-step-title">Add passwords only when the bank locks PDFs</h3>
-              <p>Most statements open without a password. If yours is locked, enter it in the password field.</p>
-              <ul class="how-points">
-                <li>Password hints update automatically for each bank.</li>
-                <li>Leave it blank if your PDF isn't protected.</li>
-              </ul>
-            </div>
+          <article class="how-slide image-only">
             <div class="how-visual">
               <div class="how-number">02</div>
-              <p class="how-footnote">You can keep adding blocks for more months before you submit.</p>
+              <img src="{{ url_for('how_to_use_asset', filename='step2.jpeg') }}" alt="Step 2 walkthrough screenshot" loading="lazy">
             </div>
+            <p class="how-footnote">Step 2</p>
           </article>
 
-          <article class="how-slide">
-            <div class="how-text">
-              <span class="step-tag">Step 3</span>
-              <h3 class="how-step-title">Run extraction and export your data</h3>
-              <p>Hit "Upload and Extract" to generate insights. View the dashboard, then download CSV files in one click.</p>
-              <ul class="how-points">
-                <li>Want to preview? Use "Run Sample Insights" to see a demo dashboard first.</li>
-                <li>Exports include clean debit/credit data for quick reconciliation.</li>
-              </ul>
-            </div>
+          <article class="how-slide image-only">
             <div class="how-visual">
               <div class="how-number">03</div>
-              <p class="how-footnote">Stay on this page while we process; we'll redirect you as soon as it's ready.</p>
+              <img src="{{ url_for('how_to_use_asset', filename='step3.jpeg') }}" alt="Step 3 walkthrough screenshot" loading="lazy">
             </div>
+            <p class="how-footnote">Step 3</p>
+          </article>
+
+          <article class="how-slide image-only">
+            <div class="how-visual">
+              <div class="how-number">04</div>
+              <img src="{{ url_for('how_to_use_asset', filename='step4.jpeg') }}" alt="Step 4 walkthrough screenshot" loading="lazy">
+            </div>
+            <p class="how-footnote">Step 4</p>
+          </article>
+
+          <article class="how-slide image-only">
+            <div class="how-visual">
+              <div class="how-number">05</div>
+              <img src="{{ url_for('how_to_use_asset', filename='step5.jpeg') }}" alt="Step 5 walkthrough screenshot" loading="lazy">
+            </div>
+            <p class="how-footnote">Step 5</p>
+          </article>
+
+          <article class="how-slide image-only">
+            <div class="how-visual">
+              <div class="how-number">06</div>
+              <img src="{{ url_for('how_to_use_asset', filename='step6.jpeg') }}" alt="Step 6 walkthrough screenshot" loading="lazy">
+            </div>
+            <p class="how-footnote">Step 6</p>
+          </article>
+
+          <article class="how-slide image-only">
+            <div class="how-visual">
+              <div class="how-number">07</div>
+              <img src="{{ url_for('how_to_use_asset', filename='step7.jpeg') }}" alt="Step 7 walkthrough screenshot" loading="lazy">
+            </div>
+            <p class="how-footnote">Step 7</p>
           </article>
         </div>
 
@@ -907,6 +941,10 @@
             <button type="button" class="how-dot active" data-index="0" aria-label="Step 1" aria-pressed="true"></button>
             <button type="button" class="how-dot" data-index="1" aria-label="Step 2" aria-pressed="false"></button>
             <button type="button" class="how-dot" data-index="2" aria-label="Step 3" aria-pressed="false"></button>
+            <button type="button" class="how-dot" data-index="3" aria-label="Step 4" aria-pressed="false"></button>
+            <button type="button" class="how-dot" data-index="4" aria-label="Step 5" aria-pressed="false"></button>
+            <button type="button" class="how-dot" data-index="5" aria-label="Step 6" aria-pressed="false"></button>
+            <button type="button" class="how-dot" data-index="6" aria-label="Step 7" aria-pressed="false"></button>
           </div>
         </div>
       </div>
@@ -1293,10 +1331,10 @@
       const navbar = document.querySelector('.navbar');
       if (!navbar) return;
       let lastY = window.scrollY;
-      let hidePoint = window.innerHeight * 0.3;
+      let hidePoint = Math.max(20, window.innerHeight * 0.05);
 
       function updateHidePoint() {
-        hidePoint = window.innerHeight * 0.3;
+        hidePoint = Math.max(20, window.innerHeight * 0.05);
       }
 
       function handleScroll() {
@@ -1312,6 +1350,7 @@
       window.addEventListener('scroll', handleScroll, { passive: true });
       window.addEventListener('resize', updateHidePoint, { passive: true });
       updateHidePoint();
+      handleScroll();
     })();
   </script>
 

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, session, jsonify, abort, redirect, url_for
+from flask import Flask, render_template, request, send_file, send_from_directory, session, jsonify, abort, redirect, url_for
 import os
 import pandas as pd
 from datetime import datetime
@@ -512,6 +512,18 @@ def download_file(filename):
     if PAYMENT_GATE_ENABLED and not session.get('paid'):
         abort(402)  # Payment Required
     return send_file(os.path.join(OUTPUT_FOLDER, filename), as_attachment=True)
+
+
+@app.route('/how-to-use/<path:filename>')
+def how_to_use_asset(filename):
+    assets_dir = os.path.join(BASE_DIR, 'How to use')
+    safe_name = os.path.normpath(filename).replace("\\", "/")
+    if safe_name.startswith(("..", "/")):
+        abort(404)
+    try:
+        return send_from_directory(assets_dir, safe_name)
+    except FileNotFoundError:
+        abort(404)
 
 
 
