@@ -350,108 +350,6 @@
       max-width: 360px;
     }
 
-    .sample-form {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      padding: 16px;
-      border-radius: 16px;
-      background: rgba(10, 22, 60, 0.45);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      text-align: left;
-      width: 100%;
-      max-width: 340px;
-    }
-
-    .sample-form label::before {
-      content: none;
-    }
-
-    .sample-selector {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .sample-pill {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 14px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      cursor: pointer;
-      transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .sample-pill input[type="radio"] {
-      appearance: none;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.35);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-
-    .sample-pill input[type="radio"]::after {
-      content: '';
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: transparent;
-      transition: background 0.2s ease;
-    }
-
-    .sample-pill.active {
-      border-color: var(--accent-cyan);
-      background: rgba(0, 212, 255, 0.08);
-      transform: translateY(-1px);
-      box-shadow: 0 8px 24px rgba(0, 120, 255, 0.15);
-    }
-
-    .sample-pill.active input[type="radio"] {
-      border-color: var(--accent-cyan);
-    }
-
-    .sample-pill.active input[type="radio"]::after {
-      background: var(--accent-cyan);
-    }
-
-    .sample-pill strong {
-      font-size: 0.95rem;
-      display: block;
-      color: var(--text-light);
-    }
-
-    .sample-pill small {
-      display: block;
-      color: var(--text-muted);
-      font-size: 0.78rem;
-    }
-
-    .secondary-btn {
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      background: transparent;
-      color: var(--text-light);
-      padding: 12px 16px;
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .secondary-btn:hover {
-      border-color: var(--accent-cyan);
-      color: var(--accent-cyan);
-      box-shadow: 0 8px 20px rgba(0, 120, 255, 0.2);
-      transform: translateY(-2px);
-    }
-
     .sample-image img {
       width: 100%;
       max-width: 380px;
@@ -468,15 +366,15 @@
 
     .how-section {
       max-width: 1200px;
-      margin: 0 auto 32px;
-      padding: 0 20px;
+      margin: 0 auto 20px;
+      padding: 0 16px;
     }
 
     .how-card {
       background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 24px;
-      padding: clamp(20px, 3vw, 32px);
+      padding: clamp(16px, 2.5vw, 26px);
       box-shadow: 0 16px 44px rgba(0, 0, 0, 0.32);
       overflow: hidden;
     }
@@ -505,7 +403,7 @@
     .how-subtitle {
       color: var(--text-muted);
       max-width: 620px;
-      margin-top: 6px;
+      margin-top: 4px;
     }
 
     .how-badges {
@@ -525,7 +423,7 @@
     }
 
     .how-slider {
-      margin-top: 16px;
+      margin-top: 10px;
       position: relative;
     }
 
@@ -539,14 +437,20 @@
       display: grid;
       grid-template-columns: 1.1fr 0.9fr;
       align-items: center;
-      gap: clamp(18px, 3vw, 32px);
-      padding: clamp(16px, 3vw, 22px) 0 8px;
+      gap: clamp(14px, 2.5vw, 24px);
+      padding: clamp(12px, 2.5vw, 18px) 0 6px;
     }
 
     .how-text {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
+    }
+
+    .how-text p {
+      margin: 0;
+      color: var(--text-muted);
+      line-height: 1.45;
     }
 
     .step-tag {
@@ -578,7 +482,7 @@
     }
 
     .how-points li {
-      padding: 10px 12px;
+      padding: 8px 10px;
       border-radius: 12px;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -606,8 +510,9 @@
 
     .how-footnote {
       color: var(--text-muted);
-      font-size: 0.95rem;
-      line-height: 1.5;
+      font-size: 0.93rem;
+      line-height: 1.4;
+      margin: 0;
     }
 
     .how-nav {
@@ -782,6 +687,7 @@
       .sample-image img {
         max-width: 100%;
       }
+
     }
 
     @media (max-width: 480px) {
@@ -891,7 +797,7 @@
     @media (min-width: 900px) { .container { display: grid; grid-template-columns: 1fr 1fr; align-items: start; } }
     @media (max-width: 900px) {
       .how-slide { grid-template-columns: 1fr; }
-      .how-card { padding: 18px; }
+      .how-card { padding: 16px; }
       .how-nav { flex-direction: column; align-items: flex-start; }
       .how-controls { width: 100%; }
       .how-dots { justify-content: flex-start; flex-wrap: wrap; }
@@ -926,96 +832,6 @@
     </div>
   </nav>
   
-  <header>
-    <h1>Easy Debit Summary</h1>
-    <p>Upload your bank statement PDF and get instant insights & CSV exports</p>
-  </header>
-
-  <div class="container">
-    <div class="card upload-form">
-      <form action="/upload" method="post" enctype="multipart/form-data" id="multiUploadForm">
-        <div id="statementList">
-          <div class="statement-block">
-            <div class="form-group">
-              <label>Select Your Bank</label>
-              <select name="bank[]" class="bank-select" required>
-                <option value="HDFC">HDFC Bank</option>
-                <option value="ICICI">ICICI Bank</option>
-                <option value="SBI">State Bank of India</option>
-                <option value="AXIS">Axis Bank</option>
-                <option value="YES">Yes Bank</option>
-              </select>
-            </div>
-
-            <audio id="audio3" preload="auto">
-              <source src="{{ url_for('static', filename='popTrimed.mp3') }}" type="audio/mpeg">
-            </audio>
-            <audio id="audio1" preload="auto">
-              <source src="{{ url_for('static', filename='ClickTrimed.mp3') }}" type="audio/mpeg">
-            </audio>
-            <audio id="audio4" preload="auto">
-              <source src="{{ url_for('static', filename='whooshSwipe.mp3') }}" type="audio/mpeg">
-            </audio>
-           
-
-            <div class="form-group">
-              <label>Upload PDF Statement</label>
-              <input type="file" name="pdf_file[]" id="choosePdf" accept="application/pdf" multiple required>
-              <small class="file-name" data-default-text="No file selected">No file selected</small>
-            </div>
-
-            <div class="form-group">
-              <label>Statement Password (optional)</label>
-              <input type="password" name="pdf_password[]" placeholder="Enter password if the PDF is locked">
-              <small class="password-hint" data-default-hint="Optional: only needed when your bank locks the PDF.">Optional: only needed when your bank locks the PDF.</small>
-            </div>
-
-            <button type="button" class="remove-block">Remove</button>
-          </div>
-        </div>
-
-        <div class="multi-actions">
-          <button type="button" class="inline-btn" id="addStatement">+ Add another statement</button>
-          <input type="submit" class="primary-btn" value="Upload and Extract">
-        </div>
-      </form>
-    </div>
-
-    <div class="card sample-image">
-      <h3>📊 Sample Statement Preview</h3>
-      <img id="sample-img" src="{{ url_for('static', filename='image_1.png') }}" alt="Sample Statement">
-      <p class="sample-card-copy">Explore a ready-made dashboard before uploading your own data.</p>
-
-      <form class="sample-form" action="/sample" method="post">
-        <p class="sample-card-copy">Choose your sample statement:</p>
-        <div class="sample-selector">
-          <label class="sample-pill active">
-            <input type="radio" name="sample_option" class="sampleSt" value="hdfc" checked>
-            <div>
-              <strong>HDFC Demo</strong>
-              <small>Retail savings statement</small>
-            </div>
-          </label>
-          <label class="sample-pill">
-            <input type="radio" name="sample_option" class="sampleSt" value="sbi">
-            <div>
-              <strong>SBI Demo</strong>
-              <small>Classic salary account</small>
-            </div>
-          </label>
-          <label class="sample-pill">
-            <input type="radio" name="sample_option" class="sampleSt" value="both">
-            <div>
-              <strong>Both Statements</strong>
-              <small>See multi-bank consolidation</small>
-            </div>
-          </label>
-        </div>
-        <button type="submit" class="secondary-btn">Run Sample Insights</button>
-      </form>
-    </div>
-  </div>
-
   <section class="how-section" id="how-to-use">
     <div class="how-card">
       <div class="how-header">
@@ -1096,6 +912,68 @@
       </div>
     </div>
   </section>
+
+  <header>
+    <h1>Easy Debit Summary</h1>
+    <p>Upload your bank statement PDF and get instant insights & CSV exports</p>
+  </header>
+
+  <div class="container">
+    <div class="card upload-form">
+      <form action="/upload" method="post" enctype="multipart/form-data" id="multiUploadForm">
+        <div id="statementList">
+          <div class="statement-block">
+            <div class="form-group">
+              <label>Select Your Bank</label>
+              <select name="bank[]" class="bank-select" required>
+                <option value="HDFC">HDFC Bank</option>
+                <option value="ICICI">ICICI Bank</option>
+                <option value="SBI">State Bank of India</option>
+                <option value="AXIS">Axis Bank</option>
+                <option value="YES">Yes Bank</option>
+              </select>
+            </div>
+
+            <audio id="audio3" preload="auto">
+              <source src="{{ url_for('static', filename='popTrimed.mp3') }}" type="audio/mpeg">
+            </audio>
+            <audio id="audio1" preload="auto">
+              <source src="{{ url_for('static', filename='ClickTrimed.mp3') }}" type="audio/mpeg">
+            </audio>
+            <audio id="audio4" preload="auto">
+              <source src="{{ url_for('static', filename='whooshSwipe.mp3') }}" type="audio/mpeg">
+            </audio>
+           
+
+            <div class="form-group">
+              <label>Upload PDF Statement</label>
+              <input type="file" name="pdf_file[]" id="choosePdf" accept="application/pdf" multiple required>
+              <small class="file-name" data-default-text="No file selected">No file selected</small>
+            </div>
+
+            <div class="form-group">
+              <label>Statement Password (optional)</label>
+              <input type="password" name="pdf_password[]" placeholder="Enter password if the PDF is locked">
+              <small class="password-hint" data-default-hint="Optional: only needed when your bank locks the PDF.">Optional: only needed when your bank locks the PDF.</small>
+            </div>
+
+            <button type="button" class="remove-block">Remove</button>
+          </div>
+        </div>
+
+        <div class="multi-actions">
+          <button type="button" class="inline-btn" id="addStatement">+ Add another statement</button>
+          <input type="submit" class="primary-btn" value="Upload and Extract">
+        </div>
+      </form>
+    </div>
+
+    <div class="card sample-image">
+      <h3>📊 Sample Statement Preview</h3>
+      <img id="sample-img" src="{{ url_for('static', filename='image_1.png') }}" alt="Sample Statement">
+      
+    </div>
+  </div>
 
   <footer>
     <div class="footer-content">
@@ -1189,8 +1067,6 @@
       const audio4 = document.getElementById('audio4');
       const pdfInput = document.getElementById('choosePdf');
       const bankSelect = document.querySelector('.bank-select');
-      const sampleOptionInputs = document.querySelectorAll('input[name="sample_option"]');
-      const SampleSt = document.querySelectorAll('.sampleSt');
       
 
       // Play sound when opening the file picker (Choose file click)
@@ -1244,6 +1120,7 @@
       function updateImage(bank) {
         const fallback = 'HDFC';
         const key = bank || fallback;
+        if (!img) return;
         img.style.opacity = '0';
         img.style.transform = 'scale(0.95)';
         setTimeout(() => {
@@ -1251,25 +1128,6 @@
           img.style.opacity = '1';
           img.style.transform = 'scale(1)';
         }, 200);
-      }
-
-      function updateSamplePillState() {
-        sampleOptionInputs.forEach((input) => {
-          const pill = input.closest('.sample-pill');
-          if (!pill) return;
-          pill.classList.toggle('active', input.checked);
-        });
-      }
-
-      function updateSampleImagePreview(value) {
-        if (!value) {
-          return;
-        }
-        if (value === 'sbi') {
-          updateImage('SBI');
-        } else {
-          updateImage('HDFC');
-        }
       }
 
       function updatePasswordHint(selectEl) {
@@ -1402,8 +1260,8 @@
       statementList.addEventListener('change', (event) => {
         const target = event.target;
         if (target.classList.contains('bank-select')) {
-          updateImage(target.value);
           updatePasswordHint(target);
+          updateImage(target.value);
         }
         if (target.matches('input[type="file"]')) {
           handleMultiFileSelection(target);
@@ -1413,37 +1271,9 @@
 
       updateRemoveButtons();
       const firstSelect = statementList.querySelector('.bank-select');
-      updateImage(firstSelect ? firstSelect.value : 'HDFC');
       if (firstSelect) {
         updatePasswordHint(firstSelect);
-      }
-
-      if (sampleOptionInputs.length) {
-        sampleOptionInputs.forEach((input) => {
-          input.addEventListener('change', (event) => {
-            updateSamplePillState();
-            updateSampleImagePreview(event.target.value);
-            if (audio1) {
-              try {
-                audio1.currentTime = 0;
-                audio1.play();
-              } catch (err) {}
-            }
-          });
-        });
-        updateSamplePillState();
-      }
-
-      const sampleRunBtn = document.querySelector('.sample-form .secondary-btn');
-      if (sampleRunBtn) {
-        sampleRunBtn.addEventListener('click', () => {
-          if (audio4) {
-            try {
-              audio4.currentTime = 0;
-              audio4.play();
-            } catch (err) {}
-          }
-        });
+        updateImage(firstSelect.value);
       }
 
       form.addEventListener('submit', function() {
