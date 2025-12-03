@@ -34,22 +34,85 @@ RENAME_MAP = {
     "deposit": "Credit",
 }
 
+# PAYMENT CATEGORY PATTERNS (ordered: specific --> general)
 PAYMENT_CATEGORY_PATTERNS = [
-    ("UPI", r"\bUPI\b|\bVPA\b|BHIM"),
-    ("IMPS", r"\bIMPS\b"),
-    ("NEFT", r"\bNEFT\b"),
+    ("CHARGES", r"\bCHARGE\b|\bFEE\b|\bDEBITCARDISSUANCEFEE\b|\bSERVICE CHARGE\b|\bCHG(?:S)?\b|\bTAX CHARGE\b"),
+    ("REFUND", r"\bREFUND\b|\bREFUND?RN?\b|\bREFUND-?RN\b|\bREVERSE\b|\bREVERSAL\b|\bREVERS\b|\bRTN\b|\bCREDIT-REVERSAL\b"),
+    ("CHEQUE", r"\bCHQDEP\b|\bCHQDEPRET\b|\bCHQDEPRET-FUNDSINSUFFICIENT\b|\bCHEQUE\b|\bCHQ\b"),
+    ("CARD/POS", r"\bPOS\b|\bDEBITCARD\b|\bCREDITCARD\b|\bDEBIT CARD\b|\bCREDIT CARD\b|\bCARD PAYMENT\b|\bDCINTLPOSTXNDCC\b"),
+    ("ATM", r"\bATM\b|\bATW\b|\bNFS\b|\bATM WITHDRAWAL\b|\bCASH WITHDRAWAL\b"),
+    ("EMI", r"\bEMI\b|\bE M I\b|\bINSTAL?L?MENT\b|\bLOAN INSTALMENT\b|\bLOAN EMI\b"),
+    ("SALARY", r"\bSALARY\b|\bPAYROLL\b|\bCREDIT-SALARY\b|\bSAL\.?\/|SAL\/|\bEMPLOYEE PAY\b"),
+    ("TAX", r"\b(TAX PAYMENT|TAX PAID|TDS(?: DEDUCTED)?|INCOME TAX|GST PAYMENT|GST PAID)\b"),  # strict, avoids GSTIN
+    ("SWEEP/INTEREST", r"\bSWEEP-?IN\b|\bSWEEP\b|\bINT\. ON SWCR\b|\bINTEREST\b|\bINT\b"),
+    ("RAZORPAY", r"\bRAZORPAY\b|\bRZP\b|\bPAYVIA RAZORPAY\b|\bPAYVIARAZORPAY\b"),
+    ("IMPS", r"\bIMPS\b|\bIMPS-?\d+\b|\bIMPS/|\bIMPSP2P\b"),
+    ("NEFT", r"\bNEFT\b|\bNEFT/|\bNEFT-CREDIT\b|\bNEFTDR\b|\bNEFTDR-"),
     ("RTGS", r"\bRTGS\b"),
-    ("POS", r"\bPOS\b|POINT OF SALE"),
-    ("ATM", r"\bATM\b|\bNFS\b"),
-    ("CHEQUE", r"\bCHEQUE\b|\bCHQ\b"),
-    ("ACH", r"\bACH\b|ECS"),
-    ("CARD", r"DEBIT CARD|CREDIT CARD|VISA|MASTERCARD"),
-    ("CASH", r"\bCASH\b"),
-    ("TRANSFER", r"\bTRF\b|FUND TRANSFER|FT |\bIFT\b"),
-    ("CHARGES", r"CHARGE|FEE|GST|IGST"),
-    ("SALARY", r"SALARY|PAYROLL"),
-    ("REFUND", r"REFUND|REVERSAL|REVERS"),
+    ("ACH", r"\bACH\b|\bECS\b|\bACH-CR|\bACH-DR|\bECS-CR|\bECS-DR"),
+    ("SUBSCRIPTION", r"\bSUBSCRIPTION\b|\bSUBS\b|\bRENEWAL\b|\bAUTOPAY\b|\bMANDATEEXECUTE\b|\bMONTHLY SUB\b|\bMEMBERSHIP\b|\bPLAYSTORE\b|\bGOOGLECLOUD\b|\bOPENAI\b"),
+    ("RECHARGE", r"\bRECHARGE\b|\bTOP-?UP\b|\bTOPUP\b|\bRECHG\b|\bMOBILE RECHARGE\b|\bAIRTEL\b|\bVODAFONE\b|\bJIO\b"),
+    ("WALLET_TOPUP", r"\bWALLET\b|\bPAYTM WALLET\b|\bMOBIQWIK\b|\bPHONEPE WALLET\b|\bFREECHARGE\b|\bWALLET TOP-?UP\b"),
+    ("GROCERY", r"\bGROCERY\b|\bGROC?ERY\b|\bGROCERIES\b|\bSUPER MARKET\b|\bSUPERMARKET\b|\bBIGBASKET\b|\bFLIPKART ?GROCERY\b"),
+    ("FUEL", r"\bFUEL\b|\bPETROL\b|\bDIESEL\b|\bPETRO\b|\bHP ?PETROL\b|\bIOCL?\b|\bBHARAT PETROLEUM\b|\bARAT PETROLEUM\b"),
+    ("TRANSFER", r"\bTRF\b|\bFUND TRANSFER\b|\bFT\b|\bIFT\b|\bTRANSFER\b|\bTRANSFER TO\b|\bTRANSFER FROM\b"),
+    ("E-COMMERCE", r"\bFLIPKART\b|\bFKART\b|\bAMAZON\b|\bAMZN\b|\bAMAZONPAY\b|\bAMZNMKT\b|\bAMAZONIN\b|\bPADDLE\.NET\b|\bPADDLE\b"),
+    ("BROKERAGE", r"\bZERODHA\b|\bBROKING\b|\bSECURIT(?:Y|IES)\b|\bBROKER\b"),
+    ("CASH", r"\bCASH\b|\bCASH WITHDRAWAL\b|\bCASH WITHDRAWN\b"),
+    ("OTHER", r".*"),  # fallback — keep last
 ]
+
+# MERCHANT PATTERNS (expanded)
+MERCHANT_PATTERNS = {
+    # common delivery / grocery / food
+    "Blinkit": r"BLINKIT|BLNKIT",
+    "Swiggy": r"SWIGGY|SWGYY",
+    "Zomato": r"ZOMATO|ZMT",
+    "BigBasket": r"BIGBASKET|BB\.?DAILY",
+    "Grofers": r"GROFERS|GROFERSINDIA",
+    # ecommerce / marketplace
+    "Amazon": r"AMAZON|AMZN|AMAZONPAY|AMZNMKT|AMAZONIN|WWWAMAZONIN|AMZDQR",
+    "Flipkart": r"FLIPKART|FKART|FLIPKARTPAYMENT",
+    "Paddle": r"PADDLE\.NET|PADDLE",
+    # travel / rides
+    "Uber": r"UBER|UBR",
+    "Ola": r"\BOLA\b|OLA\b",
+    "Rapido": r"RAPIDO",
+    # wallets & rails
+    "PhonePe": r"PHONEPE|PHONE-PE|PHNPE",
+    "Google Pay": r"GOOGLE ?PAY|GPAY|G-PAY|GOOGLEPAY",
+    "Paytm": r"PAYTM|PAYT MU|PAYTM-?IN|PAYTMQR",
+    "One97 (Paytm)": r"ONE97",
+    # financial / cards / banks
+    "CRED": r"CRED",
+    "BajajPay": r"BAJAJ ?PAY",
+    "BharatPe": r"BHARATPE|PAY TO BHARATPE",
+    # subscriptions / cloud / SaaS
+    "Google Cloud": r"GOOGLECLOUD|CLOUD-GOOGLE|GOOGLE ?CLOUD|CLOUD-",
+    "OpenAI": r"\bOPENAI\b",
+    "Hostinger": r"HOSTINGER|HOSTINGERPTE|HOSTINGERPTE LTD|HOSTINGERPTELTD",
+    "QLOUDIN": r"QLOUDIN|QLOUDIN TECHNOLOGIES",
+    "Razorpay": r"RAZORPAY|RZP|PAYVIA RAZORPAY|PAYVIARAZORPAY",
+    # entertainment / tickets
+    "PVR": r"PVR\b|PVR LIMITED",
+    "BookMyShow": r"BOOKMYSHOW|BMS",
+    # utilities / fuel / retail
+    "Bharat Petroleum": r"BHARAT PETROLEUM|BPCL|ARAT PETROLEUM|ARAT PETROLEUM",
+    "Shiva Wines": r"SHIVA WINES",
+    "Myntra": r"MYNTRA",
+    "Shoppers Stop": r"SHOPPERS? ?STOP",
+    # misc common merchants
+    "Zerodha": r"ZERODHA|ZERODHABROKING",
+    "PayU": r"PAYU",
+    "Airtel": r"AIRTEL|AIRP",
+    "Razorpay-Refund": r"HOSTINGEREFUNDRN|REFUNDRN",
+    "Citi/Bank Codes": r"BANKCODE|IFSC|NEFT|IMPS|CITI|HDFC|YESB|AXIS|SBIN|ICIC",
+}
+
+# --- Precompile patterns for speed ----------------------------------------
+_COMPILED_PAYMENT_PATTERNS = [(label, re.compile(pat, re.IGNORECASE)) for label, pat in PAYMENT_CATEGORY_PATTERNS]
+_COMPILED_MERCHANT_PATTERNS = [(name, re.compile(pat, re.IGNORECASE)) for name, pat in MERCHANT_PATTERNS.items()]
+# ---------------------------------------------------------------------------
 
 
 def generate_summary(bank: str, pdf_path: str) -> Tuple[pd.DataFrame, Dict[str, Any]]:
@@ -91,16 +154,25 @@ def _derive_payment_category(details: Any) -> str:
         text = ""
     else:
         text = str(details)
-    text = text.upper()
-    for label, pattern in PAYMENT_CATEGORY_PATTERNS:
-        if re.search(pattern, text):
+    for label, cre in _COMPILED_PAYMENT_PATTERNS:
+        if cre.search(text):
             return label
     return "OTHER"
 
 
+def _detect_merchant(details: str) -> str:
+    if pd.isna(details):
+        return ""
+    text = str(details)
+    for merchant, cre in _COMPILED_MERCHANT_PATTERNS:
+        if cre.search(text):
+            return merchant
+    return ""
+
+
 def _standardize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     if df is None or df.empty:
-        return pd.DataFrame(columns=["Date", "Details", "Debit", "Credit", "Balance", "Transaction Type"])
+        return pd.DataFrame(columns=["Date", "Details", "Debit", "Credit", "Balance", "Transaction Type", "Payment Category", "Merchant"])
 
     normalized = df.copy()
     normalized.columns = [
@@ -150,6 +222,15 @@ def _standardize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
         )
 
     normalized["Payment Category"] = normalized["Details"].apply(_derive_payment_category)
+
+    normalized["Merchant"] = normalized["Details"].apply(_detect_merchant)
+
+    # If merchant is empty, use Transaction Type instead
+    normalized["Merchant"] = normalized.apply(
+        lambda row: row["Merchant"] if row["Merchant"] else row["Transaction Type"],
+        axis=1
+    )
+
 
     return normalized.reset_index(drop=True)
 
@@ -232,11 +313,13 @@ def _build_dashboard_summary(df: pd.DataFrame) -> Dict[str, Any]:
             "share": float(leader["transactions"] / total_category_transactions) if total_category_transactions else 0.0,
         }
 
-    debit_columns = ["Date", "Details", "Debit"]
-    credit_columns = ["Date", "Details", "Credit"]
+    debit_columns = ["Date", "Details", "Merchant", "Payment Category", "Debit"]
+    credit_columns = ["Date", "Details", "Merchant", "Payment Category", "Credit"]
     if "Bank" in df.columns:
-        debit_columns = ["Date", "Bank", "Details", "Debit"]
-        credit_columns = ["Date", "Bank", "Details", "Credit"]
+        # keep Bank near the front when available
+        debit_columns = ["Date", "Bank", "Details", "Merchant", "Payment Category", "Debit"]
+        credit_columns = ["Date", "Bank", "Details", "Merchant", "Payment Category", "Credit"]
+
 
     top_debits_df = (
         df[df["Debit"] > 0][debit_columns]
@@ -282,11 +365,15 @@ def _build_dashboard_summary(df: pd.DataFrame) -> Dict[str, Any]:
     active_days = int(daily_df["Date"].nunique())
     spend_to_income = (total_debit / total_credit) if total_credit else None
 
-    tx_columns = ["Date", "Details", "Debit", "Credit", "Balance"]
+    tx_columns = ["Date", "Details", "Merchant", "Payment Category", "Debit", "Credit", "Balance"]
     if "Bank" in df.columns:
         tx_columns.insert(1, "Bank")
+
+    # only keep columns that exist in the df (prevents KeyError if field missing)
+    tx_columns = [c for c in tx_columns if c in df.columns]
     transactions_js = df[tx_columns].copy()
     transactions_js["Date"] = transactions_js["Date"].dt.strftime("%Y-%m-%d")
+
 
     daily_series = daily_df.copy()
     daily_series["Date"] = daily_series["Date"].dt.strftime("%Y-%m-%d")
@@ -320,7 +407,7 @@ def _build_dashboard_summary(df: pd.DataFrame) -> Dict[str, Any]:
     }
 
 
-    # FIX: Apply credit adjustment ONLY for OVERALL card (bank key will be missing)
+    # FIX: Apply credit adjustment ONLY for OVERALL card 
     if "bank" not in summary:
         f_total_credit = (
             summary["closing_balance"]
