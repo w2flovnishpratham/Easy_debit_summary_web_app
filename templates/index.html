@@ -466,6 +466,206 @@
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
     }
 
+    .how-section {
+      max-width: 1200px;
+      margin: 0 auto 32px;
+      padding: 0 20px;
+    }
+
+    .how-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      padding: clamp(20px, 3vw, 32px);
+      box-shadow: 0 16px 44px rgba(0, 0, 0, 0.32);
+      overflow: hidden;
+    }
+
+    .how-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .how-eyebrow {
+      font-size: 0.85rem;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    .how-title {
+      font-size: clamp(1.4rem, 3vw, 1.8rem);
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .how-subtitle {
+      color: var(--text-muted);
+      max-width: 620px;
+      margin-top: 6px;
+    }
+
+    .how-badges {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .how-chip {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .how-slider {
+      margin-top: 16px;
+      position: relative;
+    }
+
+    .how-track {
+      display: flex;
+      transition: transform 0.45s ease;
+    }
+
+    .how-slide {
+      min-width: 100%;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      align-items: center;
+      gap: clamp(18px, 3vw, 32px);
+      padding: clamp(16px, 3vw, 22px) 0 8px;
+    }
+
+    .how-text {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .step-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(0, 212, 255, 0.12);
+      color: #bde8ff;
+      font-weight: 600;
+      width: fit-content;
+      border: 1px solid rgba(0, 212, 255, 0.25);
+    }
+
+    .how-step-title {
+      font-size: 1.25rem;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .how-points {
+      list-style: none;
+      display: grid;
+      gap: 8px;
+      color: var(--text-muted);
+      padding: 0;
+      margin: 0;
+    }
+
+    .how-points li {
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .how-visual {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+      display: grid;
+      gap: 12px;
+    }
+
+    .how-number {
+      font-size: clamp(2.4rem, 6vw, 3rem);
+      font-weight: 800;
+      color: #fff;
+      background: linear-gradient(120deg, var(--accent-cyan), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 2px;
+    }
+
+    .how-footnote {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .how-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 6px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .how-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .how-control {
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.25s ease;
+    }
+
+    .how-control:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      box-shadow: 0 10px 24px rgba(0, 120, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .how-dots {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .how-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      background: transparent;
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+
+    .how-dot.active {
+      background: linear-gradient(120deg, var(--accent-cyan), var(--accent-blue));
+      border-color: transparent;
+      box-shadow: 0 0 12px rgba(0, 212, 255, 0.55);
+    }
+
     footer {
       text-align: center;
       padding: 48px 20px 40px;
@@ -689,6 +889,19 @@
     header h1 { font-size: clamp(1.6rem, 4.5vw, 2.5rem); }
     header p { font-size: clamp(0.95rem, 2.6vw, 1.1rem); }
     @media (min-width: 900px) { .container { display: grid; grid-template-columns: 1fr 1fr; align-items: start; } }
+    @media (max-width: 900px) {
+      .how-slide { grid-template-columns: 1fr; }
+      .how-card { padding: 18px; }
+      .how-nav { flex-direction: column; align-items: flex-start; }
+      .how-controls { width: 100%; }
+      .how-dots { justify-content: flex-start; flex-wrap: wrap; }
+    }
+    @media (max-width: 540px) {
+      .how-chip { width: 100%; text-align: center; }
+      .how-section { padding: 0 12px; }
+      .how-card { padding: 16px; }
+      .how-controls { justify-content: space-between; }
+    }
     
   </style>
 </head>
@@ -803,6 +1016,87 @@
     </div>
   </div>
 
+  <section class="how-section" id="how-to-use">
+    <div class="how-card">
+      <div class="how-header">
+        <div>
+          <p class="how-eyebrow">How it works</p>
+          <h2 class="how-title">Use Easy Debit Summary in three quick steps</h2>
+          <p class="how-subtitle">Upload PDF statements from HDFC, ICICI, SBI, Axis, or Yes Bank, unlock them with passwords if needed, and export clean insights instantly.</p>
+        </div>
+        <div class="how-badges">
+          <span class="how-chip">Multi-bank uploads</span>
+          <span class="how-chip">Password ready</span>
+          <span class="how-chip">CSV export</span>
+        </div>
+      </div>
+
+      <div class="how-slider" data-how-slider>
+        <div class="how-track">
+          <article class="how-slide">
+            <div class="how-text">
+              <span class="step-tag">Step 1</span>
+              <h3 class="how-step-title">Login to your Easy Debit Summary account</h3>
+              <p>Sign in so we can prepare your dashboard and keep your uploads tied to your profile.</p>
+              <ul class="how-points">
+                <li>Use the Login button in the top navigation bar.</li>
+                <li>New here? Create an account from the login page in a few seconds.</li>
+              </ul>
+            </div>
+            <div class="how-visual">
+              <div class="how-number">01</div>
+              <p class="how-footnote">Tip: stay signed in to reuse your dashboard and exports without re-uploading.</p>
+            </div>
+          </article>
+
+          <article class="how-slide">
+            <div class="how-text">
+              <span class="step-tag">Step 2</span>
+              <h3 class="how-step-title">Add passwords only when the bank locks PDFs</h3>
+              <p>Most statements open without a password. If yours is locked, enter it in the password field.</p>
+              <ul class="how-points">
+                <li>Password hints update automatically for each bank.</li>
+                <li>Leave it blank if your PDF isn't protected.</li>
+              </ul>
+            </div>
+            <div class="how-visual">
+              <div class="how-number">02</div>
+              <p class="how-footnote">You can keep adding blocks for more months before you submit.</p>
+            </div>
+          </article>
+
+          <article class="how-slide">
+            <div class="how-text">
+              <span class="step-tag">Step 3</span>
+              <h3 class="how-step-title">Run extraction and export your data</h3>
+              <p>Hit "Upload and Extract" to generate insights. View the dashboard, then download CSV files in one click.</p>
+              <ul class="how-points">
+                <li>Want to preview? Use "Run Sample Insights" to see a demo dashboard first.</li>
+                <li>Exports include clean debit/credit data for quick reconciliation.</li>
+              </ul>
+            </div>
+            <div class="how-visual">
+              <div class="how-number">03</div>
+              <p class="how-footnote">Stay on this page while we process; we'll redirect you as soon as it's ready.</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="how-nav">
+          <div class="how-controls">
+            <button type="button" class="how-control prev" aria-label="Previous step">Prev</button>
+            <button type="button" class="how-control next" aria-label="Next step">Next</button>
+          </div>
+          <div class="how-dots" role="tablist" aria-label="How to use steps">
+            <button type="button" class="how-dot active" data-index="0" aria-label="Step 1" aria-pressed="true"></button>
+            <button type="button" class="how-dot" data-index="1" aria-label="Step 2" aria-pressed="false"></button>
+            <button type="button" class="how-dot" data-index="2" aria-label="Step 3" aria-pressed="false"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <footer>
     <div class="footer-content">
       <div class="footer-line powered-by">
@@ -825,6 +1119,60 @@
     </div>
   </footer>
 
+
+  <script>
+    (function() {
+      const slider = document.querySelector('[data-how-slider]');
+      if (!slider) return;
+
+      const track = slider.querySelector('.how-track');
+      const slides = slider.querySelectorAll('.how-slide');
+      const dots = slider.querySelectorAll('.how-dot');
+      const prevBtn = slider.querySelector('.how-control.prev');
+      const nextBtn = slider.querySelector('.how-control.next');
+      let current = 0;
+      let autoTimer;
+
+      function goTo(index) {
+        if (!slides.length) return;
+        current = (index + slides.length) % slides.length;
+        track.style.transform = `translateX(-${current * 100}%)`;
+        dots.forEach((dot, dotIndex) => {
+          const isActive = dotIndex === current;
+          dot.classList.toggle('active', isActive);
+          dot.setAttribute('aria-pressed', isActive);
+        });
+      }
+
+      function startAutoCycle() {
+        clearInterval(autoTimer);
+        autoTimer = setInterval(() => goTo(current + 1), 7000);
+      }
+
+      prevBtn?.addEventListener('click', () => {
+        goTo(current - 1);
+        startAutoCycle();
+      });
+
+      nextBtn?.addEventListener('click', () => {
+        goTo(current + 1);
+        startAutoCycle();
+      });
+
+      dots.forEach((dot, dotIndex) => {
+        dot.addEventListener('click', () => {
+          goTo(dotIndex);
+          startAutoCycle();
+        });
+      });
+
+      slider.addEventListener('mouseenter', () => clearInterval(autoTimer));
+      slider.addEventListener('mouseleave', startAutoCycle);
+
+      goTo(0);
+      startAutoCycle();
+    })();
+  </script>
 
   <script>
       window.submitUploadFormAfterAd = function () {
