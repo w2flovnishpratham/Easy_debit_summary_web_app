@@ -30,15 +30,16 @@
       color: var(--text-light);
       min-height: 100vh;
       line-height: 1.6;
-      padding-top: 72px;
+      padding-top: 20px;
     }
 
     .navbar {
-      position: fixed;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: min(1100px, 92%);
+      position: relative;
+      top: auto;
+      left: auto;
+      transform: none;
+      width: min(1100px, 96%);
+      margin: 0 auto 16px;
       padding: 10px 14px;
       border-radius: 14px;
       background: rgba(255, 255, 255, 0.08);
@@ -55,9 +56,9 @@
     }
 
     .navbar.hidden {
-      transform: translate(-50%, -140%);
-      opacity: 0;
-      pointer-events: none;
+      transform: none;
+      opacity: 1;
+      pointer-events: auto;
     }
 
     .nav-brand {
@@ -860,19 +861,6 @@
   
   <section class="how-section" id="how-to-use">
     <div class="how-card">
-      <div class="how-header">
-        <div>
-          <p class="how-eyebrow">How it works</p>
-          <h2 class="how-title">Step-by-step walkthrough</h2>
-          <p class="how-subtitle">Swipe through the live “How to use” walkthrough — each slide is a captured step so you can follow along visually.</p>
-        </div>
-        <div class="how-badges">
-          <span class="how-chip">Multi-bank uploads</span>
-          <span class="how-chip">Password ready</span>
-          <span class="how-chip">CSV export</span>
-        </div>
-      </div>
-
       <div class="how-slider" data-how-slider>
         <div class="how-track">
           <article class="how-slide image-only">
@@ -1328,29 +1316,7 @@
 
   <script>
     (function() {
-      const navbar = document.querySelector('.navbar');
-      if (!navbar) return;
-      let lastY = window.scrollY;
-      let hidePoint = Math.max(20, window.innerHeight * 0.05);
-
-      function updateHidePoint() {
-        hidePoint = Math.max(20, window.innerHeight * 0.05);
-      }
-
-      function handleScroll() {
-        const current = window.scrollY;
-        if (current > hidePoint && current > lastY) {
-          navbar.classList.add('hidden');
-        } else {
-          navbar.classList.remove('hidden');
-        }
-        lastY = current;
-      }
-
-      window.addEventListener('scroll', handleScroll, { passive: true });
-      window.addEventListener('resize', updateHidePoint, { passive: true });
-      updateHidePoint();
-      handleScroll();
+      // Navbar stays fixed and visible while scrolling.
     })();
   </script>
 
