@@ -1554,7 +1554,6 @@
         <div class="cta-actions">
           {% set csv_classes = 'btn primary' + (' locked-download' if payment_required else '') %}
           <a id="downloadLink" class="{{ csv_classes }}" href="{{ download_link }}" download>Download CSV</a>
-          <button type="button" class="btn accent" id="saveSummaryBtn">Save Summary as PDF</button>
           <a class="btn ghost" id="backUplaod" href="/">Back to Upload</a>
         </div>
         {% if not payment_required %}
@@ -2788,123 +2787,7 @@
 
 <script>
   (function () {
-    const saveBtn = document.getElementById('saveSummaryBtn');
-    if (!saveBtn) return;
-
-    const swooshAudio = document.getElementById('audio2');
-    const defaultLabel = saveBtn.textContent;
-    const pdfSectionsToKeep = new Set([
-      'statements',
-      'balance-overview',
-      'summary-pulse',
-      'balance-integrity',
-      'bank-totals',
-      'bank-snapshots',
-      'top-movements',
-      'date-range',
-      'daily-chart',
-      'payment-category'
-    ]);
-
-    function enablePdfMode(root) {
-      if (!root) return () => {};
-      const cleanup = [];
-      const docRoot = document.documentElement;
-      docRoot.classList.add('pdf-export-active');
-      cleanup.push(() => docRoot.classList.remove('pdf-export-active'));
-
-      root.querySelectorAll('[data-section]').forEach((section) => {
-        const key = section.getAttribute('data-section');
-        const isCollapsed = section.classList.contains('collapsed');
-        if ((key && !pdfSectionsToKeep.has(key)) || isCollapsed) {
-          section.classList.add('pdf-hidden');
-          cleanup.push(() => section.classList.remove('pdf-hidden'));
-        }
-      });
-
-      root.querySelectorAll('.toggle-btn, #payBtn, .cta-actions, audio, video').forEach((node) => {
-        node.classList.add('pdf-hidden');
-        cleanup.push(() => node.classList.remove('pdf-hidden'));
-      });
-
-      return () => cleanup.forEach((fn) => fn());
-    }
-
-    async function exportSummaryAsPdf() {
-      if (saveBtn.disabled) return;
-      const captureTarget = document.querySelector('.page') || document.body;
-      if (!captureTarget) return;
-
-      saveBtn.disabled = true;
-      saveBtn.textContent = 'Preparing print view...';
-
-      const teardownPdfMode = enablePdfMode(captureTarget);
-      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-      let cleanedUp = false;
-      let mediaQueryCleanup;
-      let fallbackTimer;
-
-      const cleanup = () => {
-        if (cleanedUp) return;
-        cleanedUp = true;
-        if (fallbackTimer) {
-          clearTimeout(fallbackTimer);
-        }
-        teardownPdfMode?.();
-        saveBtn.disabled = false;
-        saveBtn.textContent = defaultLabel;
-        window.removeEventListener('afterprint', handleAfterPrint);
-        mediaQueryCleanup?.();
-      };
-
-      const handleAfterPrint = () => cleanup();
-      window.addEventListener('afterprint', handleAfterPrint);
-
-      const mediaQuery = window.matchMedia ? window.matchMedia('print') : null;
-      if (mediaQuery) {
-        if (mediaQuery.addEventListener) {
-          const handler = (event) => {
-            if (!event.matches) {
-              mediaQuery.removeEventListener('change', handler);
-              cleanup();
-            }
-          };
-          mediaQuery.addEventListener('change', handler);
-          mediaQueryCleanup = () => mediaQuery.removeEventListener('change', handler);
-        } else if (mediaQuery.addListener) {
-          const legacyHandler = (event) => {
-            if (!event.matches) {
-              mediaQuery.removeListener(legacyHandler);
-              cleanup();
-            }
-          };
-          mediaQuery.addListener(legacyHandler);
-          mediaQueryCleanup = () => mediaQuery.removeListener(legacyHandler);
-        }
-      }
-
-      fallbackTimer = window.setTimeout(() => cleanup(), 20000);
-
-      try {
-        window.print();
-      } catch (err) {
-        console.error('Print export failed', err);
-        alert('Unable to open the PDF preview. Please use your browser\'s print dialog manually.');
-        cleanup();
-      }
-    }
-
-    saveBtn.addEventListener('click', (event) => {
-      if (swooshAudio) {
-        try {
-          swooshAudio.currentTime = 0;
-          swooshAudio.play();
-        } catch (err) {}
-      }
-      event.preventDefault();
-      exportSummaryAsPdf();
-    });
+    // Save-as-PDF button removed.
   })();
 </script>
 
