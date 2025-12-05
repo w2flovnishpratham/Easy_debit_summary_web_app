@@ -62,6 +62,7 @@ os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 mongo_client: Optional[MongoClient] = None
 users_collection = None
+normalized_collection = None
 
 if MONGO_URI:
     try:
@@ -72,15 +73,24 @@ if MONGO_URI:
             raise RuntimeError("Mongo URI must include a database name or set MONGO_DB_NAME.")
         users_collection = db["users"]
         users_collection.create_index("email", unique=True)
+        normalized_collection = db["normalized_data"]
+        normalized_collection.create_index("user_email", unique=True)
     except Exception as exc:
         print(f"MongoDB connection failed: {exc}")
         users_collection = None
+        normalized_collection = None
 
 
 def get_users_collection():
     if users_collection is None:
         raise RuntimeError("User store unavailable. Check MONGO_URI configuration.")
     return users_collection
+
+
+def get_normalized_collection():
+    if normalized_collection is None:
+        raise RuntimeError("Normalized data store unavailable. Check MONGO_URI / MONGO_DB_NAME.")
+    return normalized_collection
 
 
 @app.context_processor
@@ -403,11 +413,67 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
+    history_columns = []
+    history_rows_full = []
+    history_preview = []
+    history_total_rows = 0
+    history_saved_at = ""
+    history_entries = []
+    history_error = None
+    user_email = session.get('user_email')
+
+    if user_email:
+        try:
+            collection = get_normalized_collection()
+            record = collection.find_one({"user_email": user_email}) or {}
+            history_entries = record.get("entries") or []
+
+            # If legacy fields exist without entries, fabricate one entry
+            if not history_entries and record.get("rows"):
+                history_entries = [{
+                    "columns": record.get("columns") or [],
+                    "rows": record.get("rows") or [],
+                    "row_count": len(record.get("rows") or []),
+                    "saved_at": record.get("saved_at"),
+                    "saved_at_ist": record.get("saved_at_ist") or "",
+                }]
+
+            # Sort entries by saved_at (latest first)
+            history_entries = sorted(
+                history_entries,
+                key=lambda e: e.get("saved_at") or datetime.min,
+                reverse=True
+            )
+
+            if history_entries:
+                latest = history_entries[0]
+                history_columns = latest.get("columns") or []
+                history_rows_full = latest.get("rows") or []
+                history_total_rows = len(history_rows_full)
+                history_preview = history_rows_full[-5:] if history_rows_full else []
+                saved_at_dt = latest.get("saved_at")
+                if saved_at_dt:
+                    try:
+                        history_saved_at = saved_at_dt.strftime("%Y-%m-%d %H:%M UTC")
+                    except Exception:
+                        history_saved_at = str(saved_at_dt)
+                if not history_saved_at:
+                    history_saved_at = latest.get("saved_at_ist") or ""
+        except Exception as exc:
+            history_error = str(exc)
+
     return render_template(
         'dashboard.html',
         full_name=session.get('full_name'),
         email=session.get('user_email'),
         picture=session.get('picture'),
+        history_columns=history_columns,
+        history_rows=history_rows_full,
+        history_preview=history_preview,
+        history_total_rows=history_total_rows,
+        history_saved_at=history_saved_at,
+        history_entries=history_entries,
+        history_error=history_error,
     )
 
 
@@ -673,13 +739,6 @@ def save_normalized():
     except Exception as exc:
         return jsonify({"ok": False, "error": f"Unable to read existing normalized data: {exc}"}), 500
 
-    existing_rows = existing.get("rows") or []
-    existing_columns = existing.get("columns") or []
-    merged_columns = list(existing_columns)
-    for col in new_columns:
-        if col not in merged_columns:
-            merged_columns.append(col)
-
     def to_primitive(value):
         try:
             if pd.isna(value):
@@ -695,17 +754,35 @@ def save_normalized():
                 pass
         return str(value)
 
-    def normalize_row(row):
-        return {col: to_primitive(row.get(col, "")) for col in merged_columns}
+    def normalize_rows(columns, rows):
+        normalized = []
+        for row in rows:
+            normalized.append({col: to_primitive(row.get(col, "")) for col in columns})
+        return normalized
 
-    merged_rows = [normalize_row(r) for r in existing_rows] + [normalize_row(r) for r in new_rows]
+    ist_now = datetime.utcnow() + pd.Timedelta(hours=5, minutes=30)
+    saved_at_ist = ist_now.strftime("%Y-%m-%d %H:%M:%S IST")
+
+    entry = {
+        "columns": new_columns,
+        "rows": normalize_rows(new_columns, new_rows),
+        "row_count": len(new_rows),
+        "saved_at": datetime.utcnow(),
+        "saved_at_ist": saved_at_ist,
+    }
+
+    entries = existing.get("entries") or []
+    entries.append(entry)
 
     payload = {
         "user_email": user_email,
         "full_name": session.get("full_name", ""),
-        "columns": merged_columns,
-        "rows": merged_rows,
-        "saved_at": datetime.utcnow(),
+        # legacy fields point to latest entry for backward compatibility
+        "columns": entry["columns"],
+        "rows": entry["rows"],
+        "saved_at": entry["saved_at"],
+        "saved_at_ist": entry["saved_at_ist"],
+        "entries": entries,
     }
 
     try:
@@ -713,7 +790,8 @@ def save_normalized():
     except Exception as exc:
         return jsonify({"ok": False, "error": f"Unable to save normalized data: {exc}"}), 500
 
-    return jsonify({"ok": True, "saved": len(merged_rows)})
+    return jsonify({"ok": True, "saved": entry["row_count"], "entries": len(entries)})
 
 if __name__ == '__main__':
     app.run(debug=os.environ.get("FLASK_DEBUG", "false").lower() in {"1", "true", "yes", "on"})
+

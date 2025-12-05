@@ -740,6 +740,18 @@
       gap: 12px;
     }
 
+    .save-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      min-height: 24px;
+    }
+
+    .save-status.success { color: var(--success); }
+    .save-status.error { color: var(--danger); }
+
     .btn {
       border: none;
       border-radius: 999px;
@@ -1554,8 +1566,10 @@
         <div class="cta-actions">
           {% set csv_classes = 'btn primary' + (' locked-download' if payment_required else '') %}
           <a id="downloadLink" class="{{ csv_classes }}" href="{{ download_link }}" download>Download CSV</a>
+          <button type="button" class="btn secondary" id="saveHistoryBtn">Save to history</button>
           <a class="btn ghost" id="backUplaod" href="/">Back to Upload</a>
         </div>
+        <p class="save-status" id="saveHistoryStatus"></p>
         {% if not payment_required %}
           <p style="margin:0;color:var(--text-muted);font-size:0.9rem;">Payment gate disabled – downloads are ready instantly.</p>
         {% endif %}
@@ -2783,6 +2797,46 @@
       setTimeout(() => window.location.href = backUplaod.href, 350); // or wait for audio2.onended
     });
   });
+</script>
+
+<script>
+  (function() {
+    const saveBtn = document.getElementById('saveHistoryBtn');
+    const statusEl = document.getElementById('saveHistoryStatus');
+    if (!saveBtn || !statusEl) return;
+
+    function setStatus(text, state) {
+      statusEl.textContent = text || '';
+      statusEl.className = state ? `save-status ${state}` : 'save-status';
+    }
+
+    saveBtn.addEventListener('click', async () => {
+      setStatus('Saving to your dashboard history...', '');
+      saveBtn.disabled = true;
+      try {
+        const res = await fetch('/save_normalized', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        if (res.status === 401) {
+          const nextUrl = encodeURIComponent(window.location.pathname + window.location.search);
+          window.location.href = `/login?next=${nextUrl}`;
+          return;
+        }
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || 'Unable to save history');
+        }
+        const saved = data.saved || 0;
+        setStatus(`Saved ${saved} row${saved === 1 ? '' : 's'} to your dashboard history.`, 'success');
+      } catch (err) {
+        setStatus(err?.message || 'Failed to save history.', 'error');
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+  })();
 </script>
 
 <script>
