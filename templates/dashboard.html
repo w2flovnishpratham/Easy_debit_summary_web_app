@@ -402,6 +402,22 @@
       align-items: center;
     }
 
+    .history-summary-link {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.08);
+      color: #e9f1ff;
+      text-decoration: none;
+      transition: background 0.2s ease;
+    }
+
+    .history-summary-link:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
     .badge {
       padding: 6px 10px;
       border-radius: 10px;
@@ -520,6 +536,7 @@
                     {% if entry.get('columns') %}
                     <span class="badge">{{ entry.get('columns')|length }} columns</span>
                     {% endif %}
+                    <a class="history-summary-link" href="{{ url_for('history_summary', entry_index=loop.index0) }}">Generate summary</a>
                   </div>
                 </div>
                 <table class="modal-table">
