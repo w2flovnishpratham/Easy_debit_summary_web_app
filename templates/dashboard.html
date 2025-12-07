@@ -402,7 +402,25 @@
       align-items: center;
     }
 
-    .history-summary-link {
+    .history-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .history-title {
+      font-size: 1rem;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .history-saved-at {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .history-summary-link,
+    .history-rename {
       font-size: 0.8rem;
       font-weight: 600;
       padding: 6px 12px;
@@ -412,9 +430,11 @@
       color: #e9f1ff;
       text-decoration: none;
       transition: background 0.2s ease;
+      cursor: pointer;
     }
 
-    .history-summary-link:hover {
+    .history-summary-link:hover,
+    .history-rename:hover {
       background: rgba(255, 255, 255, 0.18);
     }
 
@@ -525,18 +545,40 @@
                   {% set modal_columns = modal_columns + [col] %}
                 {% endif %}
               {% endfor %}
+              {% for col in columns %}
+                {% if modal_columns|length >= 9 %}
+                  {% break %}
+                {% endif %}
+                {% if col not in modal_columns %}
+                  {% set modal_columns = modal_columns + [col] %}
+                {% endif %}
+              {% endfor %}
               {% if not modal_columns %}
-                {% set modal_columns = columns[:6] %}
+                {% set modal_columns = columns[:9] %}
               {% endif %}
+              {% set saved_label = entry.get('label') %}
+              {% set saved_at_text = entry.get('saved_at_ist') or entry.get('saved_at') %}
+              {% set fallback_label = saved_label or ('Saved ' ~ (saved_at_text or 'snapshot')) %}
               <div class="history-entry history-entry-card" data-entry-index="{{ loop.index0 }}" style="{% if not loop.first %}display:none;{% endif %}">
                 <div class="entry-header">
-                  <span>Saved {{ entry.get('saved_at_ist') or entry.get('saved_at') }}</span>
+                  <div class="history-info">
+                    <span class="history-title"
+                          data-history-label-index="{{ loop.index0 }}"
+                          data-history-label="{{ saved_label|default('', true)|e }}"
+                          data-history-default="{{ fallback_label|e }}">
+                      {{ fallback_label }}
+                    </span>
+                    {% if saved_at_text %}
+                    <span class="history-saved-at">{{ saved_at_text }}</span>
+                    {% endif %}
+                  </div>
                   <div class="entry-badges">
                     <span class="badge">{{ entry.get('row_count', entry.get('rows')|length) }} rows</span>
                     {% if entry.get('columns') %}
                     <span class="badge">{{ entry.get('columns')|length }} columns</span>
                     {% endif %}
                     <a class="history-summary-link" href="{{ url_for('history_summary', entry_index=loop.index0) }}">Generate summary</a>
+                    <button type="button" class="history-rename" data-entry-index="{{ loop.index0 }}">Rename</button>
                   </div>
                 </div>
                 <table class="modal-table">
@@ -646,6 +688,46 @@
       if (entryBlocks.length) {
         showEntry(entryBlocks[0].getAttribute('data-entry-index'));
       }
+    })();
+  </script>
+  <script>
+    (function() {
+      const renameButtons = Array.from(document.querySelectorAll('.history-rename'));
+      if (!renameButtons.length) return;
+
+      renameButtons.forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const entryIndex = Number(btn.getAttribute('data-entry-index'));
+          const labelEl = document.querySelector(`.history-title[data-history-label-index="${entryIndex}"]`);
+          const currentLabel = (labelEl?.dataset.historyLabel || '').trim();
+          const fallback = labelEl?.dataset.historyDefault || '';
+          const promptValue = currentLabel || '';
+          const input = prompt('Enter a custom name for this save (leave blank to revert)', promptValue);
+          if (input === null) return;
+          const newLabel = input.trim();
+          btn.disabled = true;
+          try {
+            const res = await fetch(`/history_entry/${entryIndex}/label`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ label: newLabel }),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+              throw new Error(data.error || 'Unable to rename the save');
+            }
+            if (labelEl) {
+              const display = data.label ? data.label : fallback;
+              labelEl.dataset.historyLabel = data.label || '';
+              labelEl.textContent = display;
+            }
+          } catch (err) {
+            alert(err?.message || 'Rename failed. Please try again.');
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      });
     })();
   </script>
 </body>

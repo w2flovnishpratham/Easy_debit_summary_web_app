@@ -740,6 +740,28 @@
       gap: 12px;
     }
 
+    .history-label-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-width: 420px;
+    }
+
+    .history-label-field label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .history-label-field input {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid rgba(37, 99, 235, 0.4);
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      background: rgba(255, 255, 255, 0.9);
+    }
+
     .save-status {
       display: inline-flex;
       align-items: center;
@@ -1568,6 +1590,10 @@
           <a id="downloadLink" class="{{ csv_classes }}" href="{{ download_link }}" download>Download CSV</a>
           <button type="button" class="btn secondary" id="saveHistoryBtn">Save to history</button>
           <a class="btn ghost" id="backUplaod" href="/">Back to Upload</a>
+        </div>
+        <div class="history-label-field">
+          <label for="historyLabelInput">Name this save (optional)</label>
+          <input id="historyLabelInput" type="text" name="history_label" placeholder="e.g. Rent ledger, Dec 2025" maxlength="60">
         </div>
         <p class="save-status" id="saveHistoryStatus"></p>
         {% if not payment_required %}
@@ -2803,6 +2829,7 @@
   (function() {
     const saveBtn = document.getElementById('saveHistoryBtn');
     const statusEl = document.getElementById('saveHistoryStatus');
+    const labelInput = document.getElementById('historyLabelInput');
     if (!saveBtn || !statusEl) return;
 
     function setStatus(text, state) {
@@ -2817,7 +2844,9 @@
         const res = await fetch('/save_normalized', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({})
+          body: JSON.stringify({
+            label: labelInput ? labelInput.value.trim() : ''
+          })
         });
         if (res.status === 401) {
           const nextUrl = encodeURIComponent(window.location.pathname + window.location.search);
