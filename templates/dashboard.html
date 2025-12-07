@@ -249,6 +249,39 @@
       right: -18px;
     }
 
+    .history-table-scrollbar {
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .history-table-scrollbar input[type="range"] {
+      width: 88%;
+      height: 6px;
+      border-radius: 999px;
+      appearance: none;
+      background: rgba(13, 58, 130, 0.25);
+      outline: none;
+    }
+
+    .history-table-scrollbar input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #0d3a82;
+      box-shadow: 0 0 6px rgba(13, 58, 130, 0.6);
+      cursor: pointer;
+    }
+
+    .history-table-scrollbar input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #0d3a82;
+      cursor: pointer;
+    }
+
     .history-table {
       width: 100%;
       border-collapse: collapse;
@@ -261,8 +294,9 @@
     .history-table td {
       text-align: left;
       padding: 12px 16px;
-      white-space: normal;
-      word-break: break-word;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       border-bottom: 1px solid rgba(15, 23, 42, 0.05);
     }
 
@@ -591,9 +625,9 @@
           <button class="history-table-scroll history-table-scroll-left" type="button" aria-label="Scroll history left">‹</button>
           <div class="history-table-wrapper">
             <table class="history-table">
-            <thead>
-              <tr>
-                <th>Saved</th>
+              <thead>
+                <tr>
+                  <th>Saved</th>
                 <th>Rows</th>
               </tr>
             </thead>
@@ -620,6 +654,11 @@
             </tbody>
           </table>
           </div>
+          <div class="history-table-scrollbar">
+            <input type="range" min="0" value="0" step="1" aria-label="Scroll saves" />
+          </div>
+          <button class="history-table-scroll history-table-scroll-right" type="button" aria-label="Scroll history right">›</button>
+        </div>
           <button class="history-table-scroll history-table-scroll-right" type="button" aria-label="Scroll history right">›</button>
         </div>
         <div class="history-actions">
@@ -845,22 +884,29 @@
         const container = frame.querySelector('.history-table-wrapper');
         const left = frame.querySelector('.history-table-scroll-left');
         const right = frame.querySelector('.history-table-scroll-right');
-        if (!container || !left || !right) return;
+        const slider = frame.querySelector('.history-table-scrollbar input[type="range"]');
+        if (!container || !left || !right || !slider) return;
         const step = 160;
+        const syncSlider = () => {
+          const maxScroll = Math.max(container.scrollWidth - container.clientWidth, 0);
+          slider.max = maxScroll;
+          slider.value = container.scrollLeft;
+          slider.disabled = maxScroll <= 0;
+          left.disabled = container.scrollLeft <= 0;
+          right.disabled = container.scrollLeft >= maxScroll;
+        };
         left.addEventListener('click', () => {
           container.scrollBy({ left: -step, behavior: 'smooth' });
         });
         right.addEventListener('click', () => {
           container.scrollBy({ left: step, behavior: 'smooth' });
         });
-        function updateButtons() {
-          const maxScroll = container.scrollWidth - container.clientWidth;
-          left.disabled = container.scrollLeft <= 0;
-          right.disabled = container.scrollLeft >= maxScroll;
-        }
-        container.addEventListener('scroll', updateButtons);
-        window.addEventListener('resize', updateButtons);
-        updateButtons();
+        slider.addEventListener('input', (event) => {
+          container.scrollLeft = Number(event.target.value);
+        });
+        container.addEventListener('scroll', syncSlider);
+        window.addEventListener('resize', syncSlider);
+        syncSlider();
       });
     })();
   </script>
