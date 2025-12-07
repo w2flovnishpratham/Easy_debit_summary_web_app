@@ -197,6 +197,16 @@
       align-items: center;
     }
 
+    .history-meta .pill {
+      background: rgba(13, 58, 130, 0.2);
+      border-color: rgba(255, 255, 255, 0.35);
+      color: #fff;
+    }
+
+    .history-table-frame {
+      position: relative;
+    }
+
     .history-table-wrapper {
       margin-top: 8px;
       border-radius: 12px;
@@ -204,6 +214,39 @@
       overflow: auto;
       background: #fff;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .history-table-scroll {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(13, 58, 130, 0.9);
+      color: #fff;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+      opacity: 0.8;
+      transition: opacity 0.2s ease;
+    }
+
+    .history-table-scroll:hover {
+      opacity: 1;
+    }
+
+    .history-table-scroll-left {
+      left: -18px;
+    }
+
+    .history-table-scroll-right {
+      right: -18px;
     }
 
     .history-table {
@@ -533,8 +576,10 @@
       {% if history_error %}
         <p class="muted">History unavailable: {{ history_error }}</p>
       {% elif history_entries %}
-        <div class="history-table-wrapper">
-          <table class="history-table">
+        <div class="history-table-frame">
+          <button class="history-table-scroll history-table-scroll-left" type="button" aria-label="Scroll history left">‹</button>
+          <div class="history-table-wrapper">
+            <table class="history-table">
             <thead>
               <tr>
                 <th>Saved</th>
@@ -563,6 +608,8 @@
               {% endfor %}
             </tbody>
           </table>
+          </div>
+          <button class="history-table-scroll history-table-scroll-right" type="button" aria-label="Scroll history right">›</button>
         </div>
         <div class="history-actions">
           <p class="history-note" style="margin:0;">Click any save to inspect the corresponding dataframe.</p>
@@ -777,6 +824,32 @@
             btn.disabled = false;
           }
         });
+      });
+    })();
+  </script>
+  <script>
+    (function() {
+      const frames = document.querySelectorAll('.history-table-frame');
+      frames.forEach((frame) => {
+        const container = frame.querySelector('.history-table-wrapper');
+        const left = frame.querySelector('.history-table-scroll-left');
+        const right = frame.querySelector('.history-table-scroll-right');
+        if (!container || !left || !right) return;
+        const step = 160;
+        left.addEventListener('click', () => {
+          container.scrollBy({ left: -step, behavior: 'smooth' });
+        });
+        right.addEventListener('click', () => {
+          container.scrollBy({ left: step, behavior: 'smooth' });
+        });
+        function updateButtons() {
+          const maxScroll = container.scrollWidth - container.clientWidth;
+          left.disabled = container.scrollLeft <= 0;
+          right.disabled = container.scrollLeft >= maxScroll;
+        }
+        container.addEventListener('scroll', updateButtons);
+        window.addEventListener('resize', updateButtons);
+        updateButtons();
       });
     })();
   </script>
