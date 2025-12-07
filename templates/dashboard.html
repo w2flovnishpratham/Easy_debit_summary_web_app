@@ -202,37 +202,42 @@
       border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.14);
       overflow: auto;
-      background: rgba(255, 255, 255, 0.03);
+      background: #fff;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     }
 
     .history-table {
       width: 100%;
       border-collapse: collapse;
-      color: var(--text);
+      color: #0f172a;
       table-layout: auto;
+      font-weight: 500;
     }
 
     .history-table th,
     .history-table td {
       text-align: left;
-      padding: 10px 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 12px 16px;
       white-space: normal;
       word-break: break-word;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.05);
     }
 
     .history-table th {
-      white-space: nowrap;
-      color: #cfe2ff;
+      background: #0d3a82;
+      color: #fff;
+      font-weight: 600;
+      letter-spacing: 0.04em;
     }
 
     .history-table .numeric {
       text-align: right;
       white-space: nowrap;
+      color: #0f172a;
     }
 
     .history-table tbody tr:nth-child(even) td {
-      background: rgba(255, 255, 255, 0.02);
+      background: rgba(15, 23, 42, 0.04);
     }
 
     .history-note {
@@ -339,26 +344,30 @@
     .modal-table {
       width: 100%;
       border-collapse: collapse;
-      color: #e9f1ff;
+      color: #0f172a;
       table-layout: auto;
+      background: #fff;
+      border-radius: 10px;
     }
 
     .modal-table th,
     .modal-table td {
       text-align: left;
       padding: 10px 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      border-bottom: 1px solid rgba(15, 23, 42, 0.12);
       white-space: normal;
       word-break: break-word;
       font-size: 14px;
       line-height: 1.35;
       vertical-align: top;
+      color: #0f172a;
     }
 
     .modal-table th {
       white-space: nowrap;
-      color: #cfe2ff;
+      color: #ffffff;
       font-weight: 700;
+      background: #0d3a82;
     }
 
     .truncate {
@@ -386,6 +395,16 @@
 
     .modal-table tbody tr:nth-child(even) td {
       background: rgba(255, 255, 255, 0.04);
+    }
+
+    .modal-table td.debit-cell {
+      color: #dc2626;
+      font-weight: 600;
+    }
+
+    .modal-table td.credit-cell {
+      color: #15803d;
+      font-weight: 600;
     }
 
     .history-entry-card {
@@ -618,6 +637,8 @@
                       {% set cell_classes = [] %}
                       {% if col == 'Details' %}{% set cell_classes = cell_classes + ['ellipsis-2'] %}{% endif %}
                       {% if col in ['Debit','Credit','Balance'] %}{% set cell_classes = cell_classes + ['numeric'] %}{% endif %}
+                      {% if col == 'Debit' %}{% set cell_classes = cell_classes + ['debit-cell'] %}{% endif %}
+                      {% if col == 'Credit' %}{% set cell_classes = cell_classes + ['credit-cell'] %}{% endif %}
                       <td class="{{ ' '.join(cell_classes) }}">{{ row.get(col, '') }}</td>
                       {% endfor %}
                     </tr>
