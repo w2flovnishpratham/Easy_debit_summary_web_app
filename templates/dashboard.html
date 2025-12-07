@@ -6,424 +6,650 @@
   <title>Dashboard | Easy Debit Summary</title>
   <style>
     :root {
-      --bg-1: #0a1f44;
-      --bg-2: #0c396c;
-      --glass: rgba(255, 255, 255, 0.08);
-      --text: #e9f1ff;
-      --muted: #9eb6d8;
-      --accent: #00d4ff;
+      --bg-primary: #0a1f44;
+      --bg-secondary: #0c2b5c;
+      --bg-gradient-start: #0a1f44;
+      --bg-gradient-end: #0e3a74;
+      --glass-bg: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.14);
+      --glass-highlight: rgba(255, 255, 255, 0.12);
+      --text-primary: #f0f7ff;
+      --text-secondary: #a6c1ff;
+      --text-muted: #7da2e0;
+      --accent-primary: #00d4ff;
+      --accent-secondary: #0078ff;
+      --success: #00e676;
+      --warning: #ffb74d;
+      --danger: #ff5252;
+      --surface-dark: #071633;
+      --surface-light: rgba(255, 255, 255, 0.05);
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.25);
+      --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.35);
+      --shadow-accent: 0 0 32px rgba(0, 212, 255, 0.25);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --radius-2xl: 24px;
+      --transition-fast: 150ms ease;
+      --transition-base: 250ms ease;
+      --transition-slow: 350ms ease;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
-      font-family: "Poppins", "Segoe UI", system-ui, -apple-system, sans-serif;
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
       min-height: 100vh;
-      background: radial-gradient(circle at 15% 20%, rgba(0, 212, 255, 0.18), transparent 32%),
-                  radial-gradient(circle at 85% 0%, rgba(0, 120, 255, 0.16), transparent 28%),
-                  linear-gradient(135deg, var(--bg-1), var(--bg-2));
-      color: var(--text);
-      padding: 28px 18px 48px;
+      background: 
+        radial-gradient(circle at 10% 10%, rgba(0, 212, 255, 0.15), transparent 25%),
+        radial-gradient(circle at 90% 5%, rgba(0, 120, 255, 0.12), transparent 25%),
+        radial-gradient(circle at 50% 90%, rgba(100, 77, 255, 0.08), transparent 30%),
+        linear-gradient(155deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      padding: 32px 20px 60px;
+      line-height: 1.6;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
+    /* Typography */
+    h1, h2, h3, h4 {
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, var(--text-primary), var(--accent-primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    h2 {
+      font-size: 1.75rem;
+      margin-bottom: 8px;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      margin-bottom: 12px;
+    }
+
+    p {
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    /* Top Navigation */
     .topbar {
-      max-width: 1100px;
-      margin: 0 auto 26px;
+      max-width: 1200px;
+      margin: 0 auto 32px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
+      gap: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .brand {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       font-weight: 700;
-      letter-spacing: 0.4px;
+      font-size: 1.25rem;
+      letter-spacing: 0.02em;
+      background: linear-gradient(135deg, var(--text-primary), var(--accent-primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
-    .brand .dot {
-      width: 11px;
-      height: 11px;
+    .brand .logo-dot {
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #00d4ff, #0078ff);
-      box-shadow: 0 0 14px rgba(0, 212, 255, 0.8);
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      box-shadow: 0 0 16px rgba(0, 212, 255, 0.8);
+      position: relative;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
     }
 
     .top-actions {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       flex-wrap: wrap;
     }
 
+    /* Buttons */
     .btn {
       text-decoration: none;
-      padding: 10px 16px;
-      border-radius: 12px;
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
       font-weight: 600;
-      color: #0b1c3d;
-      background: linear-gradient(120deg, var(--accent), #0078ff);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      box-shadow: 0 10px 26px rgba(0, 120, 255, 0.35);
-      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+      font-size: 0.95rem;
+      letter-spacing: 0.02em;
+      color: white;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: var(--shadow-md);
+      transition: all var(--transition-base);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.6s;
     }
 
     .btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 14px 30px rgba(0, 120, 255, 0.4);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg), var(--shadow-accent);
+    }
+
+    .btn:hover::before {
+      left: 100%;
     }
 
     .btn.ghost {
       background: transparent;
-      color: var(--text);
-      border-color: rgba(255, 255, 255, 0.4);
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.25);
       box-shadow: none;
     }
 
-    main {
-      max-width: 1100px;
-      margin: 0 auto;
-      display: grid;
-      gap: 18px;
+    .btn.ghost:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.35);
+      transform: translateY(-1px);
     }
 
+    .btn.secondary {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Main Layout */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      gap: 24px;
+    }
+
+    /* Hero Section */
     .hero {
       display: flex;
       justify-content: space-between;
-      gap: 18px;
-      padding: 24px;
-      background: var(--glass);
-      border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
-      flex-wrap: wrap;
+      align-items: center;
+      gap: 24px;
+      padding: 32px;
+      background: var(--glass-bg);
+      border-radius: var(--radius-2xl);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
     }
 
     .profile {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 20px;
       flex-wrap: wrap;
     }
 
     .avatar {
-      width: 82px;
-      height: 82px;
-      border-radius: 20px;
+      width: 88px;
+      height: 88px;
+      border-radius: var(--radius-lg);
       object-fit: cover;
-      border: 2px solid rgba(255, 255, 255, 0.25);
-      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      box-shadow: var(--shadow-md);
       background: linear-gradient(135deg, rgba(0, 212, 255, 0.25), rgba(0, 120, 255, 0.25));
+      transition: transform var(--transition-base);
+    }
+
+    .avatar:hover {
+      transform: scale(1.05);
     }
 
     .avatar.fallback {
-      display: inline-block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: white;
+      font-weight: 700;
     }
 
-    .eyebrow { text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem; color: var(--accent); font-weight: 700; }
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-size: 0.75rem;
+      color: var(--accent-primary);
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: inline-block;
+      padding: 4px 12px;
+      background: rgba(0, 212, 255, 0.15);
+      border-radius: 20px;
+    }
 
-    h1 { font-size: 2rem; margin: 6px 0; }
-
-    .muted { color: var(--muted); }
+    .muted {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
 
     .pill {
-      align-self: center;
-      padding: 10px 14px;
-      border-radius: 999px;
+      padding: 10px 20px;
+      border-radius: 50px;
       border: 1px solid rgba(255, 255, 255, 0.2);
-      color: #c5eaff;
-      background: rgba(255, 255, 255, 0.06);
+      color: #d1e8ff;
+      background: rgba(255, 255, 255, 0.08);
       font-weight: 600;
+      font-size: 0.9rem;
       display: inline-flex;
       align-items: center;
       gap: 8px;
+      backdrop-filter: blur(10px);
     }
 
+    /* Cards */
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
     }
 
     .card {
-      background: var(--glass);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 18px;
-      padding: 18px 16px;
-      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      transition: all var(--transition-base);
+      height: 100%;
     }
 
-    .card h3 { margin-bottom: 8px; }
-
-    .card p { color: var(--muted); line-height: 1.5; }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
 
     .card .stack {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 16px;
+      height: 100%;
     }
 
     .cta {
-      margin-top: 14px;
-      display: inline-flex;
-      gap: 8px;
+      margin-top: auto;
+      display: flex;
+      gap: 12px;
       flex-wrap: wrap;
     }
 
+    /* History Card */
     .history-card {
-      padding: 20px;
-      gap: 10px;
+      padding: 28px;
+      grid-column: 1 / -1;
     }
 
     .history-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 12px;
+      gap: 20px;
       flex-wrap: wrap;
-      margin-bottom: 10px;
+      margin-bottom: 24px;
     }
 
     .history-meta {
       display: inline-flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 12px;
       align-items: center;
     }
 
     .history-meta .pill {
-      background: rgba(13, 58, 130, 0.2);
-      border-color: rgba(255, 255, 255, 0.35);
-      color: #fff;
+      background: rgba(13, 58, 130, 0.25);
+      border-color: rgba(255, 255, 255, 0.3);
+      color: white;
     }
 
+    /* History Table */
     .history-table-frame {
       position: relative;
+      margin: 20px 0;
     }
 
     .history-table-wrapper {
-      margin-top: 8px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       overflow: auto;
-      background: #fff;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 212, 255, 0.5) transparent;
+    }
+
+    .history-table-wrapper::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .history-table-wrapper::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+    }
+
+    .history-table-wrapper::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border-radius: 4px;
     }
 
     .history-table-scroll {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       border: none;
       background: rgba(13, 58, 130, 0.9);
-      color: #fff;
-      font-size: 1.1rem;
+      color: white;
+      font-size: 1.2rem;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 2;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
-      opacity: 0.8;
-      transition: opacity 0.2s ease;
+      box-shadow: var(--shadow-md);
+      opacity: 0.9;
+      transition: all var(--transition-base);
     }
 
     .history-table-scroll:hover {
       opacity: 1;
+      transform: translateY(-50%) scale(1.1);
+      background: rgba(13, 58, 130, 1);
     }
 
     .history-table-scroll-left {
-      left: -18px;
+      left: -20px;
     }
 
     .history-table-scroll-right {
-      right: -18px;
+      right: -20px;
     }
-
 
     .history-table {
       width: 100%;
       border-collapse: collapse;
-      color: #0f172a;
-      table-layout: auto;
-      font-weight: 500;
+      color: var(--text-primary);
+      table-layout: fixed;
+      min-width: 500px;
     }
 
     .history-table th,
     .history-table td {
       text-align: left;
-      padding: 12px 16px;
+      padding: 16px 20px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      border-bottom: 1px solid rgba(15, 23, 42, 0.05);
-    }
-
-    .history-table td::selection,
-    .history-table th::selection {
-      background: rgba(13, 58, 130, 0.15);
-      color: #0f172a;
-    }
-    .history-table td::-moz-selection,
-    .history-table th::-moz-selection {
-      background: rgba(13, 58, 130, 0.15);
-      color: #0f172a;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.95rem;
     }
 
     .history-table th {
-      background: #0d3a82;
-      color: #fff;
+      background: rgba(13, 58, 130, 0.4);
+      color: white;
       font-weight: 600;
       letter-spacing: 0.04em;
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(10px);
+    }
+
+    .history-table td {
+      color: var(--text-secondary);
+      font-weight: 500;
     }
 
     .history-table .numeric {
       text-align: right;
-      white-space: nowrap;
-      color: #0f172a;
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+      font-weight: 600;
+      color: var(--text-primary);
     }
 
-    .history-table tbody tr:nth-child(even) td {
-      background: rgba(15, 23, 42, 0.04);
+    .history-table tbody tr {
+      transition: all var(--transition-fast);
     }
 
-    .history-note {
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 0.95rem;
+    .history-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .history-table tbody tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.02);
     }
 
     .history-row {
       cursor: pointer;
-      transition: background 0.2s ease;
+      transition: all var(--transition-base);
     }
 
     .history-row:hover {
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.1) !important;
     }
 
     .history-row.active {
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(0, 212, 255, 0.15) !important;
+      border-left: 3px solid var(--accent-primary);
     }
 
     .history-table-label {
       font-weight: 600;
-      display: inline-block;
-      color: #0f172a;
+      color: var(--text-primary);
+      display: block;
     }
 
     .history-table-time {
-      font-size: 0.75rem;
-      color: rgba(15, 23, 42, 0.55);
-      margin-top: 2px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-weight: 400;
     }
 
     .history-actions {
-      display: inline-flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 6px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .btn.secondary {
-      color: var(--text);
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.28);
+    .history-note {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
+    .history-note::before {
+      content: "ℹ️";
+      font-size: 0.8rem;
+    }
+
+    /* Modal */
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.45);
+      background: rgba(0, 0, 0, 0.75);
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 16px;
+      padding: 20px;
       z-index: 1000;
+      backdrop-filter: blur(8px);
+      animation: fadeIn var(--transition-slow);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .modal {
-      width: min(1100px, 96vw);
-      max-height: 88vh;
-      background: #0c1f3f;
-      border-radius: 18px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      box-shadow: 0 28px 70px rgba(0, 0, 0, 0.5);
-      padding: 18px;
+      width: min(1200px, 96vw);
+      max-height: 90vh;
+      background: var(--surface-dark);
+      border-radius: var(--radius-2xl);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: var(--shadow-lg);
+      padding: 24px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 16px;
+      animation: slideUp var(--transition-slow);
+    }
+
+    @keyframes slideUp {
+      from { 
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to { 
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 10px;
+      gap: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .modal-title {
       margin: 0;
-      font-size: 1.1rem;
-      color: #e6f1ff;
+      font-size: 1.25rem;
+      color: var(--text-primary);
+      font-weight: 600;
     }
 
     .modal-close {
       border: none;
       background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-      padding: 8px 12px;
-      border-radius: 10px;
+      color: white;
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
       cursor: pointer;
       font-weight: 600;
+      transition: all var(--transition-fast);
+    }
+
+    .modal-close:hover {
+      background: rgba(255, 255, 255, 0.2);
     }
 
     .modal-body {
       overflow: auto;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       background: rgba(0, 0, 0, 0.2);
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 20px;
+      padding: 4px;
+    }
+
+    .modal-table-wrapper {
+      position: relative;
+      overflow-x: auto;
+      border-radius: var(--radius-md);
     }
 
     .modal-table {
       width: 100%;
       border-collapse: collapse;
-      color: #0f172a;
+      color: var(--text-primary);
       table-layout: auto;
-      background: #fff;
-      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: var(--radius-md);
+      overflow: hidden;
     }
 
     .modal-table th,
     .modal-table td {
       text-align: left;
-      padding: 10px 12px;
-      border-bottom: 1px solid rgba(15, 23, 42, 0.12);
-      white-space: normal;
-      word-break: break-word;
-      font-size: 14px;
-      line-height: 1.35;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.9rem;
       vertical-align: top;
-      color: #0f172a;
     }
 
     .modal-table th {
+      background: rgba(13, 58, 130, 0.5);
+      color: white;
+      font-weight: 600;
       white-space: nowrap;
-      color: #ffffff;
-      font-weight: 700;
-      background: #0d3a82;
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(10px);
     }
 
     .truncate {
@@ -433,131 +659,218 @@
       overflow: hidden;
     }
 
-    .ellipsis-1 {
+    .ellipsis-1, .ellipsis-2 {
       display: -webkit-box;
-      -webkit-line-clamp: 1;
       -webkit-box-orient: vertical;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    .ellipsis-2 {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .ellipsis-1 { -webkit-line-clamp: 1; }
+    .ellipsis-2 { -webkit-line-clamp: 2; }
+
+    .modal-table tbody tr {
+      transition: all var(--transition-fast);
+    }
+
+    .modal-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.05);
     }
 
     .modal-table tbody tr:nth-child(even) td {
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.02);
     }
-
-    .modal-table-wrapper {
-      position: relative;
-      overflow-x: auto;
-    }
-
 
     .modal-table td.debit-cell {
-      color: #dc2626;
+      color: #ff6b6b;
       font-weight: 600;
     }
 
     .modal-table td.credit-cell {
-      color: #15803d;
+      color: #51cf66;
       font-weight: 600;
     }
 
+    /* History Entry Cards */
     .history-entry-card {
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 14px;
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.03);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-xl);
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.04);
+      box-shadow: var(--shadow-sm);
+      transition: all var(--transition-base);
+    }
+
+    .history-entry-card:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: var(--shadow-md);
     }
 
     .entry-header {
       display: flex;
       justify-content: space-between;
-      gap: 10px;
-      align-items: center;
+      gap: 16px;
+      align-items: flex-start;
       flex-wrap: wrap;
-      margin-bottom: 8px;
-      color: #e9f1ff;
-      font-weight: 600;
-    }
-
-    .entry-badges {
-      display: inline-flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
+      margin-bottom: 16px;
     }
 
     .history-info {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
+      flex: 1;
+      min-width: 250px;
     }
 
     .history-title {
-      font-size: 1rem;
-      color: #0f172a;
+      font-size: 1.1rem;
+      color: var(--text-primary);
       font-weight: 600;
+      line-height: 1.4;
     }
 
     .history-saved-at {
-      font-size: 0.8rem;
-      color: rgba(15, 23, 42, 0.6);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .entry-badges {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .badge {
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
     }
 
     .history-summary-link,
     .history-rename {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       font-weight: 600;
-      padding: 6px 12px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      background: rgba(255, 255, 255, 0.08);
-      color: #e9f1ff;
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
       text-decoration: none;
-      transition: background 0.2s ease;
+      transition: all var(--transition-fast);
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .history-summary-link:hover,
     .history-rename:hover {
-      background: rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
     }
 
-    .badge {
-      padding: 6px 10px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      font-size: 12px;
-      font-weight: 600;
-      color: #e9f1ff;
-      white-space: nowrap;
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      body { padding: 24px 16px 48px; }
+      h1 { font-size: 2rem; }
+      h2 { font-size: 1.5rem; }
+      .hero { padding: 24px; flex-direction: column; align-items: flex-start; }
+      .grid { grid-template-columns: 1fr; }
+      .topbar { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .top-actions { width: 100%; justify-content: flex-start; }
+      .history-header { flex-direction: column; gap: 16px; }
+      .modal { padding: 20px 16px; }
+      .modal-table th, 
+      .modal-table td { padding: 10px 12px; }
+      .history-table-scroll { display: none; }
     }
 
-    @media (max-width: 640px) {
-      body { padding: 18px 12px 36px; }
-      h1 { font-size: 1.6rem; }
-      .hero { padding: 18px; }
+    @media (max-width: 480px) {
+      .btn { padding: 10px 16px; }
+      .card { padding: 20px; }
+      .history-card { padding: 20px; }
+      .entry-header { flex-direction: column; gap: 12px; }
+      .entry-badges { justify-content: flex-start; }
+    }
+
+    /* Loading States */
+    .loading {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .loading::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      animation: loading 1.5s infinite;
+    }
+
+    @keyframes loading {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    /* Focus States */
+    :focus-visible {
+      outline: 2px solid var(--accent-primary);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    /* Selection */
+    ::selection {
+      background: rgba(0, 212, 255, 0.3);
+      color: white;
+    }
+
+    /* Custom Scrollbar for Modal Body */
+    .modal-body::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .modal-body::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+    }
+
+    .modal-body::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border-radius: 4px;
     }
   </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="topbar">
     <div class="brand">
-      <span class="dot"></span>
+      <span class="logo-dot"></span>
       Easy Debit Summary
     </div>
     <div class="top-actions">
-      <a class="btn ghost" href="{{ url_for('index') }}">Upload statements</a>
-      <a class="btn" href="{{ url_for('logout') }}">Logout</a>
+      <a class="btn ghost" href="{{ url_for('index') }}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+        </svg>
+        Upload statements
+      </a>
+      <a class="btn" href="{{ url_for('logout') }}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+        </svg>
+        Logout
+      </a>
     </div>
   </div>
 
@@ -565,86 +878,123 @@
     <section class="hero">
       <div class="profile">
         {% if picture %}
-        <img class="avatar" src="{{ picture }}" alt="Profile picture" referrerpolicy="no-referrer">
+        <img class="avatar" src="{{ picture }}" alt="Profile picture" referrerpolicy="no-referrer" loading="lazy">
         {% else %}
-        <div class="avatar fallback" aria-hidden="true"></div>
+        <div class="avatar fallback" aria-hidden="true">
+          {{ (full_name or 'U')[0]|upper }}
+        </div>
         {% endif %}
         <div>
-          <p class="eyebrow">Signed in</p>
-          <h1>{{ full_name or 'Your dashboard' }}</h1>
+          <p class="eyebrow">Welcome back</p>
+          <h1>{{ full_name or 'Your Dashboard' }}</h1>
           <p class="muted">{{ email }}</p>
         </div>
       </div>
-      <div class="pill">Google secure session</div>
+      <div class="pill">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+        </svg>
+        Secure Google Session
+      </div>
     </section>
 
     <section class="card history-card">
       <div class="history-header">
         <div>
-          <p class="eyebrow">Saved extracts</p>
-          <h2>History</h2>
-          <p class="muted">Compact preview of your saved normalized data. Open the modal for the full ledger history.</p>
+          <p class="eyebrow">Your Financial History</p>
+          <h2>Saved Extracts</h2>
+          <p class="muted">Review your saved financial data. Click any entry to inspect detailed transaction records.</p>
         </div>
         <div class="history-meta">
-          <span class="pill">{{ history_entries|length }} save{{ 's' if (history_entries|length) != 1 else '' }}</span>
+          <span class="pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ history_entries|length }} save{{ 's' if (history_entries|length) != 1 else '' }}
+          </span>
           {% if history_saved_at %}
-          <span class="pill">Latest {{ history_saved_at }}</span>
+          <span class="pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Latest {{ history_saved_at }}
+          </span>
           {% endif %}
         </div>
       </div>
+      
       {% if history_error %}
-        <p class="muted">History unavailable: {{ history_error }}</p>
+        <div class="muted" style="padding: 20px; background: rgba(255, 82, 82, 0.1); border-radius: var(--radius-md); border: 1px solid rgba(255, 82, 82, 0.2);">
+          <strong>History Unavailable:</strong> {{ history_error }}
+        </div>
       {% elif history_entries %}
         <div class="history-table-frame">
-          <button class="history-table-scroll history-table-scroll-left" type="button" aria-label="Scroll history left">‹</button>
+          <button class="history-table-scroll history-table-scroll-left" type="button" aria-label="Scroll history left">
+            ‹
+          </button>
           <div class="history-table-wrapper">
             <table class="history-table">
               <thead>
                 <tr>
-                  <th>Saved</th>
-                  <th>Rows</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for entry in history_entries %}
-              {% set display_label = entry.get('label') %}
-              {% set saved_at_text = entry.get('saved_at_ist') or entry.get('saved_at') %}
-              {% set label_text = display_label or saved_at_text or 'Snapshot' %}
-              <tr class="history-row" data-entry-index="{{ loop.index0 }}">
-                <td>
-                  <span
-                    class="history-table-label"
-                    data-history-table-index="{{ loop.index0 }}"
-                    data-history-table-default="{{ saved_at_text|default('')|e }}"
-                    >{{ label_text }}</span
-                  >
-                  {% if saved_at_text and display_label %}
-                  <div class="history-table-time">{{ saved_at_text }}</div>
-                  {% endif %}
-                </td>
-                <td class="numeric">{{ entry.get('row_count', entry.get('rows')|length) }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+                  <th style="width: 60%;">Saved Extract</th>
+                  <th style="width: 40%;">Transaction Count</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for entry in history_entries %}
+                {% set display_label = entry.get('label') %}
+                {% set saved_at_text = entry.get('saved_at_ist') or entry.get('saved_at') %}
+                {% set label_text = display_label or saved_at_text or 'Financial Snapshot' %}
+                <tr class="history-row" data-entry-index="{{ loop.index0 }}">
+                  <td>
+                    <span class="history-table-label"
+                          data-history-table-index="{{ loop.index0 }}"
+                          data-history-table-default="{{ saved_at_text|default('')|e }}">
+                      {{ label_text }}
+                    </span>
+                    {% if saved_at_text and display_label %}
+                    <div class="history-table-time">{{ saved_at_text }}</div>
+                    {% endif %}
+                  </td>
+                  <td class="numeric">
+                    {{ entry.get('row_count', entry.get('rows')|length) }} transactions
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
           </div>
-          <button class="history-table-scroll history-table-scroll-right" type="button" aria-label="Scroll history right">›</button>
-        </div>
-          <button class="history-table-scroll history-table-scroll-right" type="button" aria-label="Scroll history right">›</button>
+          <button class="history-table-scroll history-table-scroll-right" type="button" aria-label="Scroll history right">
+            ›
+          </button>
         </div>
         <div class="history-actions">
-          <p class="history-note" style="margin:0;">Click any save to inspect the corresponding dataframe.</p>
+          <p class="history-note">
+            Click any saved extract above to inspect detailed transaction records.
+          </p>
         </div>
       {% else %}
-        <p class="muted">No saved extracts yet. Run a statement and hit “Save to history” to populate this space.</p>
+        <div style="padding: 40px 20px; text-align: center;">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--text-muted); margin-bottom: 16px;">
+            <path d="M9 13h6m-3-3v6m-9 1V8a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          </svg>
+          <p class="muted" style="max-width: 400px; margin: 0 auto;">
+            No saved extracts yet. Upload a statement and click "Save to history" to populate this space.
+          </p>
+        </div>
       {% endif %}
     </section>
 
     <div class="modal-backdrop" id="historyModal">
       <div class="modal">
         <div class="modal-header">
-          <h3 class="modal-title">Your saved history</h3>
-          <button class="modal-close" type="button" id="closeHistoryModal">Close</button>
+          <h3 class="modal-title">Transaction History Details</h3>
+          <button class="modal-close" type="button" id="closeHistoryModal">
+            Close
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 8px;">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
         </div>
         <div class="modal-body" id="historyModalBody">
           {% if history_entries %}
@@ -678,16 +1028,41 @@
                       {{ fallback_label }}
                     </span>
                     {% if saved_at_text %}
-                    <span class="history-saved-at">{{ saved_at_text }}</span>
+                    <span class="history-saved-at">Saved on {{ saved_at_text }}</span>
                     {% endif %}
                   </div>
                   <div class="entry-badges">
-                    <span class="badge">{{ entry.get('row_count', entry.get('rows')|length) }} rows</span>
+                    <span class="badge">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;">
+                        <path d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                      </svg>
+                      {{ entry.get('row_count', entry.get('rows')|length) }} rows
+                    </span>
                     {% if entry.get('columns') %}
-                    <span class="badge">{{ entry.get('columns')|length }} columns</span>
+                    <span class="badge">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                      </svg>
+                      {{ entry.get('columns')|length }} columns
+                    </span>
                     {% endif %}
-                    <a class="history-summary-link" href="{{ url_for('history_summary', entry_index=loop.index0) }}">Generate summary</a>
-                    <button type="button" class="history-rename" data-entry-index="{{ loop.index0 }}">Rename</button>
+                    <a class="history-summary-link" href="{{ url_for('history_summary', entry_index=loop.index0) }}">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10 9 9 9 8 9"/>
+                      </svg>
+                      Generate Summary
+                    </a>
+                    <button type="button" class="history-rename" data-entry-index="{{ loop.index0 }}">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                      Rename
+                    </button>
                   </div>
                 </div>
                 <div class="modal-table-wrapper">
@@ -708,7 +1083,9 @@
                         {% if col in ['Debit','Credit','Balance'] %}{% set cell_classes = cell_classes + ['numeric'] %}{% endif %}
                         {% if col == 'Debit' %}{% set cell_classes = cell_classes + ['debit-cell'] %}{% endif %}
                         {% if col == 'Credit' %}{% set cell_classes = cell_classes + ['credit-cell'] %}{% endif %}
-                        <td class="{{ ' '.join(cell_classes) }}">{{ row.get(col, '') }}</td>
+                        <td class="{{ ' '.join(cell_classes) }}">
+                          {{ row.get(col, '') }}
+                        </td>
                         {% endfor %}
                       </tr>
                       {% endfor %}
@@ -718,28 +1095,53 @@
               </div>
             {% endfor %}
           {% else %}
-            <p class="muted" style="padding:12px;">No history yet.</p>
+            <div style="padding: 40px; text-align: center;">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--text-muted); margin-bottom: 16px;">
+                <path d="M9 13h6m-3-3v6m-9 1V8a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+              </svg>
+              <p class="muted">No transaction history available yet.</p>
+            </div>
           {% endif %}
         </div>
       </div>
     </div>
 
-  <section class="grid">
+    <section class="grid">
       <div class="card">
         <div class="stack">
-          <h3>Next step</h3>
-          <p>Head back to the uploader to drop your PDF statements. We keep your session active while you generate dashboards.</p>
+          <h3>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 12px; vertical-align: middle;">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+            </svg>
+            Process Statements
+          </h3>
+          <p>Upload your bank statements in PDF format. Our system will extract and normalize transaction data for easy analysis.</p>
           <div class="cta">
-            <a class="btn" href="{{ url_for('index') }}">Go to uploader</a>
+            <a class="btn" href="{{ url_for('index') }}">
+              Go to Uploader
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
           </div>
         </div>
       </div>
       <div class="card">
         <div class="stack">
-          <h3>Your info</h3>
-          <p>We store your email, name, and profile image to keep your session trusted. Sign out anytime.</p>
+          <h3>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 12px; vertical-align: middle;">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+            Account & Security
+          </h3>
+          <p>Your email, name, and profile image are securely stored for session management. All data is encrypted and protected.</p>
           <div class="cta">
-            <a class="btn ghost" href="{{ url_for('logout') }}">Logout</a>
+            <a class="btn ghost" href="{{ url_for('logout') }}">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+              </svg>
+              Logout Session
+            </a>
           </div>
         </div>
       </div>
@@ -748,66 +1150,98 @@
 
   <script>
     (function() {
+      // Modal Management
       const modal = document.getElementById('historyModal');
       const previewRows = Array.from(document.querySelectorAll('.history-row'));
       const closeBtn = document.getElementById('closeHistoryModal');
       const entryBlocks = Array.from(document.querySelectorAll('.history-entry'));
+      
       if (!modal || !closeBtn) return;
 
       function showEntry(index) {
         entryBlocks.forEach((block) => {
           if (block.getAttribute('data-entry-index') === String(index)) {
             block.style.display = '';
+            // Smooth appearance
+            block.style.opacity = '0';
+            block.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+              block.style.transition = 'all 300ms ease';
+              block.style.opacity = '1';
+              block.style.transform = 'translateY(0)';
+            }, 10);
           } else {
             block.style.display = 'none';
           }
         });
+        
+        // Update active row in table
         previewRows.forEach((row) => {
           if (row.getAttribute('data-entry-index') === String(index)) {
             row.classList.add('active');
+            // Scroll active row into view if needed
+            row.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
           } else {
             row.classList.remove('active');
           }
         });
       }
 
-      function open(index) {
+      function openModal(index) {
         if (typeof index !== 'undefined') {
           showEntry(index);
         }
         modal.style.display = 'flex';
-      }
-      function close() {
-        modal.style.display = 'none';
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
       }
 
+      function closeModal() {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        // Remove all active states
+        previewRows.forEach(row => row.classList.remove('active'));
+      }
+
+      // Event Listeners
       previewRows.forEach((row) => {
         row.addEventListener('click', () => {
           const idx = row.getAttribute('data-entry-index');
-          open(idx);
+          openModal(idx);
         });
+        
+        // Add keyboard support
+        row.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            const idx = row.getAttribute('data-entry-index');
+            openModal(idx);
+          }
+        });
+        
+        // Make rows focusable
+        row.setAttribute('tabindex', '0');
       });
-      closeBtn.addEventListener('click', close);
+
+      closeBtn.addEventListener('click', closeModal);
+      
       modal.addEventListener('click', (e) => {
         if (e.target === modal) {
-          close();
+          closeModal();
         }
       });
+
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') close();
+        if (e.key === 'Escape') closeModal();
       });
 
       // Default to first entry visible
       if (entryBlocks.length) {
         showEntry(entryBlocks[0].getAttribute('data-entry-index'));
       }
-    })();
-  </script>
-  <script>
-    (function() {
-      const renameButtons = Array.from(document.querySelectorAll('.history-rename'));
-      if (!renameButtons.length) return;
 
+      // Rename Functionality
+      const renameButtons = Array.from(document.querySelectorAll('.history-rename'));
+      
       renameButtons.forEach((btn) => {
         btn.addEventListener('click', async () => {
           const entryIndex = Number(btn.getAttribute('data-entry-index'));
@@ -815,67 +1249,183 @@
           const currentLabel = (labelEl?.dataset.historyLabel || '').trim();
           const fallback = labelEl?.dataset.historyDefault || '';
           const promptValue = currentLabel || '';
-          const input = prompt('Enter a custom name for this save (leave blank to revert)', promptValue);
-          if (input === null) return;
-          const newLabel = input.trim();
-          btn.disabled = true;
-          try {
-            const res = await fetch(`/history_entry/${entryIndex}/label`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ label: newLabel }),
-            });
-            const data = await res.json();
-            if (!res.ok || !data.ok) {
-              throw new Error(data.error || 'Unable to rename the save');
+          
+          // Create custom modal-like prompt
+          const promptOverlay = document.createElement('div');
+          promptOverlay.style.cssText = `
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(8px);
+          `;
+          
+          const promptBox = document.createElement('div');
+          promptBox.style.cssText = `
+            background: var(--surface-dark);
+            border-radius: var(--radius-xl);
+            padding: 24px;
+            width: min(400px, 90vw);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: var(--shadow-lg);
+          `;
+          
+          promptBox.innerHTML = `
+            <h3 style="margin-bottom: 16px; color: var(--text-primary);">Rename Save</h3>
+            <input type="text" 
+                   id="renameInput" 
+                   style="width: 100%; 
+                          padding: 12px; 
+                          background: rgba(255, 255, 255, 0.1); 
+                          border: 1px solid rgba(255, 255, 255, 0.2); 
+                          border-radius: var(--radius-md); 
+                          color: white; 
+                          font-size: 1rem;
+                          margin-bottom: 20px;" 
+                   value="${promptValue.replace(/"/g, '&quot;')}"
+                   placeholder="Enter a custom name (or leave blank)">
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+              <button type="button" id="cancelRename" style="padding: 10px 20px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: var(--radius-md); color: white; cursor: pointer;">Cancel</button>
+              <button type="button" id="confirmRename" style="padding: 10px 20px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); border: none; border-radius: var(--radius-md); color: white; font-weight: 600; cursor: pointer;">Save</button>
+            </div>
+          `;
+          
+          promptOverlay.appendChild(promptBox);
+          document.body.appendChild(promptOverlay);
+          
+          const input = promptBox.querySelector('#renameInput');
+          input.focus();
+          input.select();
+          
+          const cancelBtn = promptBox.querySelector('#cancelRename');
+          const confirmBtn = promptBox.querySelector('#confirmRename');
+          
+          cancelBtn.addEventListener('click', () => {
+            document.body.removeChild(promptOverlay);
+          });
+          
+          confirmBtn.addEventListener('click', async () => {
+            const newLabel = input.value.trim();
+            btn.disabled = true;
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Saving...';
+            
+            try {
+              const res = await fetch(`/history_entry/${entryIndex}/label`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ label: newLabel }),
+              });
+              
+              const data = await res.json();
+              
+              if (!res.ok || !data.ok) {
+                throw new Error(data.error || 'Unable to rename the save');
+              }
+              
+              if (labelEl) {
+                const display = data.label ? data.label : fallback;
+                labelEl.dataset.historyLabel = data.label || '';
+                labelEl.textContent = display;
+              }
+              
+              const tableLabel = document.querySelector(`.history-table-label[data-history-table-index="${entryIndex}"]`);
+              if (tableLabel) {
+                const fallbackTime = tableLabel.dataset.historyTableDefault || '';
+                const displayText = data.label ? data.label : (fallbackTime || 'Saved extract');
+                tableLabel.dataset.historyTableLabel = data.label || '';
+                tableLabel.textContent = displayText;
+              }
+              
+              document.body.removeChild(promptOverlay);
+              
+            } catch (err) {
+              alert(err?.message || 'Rename failed. Please try again.');
+            } finally {
+              btn.disabled = false;
             }
-            if (labelEl) {
-              const display = data.label ? data.label : fallback;
-              labelEl.dataset.historyLabel = data.label || '';
-              labelEl.textContent = display;
+          });
+          
+          // Close on overlay click
+          promptOverlay.addEventListener('click', (e) => {
+            if (e.target === promptOverlay) {
+              document.body.removeChild(promptOverlay);
             }
-            const tableLabel = document.querySelector(`.history-table-label[data-history-table-index="${entryIndex}"]`);
-            if (tableLabel) {
-              const fallbackTime = tableLabel.dataset.historyTableDefault || '';
-              const displayText = data.label ? data.label : (fallbackTime || 'Saved extract');
-              tableLabel.dataset.historyTableLabel = data.label || '';
-              tableLabel.textContent = displayText;
+          });
+          
+          // Handle Enter/Escape keys
+          input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              confirmBtn.click();
+            } else if (e.key === 'Escape') {
+              cancelBtn.click();
             }
-          } catch (err) {
-            alert(err?.message || 'Rename failed. Please try again.');
-          } finally {
-            btn.disabled = false;
+          });
+        });
+      });
+
+      // Table Horizontal Scroll
+      const frames = document.querySelectorAll('.history-table-frame');
+      
+      frames.forEach((frame) => {
+        const container = frame.querySelector('.history-table-wrapper');
+        const leftBtn = frame.querySelector('.history-table-scroll-left');
+        const rightBtn = frame.querySelector('.history-table-scroll-right');
+        
+        if (!container || !leftBtn || !rightBtn) return;
+        
+        const step = 320;
+        
+        leftBtn.addEventListener('click', () => {
+          container.scrollBy({ left: -step, behavior: 'smooth' });
+        });
+        
+        rightBtn.addEventListener('click', () => {
+          container.scrollBy({ left: step, behavior: 'smooth' });
+        });
+        
+        function updateScrollButtons() {
+          const maxScroll = container.scrollWidth - container.clientWidth;
+          leftBtn.style.opacity = container.scrollLeft <= 10 ? '0.5' : '0.9';
+          rightBtn.style.opacity = container.scrollLeft >= maxScroll - 10 ? '0.5' : '0.9';
+          leftBtn.disabled = container.scrollLeft <= 0;
+          rightBtn.disabled = container.scrollLeft >= maxScroll;
+        }
+        
+        container.addEventListener('scroll', updateScrollButtons);
+        window.addEventListener('resize', updateScrollButtons);
+        updateScrollButtons();
+        
+        // Add keyboard navigation for table
+        container.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowLeft') {
+            container.scrollBy({ left: -step, behavior: 'smooth' });
+            e.preventDefault();
+          } else if (e.key === 'ArrowRight') {
+            container.scrollBy({ left: step, behavior: 'smooth' });
+            e.preventDefault();
           }
         });
       });
-    })();
-  </script>
-  <script>
-    (function() {
-      const frames = document.querySelectorAll('.history-table-frame');
-      frames.forEach((frame) => {
-        const container = frame.querySelector('.history-table-wrapper');
-        const left = frame.querySelector('.history-table-scroll-left');
-        const right = frame.querySelector('.history-table-scroll-right');
-        if (!container || !left || !right) return;
-        const step = 160;
-        left.addEventListener('click', () => {
-          container.scrollBy({ left: -step, behavior: 'smooth' });
+
+      // Add subtle animation on load
+      document.addEventListener('DOMContentLoaded', () => {
+        const cards = document.querySelectorAll('.card');
+        cards.forEach((card, index) => {
+          card.style.opacity = '0';
+          card.style.transform = 'translateY(20px)';
+          
+          setTimeout(() => {
+            card.style.transition = 'all 600ms ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+          }, 100 + index * 100);
         });
-        right.addEventListener('click', () => {
-          container.scrollBy({ left: step, behavior: 'smooth' });
-        });
-        function updateButtons() {
-          const maxScroll = container.scrollWidth - container.clientWidth;
-          left.disabled = container.scrollLeft <= 0;
-          right.disabled = container.scrollLeft >= maxScroll;
-        }
-        container.addEventListener('scroll', updateButtons);
-        window.addEventListener('resize', updateButtons);
-        updateButtons();
       });
     })();
   </script>
-
 </body>
 </html>
