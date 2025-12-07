@@ -546,10 +546,7 @@
                 {% endif %}
               {% endfor %}
               {% for col in columns %}
-                {% if modal_columns|length >= 9 %}
-                  {% break %}
-                {% endif %}
-                {% if col not in modal_columns %}
+                {% if modal_columns|length < 9 and col not in modal_columns %}
                   {% set modal_columns = modal_columns + [col] %}
                 {% endif %}
               {% endfor %}
