@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, send_file, send_from_director
 import os
 import pandas as pd
 from datetime import datetime
-from extractor.summary import generate_summary, _build_dashboard_summary
+from extractor.summary import generate_summary, _build_dashboard_summary, _standardize_dataframe
 from dotenv import load_dotenv
 import base64
 import json
@@ -208,6 +208,23 @@ def _prepare_pdf_for_processing(source_path: str, password: Optional[str], displ
     return temp_path, temp_path
 
 
+def _load_history_entries(record: dict):
+    entries = record.get("entries") or []
+    if not entries and record.get("rows"):
+        entries = [{
+            "columns": record.get("columns") or [],
+            "rows": record.get("rows") or [],
+            "row_count": len(record.get("rows") or []),
+            "saved_at": record.get("saved_at"),
+            "saved_at_ist": record.get("saved_at_ist") or "",
+        }]
+    return sorted(
+        entries,
+        key=lambda e: e.get("saved_at") or datetime.min,
+        reverse=True
+    )
+
+
 def _render_summary_from_entries(entries, batch_id: Optional[str] = None):
     if not entries:
         raise ValueError('No file uploaded')
@@ -261,14 +278,62 @@ def _render_summary_from_entries(entries, batch_id: Optional[str] = None):
         raise ValueError('Failed to process uploads')
 
     combined_df = pd.concat(normalized_frames, ignore_index=True)
-    combined_summary = _build_dashboard_summary(combined_df)
-    combined_summary["bank"] = "MULTI"
+    summary_context = _build_summary_page_context(
+        combined_df,
+        statement_sources=statement_sources,
+    )
+    output_csv_name = f"{batch_identifier}_combined_output.csv"
+    output_csv_path = os.path.join(OUTPUT_FOLDER, output_csv_name)
+    combined_df.to_csv(output_csv_path, index=False)
+
+    session['download_file'] = output_csv_name
+    session['download_files'] = [output_csv_name]
+    session['paid'] = not PAYMENT_GATE_ENABLED
+
+    summary_context.update({
+        "download_link": f"/download/{output_csv_name}",
+        "payment_required": PAYMENT_GATE_ENABLED,
+        "razorpay_key_id": os.environ.get('RAZORPAY_KEY_ID', ''),
+        "razorpay_amount": int(os.environ.get('RAZORPAY_AMOUNT', '0')),
+        "razorpay_currency": os.environ.get('RAZORPAY_CURRENCY', 'INR'),
+    })
+    return render_template('summary.html', **summary_context)
+
+
+def _build_summary_page_context(df: pd.DataFrame, statement_sources=None):
+    statement_sources = statement_sources or []
+    combined_summary = _build_dashboard_summary(df)
+
+    daily_df = combined_summary["daily_data"]
+    daily_dates = pd.to_datetime(daily_df["Date"], errors="coerce").dt.strftime("%Y-%m-%d")
+    daily_data = {
+        "Date": daily_dates.tolist(),
+        "Credit": daily_df["Credit"].tolist(),
+        "Debit": daily_df["Debit"].tolist(),
+    }
+    daily_series = combined_summary.get("daily_series", [])
+
+    table_df = df.copy()
+    if "Date" in table_df.columns:
+        table_df["Date"] = table_df["Date"].dt.strftime("%Y-%m-%d")
+    table_columns = table_df.columns.tolist()
+    table_rows = table_df.to_dict(orient="records")
+
+    bank_frame = df.copy()
+    if "Bank" not in bank_frame.columns:
+        bank_frame["Bank"] = "Saved extract"
+    else:
+        bank_frame["Bank"] = bank_frame["Bank"].fillna("Saved extract")
+
+    bank_groups = list(bank_frame.groupby("Bank"))
+    if not bank_groups:
+        bank_groups = [("Saved extract", bank_frame)]
 
     bank_daily_series = []
     bank_totals = []
     accuracy_breakdown = []
 
-    for bank_name, bank_df in combined_df.groupby("Bank"):
+    for bank_name, bank_df in bank_groups:
         bank_summary = _build_dashboard_summary(bank_df)
         bank_summary["bank"] = bank_name
         accuracy_breakdown.append({
@@ -280,12 +345,12 @@ def _render_summary_from_entries(entries, batch_id: Optional[str] = None):
         })
 
         daily = bank_summary["daily_data"]
-        daily_dates = pd.to_datetime(daily["Date"], errors='coerce').dt.strftime("%Y-%m-%d")
+        bank_dates = pd.to_datetime(daily["Date"], errors="coerce").dt.strftime("%Y-%m-%d")
         bank_daily_series.append({
             "bank": bank_name,
             "series": [
                 {"Date": date, "Credit": credit, "Debit": debit}
-                for date, credit, debit in zip(daily_dates, daily["Credit"], daily["Debit"])
+                for date, credit, debit in zip(bank_dates, daily["Credit"], daily["Debit"])
             ],
         })
 
@@ -295,68 +360,41 @@ def _render_summary_from_entries(entries, batch_id: Optional[str] = None):
             "debit": bank_summary["total_debit"],
         })
 
-    daily_df = combined_summary['daily_data']
-    daily_dates = pd.to_datetime(daily_df["Date"], errors='coerce').dt.strftime("%Y-%m-%d")
-    daily_data = {
-        "Date": daily_dates.tolist(),
-        "Credit": daily_df["Credit"].tolist(),
-        "Debit": daily_df["Debit"].tolist()
+    insight_payload = {
+        "net_flow": combined_summary.get("net_flow"),
+        "avg_daily_debit": combined_summary.get("avg_daily_debit"),
+        "avg_daily_credit": combined_summary.get("avg_daily_credit"),
+        "peak_debit_day": combined_summary.get("peak_debit_day"),
+        "peak_credit_day": combined_summary.get("peak_credit_day"),
+        "top_category": combined_summary.get("category_topline", {}),
     }
-    daily_series = combined_summary.get("daily_series", [])
 
-    table_df = combined_df.copy()
-    table_df["Date"] = table_df["Date"].dt.strftime("%Y-%m-%d")
-    table_columns = table_df.columns.tolist()
-    table_rows = table_df.to_dict(orient="records")
-
-    output_csv_name = f"{batch_identifier}_combined_output.csv"
-    output_csv_path = os.path.join(OUTPUT_FOLDER, output_csv_name)
-    combined_df.to_csv(output_csv_path, index=False)
-
-    session['download_file'] = output_csv_name
-    session['download_files'] = [output_csv_name]
-    session['paid'] = not PAYMENT_GATE_ENABLED
-
-    return render_template(
-        'summary.html',
-        opening_balance=combined_summary['opening_balance'],
-        closing_balance=combined_summary['closing_balance'],
-        total_credit=combined_summary['total_credit'],
-        total_debit=combined_summary['total_debit'],
-        daily_data=daily_data,
-        daily_series=daily_series,
-        top_debits=combined_summary['top_debits'],
-        top_credits=combined_summary['top_credits'],
-        date_min=combined_summary.get('date_min', ''),
-        date_max=combined_summary.get('date_max', ''),
-        transactions_js=combined_summary.get('transactions_js', []),
-        kpi_avg_ticket=combined_summary.get('kpi_avg_ticket', 0.0),
-        kpi_active_days=combined_summary.get('kpi_active_days', 0),
-        kpi_spend_to_income=combined_summary.get('kpi_spend_to_income'),
-        statement_sources=statement_sources,
-        bank_accuracy=accuracy_breakdown,
-        bank_daily_series=bank_daily_series,
-        bank_totals=bank_totals,
-        transactions_table=table_rows,
-        transactions_columns=table_columns,
-        category_breakdown=combined_summary.get('category_breakdown', []),
-        category_topline=combined_summary.get('category_topline', {}),
-        category_total_transactions=combined_summary.get('category_total_transactions', 0),
-        download_link=f"/download/{output_csv_name}",
-        payment_required=PAYMENT_GATE_ENABLED,
-        razorpay_key_id=os.environ.get('RAZORPAY_KEY_ID', ''),
-        razorpay_amount=int(os.environ.get('RAZORPAY_AMOUNT', '0')),
-        razorpay_currency=os.environ.get('RAZORPAY_CURRENCY', 'INR'),
-        insight_payload={
-            "net_flow": combined_summary.get("net_flow"),
-            "avg_daily_debit": combined_summary.get("avg_daily_debit"),
-            "avg_daily_credit": combined_summary.get("avg_daily_credit"),
-            "peak_debit_day": combined_summary.get("peak_debit_day"),
-            "peak_credit_day": combined_summary.get("peak_credit_day"),
-            "top_category": combined_summary.get("category_topline", {}),
-        }
-    )
-
+    return {
+        "opening_balance": combined_summary["opening_balance"],
+        "closing_balance": combined_summary["closing_balance"],
+        "total_credit": combined_summary["total_credit"],
+        "total_debit": combined_summary["total_debit"],
+        "daily_data": daily_data,
+        "daily_series": daily_series,
+        "top_debits": combined_summary["top_debits"],
+        "top_credits": combined_summary["top_credits"],
+        "date_min": combined_summary.get("date_min", ""),
+        "date_max": combined_summary.get("date_max", ""),
+        "transactions_js": combined_summary.get("transactions_js", []),
+        "kpi_avg_ticket": combined_summary.get("kpi_avg_ticket", 0.0),
+        "kpi_active_days": combined_summary.get("kpi_active_days", 0),
+        "kpi_spend_to_income": combined_summary.get("kpi_spend_to_income"),
+        "statement_sources": statement_sources,
+        "bank_accuracy": accuracy_breakdown,
+        "bank_daily_series": bank_daily_series,
+        "bank_totals": bank_totals,
+        "transactions_table": table_rows,
+        "transactions_columns": table_columns,
+        "category_breakdown": combined_summary.get("category_breakdown", []),
+        "category_topline": combined_summary.get("category_topline", {}),
+        "category_total_transactions": combined_summary.get("category_total_transactions", 0),
+        "insight_payload": insight_payload,
+    }
 
 @app.route('/login')
 def login():
@@ -426,24 +464,7 @@ def dashboard():
         try:
             collection = get_normalized_collection()
             record = collection.find_one({"user_email": user_email}) or {}
-            history_entries = record.get("entries") or []
-
-            # If legacy fields exist without entries, fabricate one entry
-            if not history_entries and record.get("rows"):
-                history_entries = [{
-                    "columns": record.get("columns") or [],
-                    "rows": record.get("rows") or [],
-                    "row_count": len(record.get("rows") or []),
-                    "saved_at": record.get("saved_at"),
-                    "saved_at_ist": record.get("saved_at_ist") or "",
-                }]
-
-            # Sort entries by saved_at (latest first)
-            history_entries = sorted(
-                history_entries,
-                key=lambda e: e.get("saved_at") or datetime.min,
-                reverse=True
-            )
+            history_entries = _load_history_entries(record)
 
             if history_entries:
                 latest = history_entries[0]
@@ -475,6 +496,72 @@ def dashboard():
         history_entries=history_entries,
         history_error=history_error,
     )
+
+
+@app.route('/history_summary/<int:entry_index>')
+@login_required
+def history_summary(entry_index):
+    user_email = session.get("user_email")
+    if not user_email:
+        return redirect(url_for('login'))
+
+    try:
+        collection = get_normalized_collection()
+        record = collection.find_one({"user_email": user_email}) or {}
+        history_entries = _load_history_entries(record)
+    except Exception as exc:
+        return str(exc), 500
+
+    if not history_entries or entry_index < 0 or entry_index >= len(history_entries):
+        abort(404)
+
+    entry = history_entries[entry_index]
+    rows = entry.get("rows") or []
+    if not rows:
+        return "Saved entry has no rows", 400
+
+    df = pd.DataFrame(rows)
+    columns = entry.get("columns") or []
+    if columns:
+        ordered_columns = [col for col in columns if col in df.columns]
+        if ordered_columns:
+            df = df[ordered_columns]
+
+    normalized_df = _standardize_dataframe(df)
+    if normalized_df.empty:
+        return "Saved extract has no valid rows to summarize", 400
+
+    date_min = normalized_df["Date"].min() if "Date" in normalized_df else None
+    date_max = normalized_df["Date"].max() if "Date" in normalized_df else None
+    bank_label = (
+        normalized_df["Bank"].iloc[0]
+        if "Bank" in normalized_df and not normalized_df["Bank"].isna().all()
+        else "Saved extract"
+    )
+    filename_label = entry.get("saved_at_ist") or entry.get("saved_at") or f"Saved extract #{entry_index + 1}"
+    statement_sources = [{
+        "bank": bank_label,
+        "filename": filename_label,
+        "transactions": len(normalized_df),
+        "date_min": date_min.strftime("%Y-%m-%d") if pd.notna(date_min) else "",
+        "date_max": date_max.strftime("%Y-%m-%d") if pd.notna(date_max) else "",
+        "total_credit": float(normalized_df["Credit"].sum()) if "Credit" in normalized_df else 0.0,
+        "total_debit": float(normalized_df["Debit"].sum()) if "Debit" in normalized_df else 0.0,
+    }]
+
+    summary_context = _build_summary_page_context(
+        normalized_df,
+        statement_sources=statement_sources,
+    )
+    summary_context.update({
+        "download_link": "#",
+        "payment_required": True,
+        "razorpay_key_id": os.environ.get('RAZORPAY_KEY_ID', ''),
+        "razorpay_amount": int(os.environ.get('RAZORPAY_AMOUNT', '0')),
+        "razorpay_currency": os.environ.get('RAZORPAY_CURRENCY', 'INR'),
+    })
+
+    return render_template('summary.html', **summary_context)
 
 
 @app.route('/summary')
@@ -794,4 +881,3 @@ def save_normalized():
 
 if __name__ == '__main__':
     app.run(debug=os.environ.get("FLASK_DEBUG", "false").lower() in {"1", "true", "yes", "on"})
-
