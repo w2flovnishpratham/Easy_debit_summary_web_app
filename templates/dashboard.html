@@ -485,6 +485,44 @@
       background: rgba(255, 255, 255, 0.04);
     }
 
+    .modal-table-wrapper {
+      position: relative;
+      overflow-x: auto;
+    }
+
+    .modal-table-scrollbar {
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .modal-table-scrollbar input[type="range"] {
+      width: 94%;
+      height: 6px;
+      border-radius: 999px;
+      appearance: none;
+      background: rgba(13, 58, 130, 0.2);
+      outline: none;
+    }
+
+    .modal-table-scrollbar input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #0d3a82;
+      box-shadow: 0 0 6px rgba(13, 58, 130, 0.6);
+      cursor: pointer;
+    }
+
+    .modal-table-scrollbar input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #0d3a82;
+      cursor: pointer;
+    }
+
     .modal-table td.debit-cell {
       color: #dc2626;
       font-weight: 600;
@@ -719,29 +757,34 @@
                     <button type="button" class="history-rename" data-entry-index="{{ loop.index0 }}">Rename</button>
                   </div>
                 </div>
-                <table class="modal-table">
-                  <thead>
-                    <tr>
-                      {% for col in modal_columns %}
-                      <th>{{ col }}</th>
+                <div class="modal-table-wrapper">
+                  <table class="modal-table">
+                    <thead>
+                      <tr>
+                        {% for col in modal_columns %}
+                        <th>{{ col }}</th>
+                        {% endfor %}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for row in entry.get('rows')|reverse %}
+                      <tr>
+                        {% for col in modal_columns %}
+                        {% set cell_classes = [] %}
+                        {% if col == 'Details' %}{% set cell_classes = cell_classes + ['ellipsis-2'] %}{% endif %}
+                        {% if col in ['Debit','Credit','Balance'] %}{% set cell_classes = cell_classes + ['numeric'] %}{% endif %}
+                        {% if col == 'Debit' %}{% set cell_classes = cell_classes + ['debit-cell'] %}{% endif %}
+                        {% if col == 'Credit' %}{% set cell_classes = cell_classes + ['credit-cell'] %}{% endif %}
+                        <td class="{{ ' '.join(cell_classes) }}">{{ row.get(col, '') }}</td>
+                        {% endfor %}
+                      </tr>
                       {% endfor %}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for row in entry.get('rows')|reverse %}
-                    <tr>
-                      {% for col in modal_columns %}
-                      {% set cell_classes = [] %}
-                      {% if col == 'Details' %}{% set cell_classes = cell_classes + ['ellipsis-2'] %}{% endif %}
-                      {% if col in ['Debit','Credit','Balance'] %}{% set cell_classes = cell_classes + ['numeric'] %}{% endif %}
-                      {% if col == 'Debit' %}{% set cell_classes = cell_classes + ['debit-cell'] %}{% endif %}
-                      {% if col == 'Credit' %}{% set cell_classes = cell_classes + ['credit-cell'] %}{% endif %}
-                      <td class="{{ ' '.join(cell_classes) }}">{{ row.get(col, '') }}</td>
-                      {% endfor %}
-                    </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="modal-table-scrollbar">
+                  <input type="range" min="0" value="0" step="1" aria-label="Scroll ledger table" />
+                </div>
               </div>
             {% endfor %}
           {% else %}
@@ -905,6 +948,31 @@
           container.scrollLeft = Number(event.target.value);
         });
         container.addEventListener('scroll', syncSlider);
+        window.addEventListener('resize', syncSlider);
+        syncSlider();
+      });
+    })();
+  </script>
+
+  <script>
+    (function() {
+      const wrappers = document.querySelectorAll('.modal-table-wrapper');
+      wrappers.forEach((wrapper) => {
+        const sliderContainer = wrapper.nextElementSibling;
+        const slider = sliderContainer?.querySelector('input[type="range"]');
+        if (!slider) return;
+
+        const syncSlider = () => {
+          const maxScroll = Math.max(wrapper.scrollWidth - wrapper.clientWidth, 0);
+          slider.max = maxScroll;
+          slider.value = wrapper.scrollLeft;
+          slider.disabled = maxScroll <= 0;
+        };
+
+        slider.addEventListener('input', (event) => {
+          wrapper.scrollLeft = Number(event.target.value);
+        });
+        wrapper.addEventListener('scroll', syncSlider);
         window.addEventListener('resize', syncSlider);
         syncSlider();
       });
