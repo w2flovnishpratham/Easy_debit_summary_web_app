@@ -254,6 +254,18 @@
       background: rgba(255, 255, 255, 0.12);
     }
 
+    .history-table-label {
+      font-weight: 600;
+      display: inline-block;
+      color: #ffffff;
+    }
+
+    .history-table-time {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.65);
+      margin-top: 2px;
+    }
+
     .history-actions {
       display: inline-flex;
       flex-wrap: wrap;
@@ -506,14 +518,27 @@
           <table class="history-table">
             <thead>
               <tr>
-                <th>Saved at</th>
+                <th>Saved</th>
                 <th>Rows</th>
               </tr>
             </thead>
             <tbody>
               {% for entry in history_entries %}
+              {% set display_label = entry.get('label') %}
+              {% set saved_at_text = entry.get('saved_at_ist') or entry.get('saved_at') %}
+              {% set label_text = display_label or saved_at_text or 'Snapshot' %}
               <tr class="history-row" data-entry-index="{{ loop.index0 }}">
-                <td>{{ entry.get('saved_at_ist') or entry.get('saved_at') }}</td>
+                <td>
+                  <span
+                    class="history-table-label"
+                    data-history-table-index="{{ loop.index0 }}"
+                    data-history-table-default="{{ saved_at_text|default('')|e }}"
+                    >{{ label_text }}</span
+                  >
+                  {% if saved_at_text and display_label %}
+                  <div class="history-table-time">{{ saved_at_text }}</div>
+                  {% endif %}
+                </td>
                 <td class="numeric">{{ entry.get('row_count', entry.get('rows')|length) }}</td>
               </tr>
               {% endfor %}
@@ -717,6 +742,13 @@
               const display = data.label ? data.label : fallback;
               labelEl.dataset.historyLabel = data.label || '';
               labelEl.textContent = display;
+            }
+            const tableLabel = document.querySelector(`.history-table-label[data-history-table-index="${entryIndex}"]`);
+            if (tableLabel) {
+              const fallbackTime = tableLabel.dataset.historyTableDefault || '';
+              const displayText = data.label ? data.label : (fallbackTime || 'Saved extract');
+              tableLabel.dataset.historyTableLabel = data.label || '';
+              tableLabel.textContent = displayText;
             }
           } catch (err) {
             alert(err?.message || 'Rename failed. Please try again.');
