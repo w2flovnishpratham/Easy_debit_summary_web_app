@@ -553,15 +553,60 @@ def history_summary(entry_index):
         normalized_df,
         statement_sources=statement_sources,
     )
+    safe_hash = hashlib.sha1(user_email.encode('utf-8')).hexdigest()[:8]
+    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    history_csv_name = f"history_{safe_hash}_{entry_index}_{timestamp}.csv"
+    history_csv_path = os.path.join(OUTPUT_FOLDER, history_csv_name)
+    try:
+        normalized_df.to_csv(history_csv_path, index=False)
+    except Exception as exc:
+        return f"Unable to prepare CSV for download: {exc}", 500
+
+    allowed = session.get('download_files') or []
+    if history_csv_name not in allowed:
+        allowed.append(history_csv_name)
+    session['download_files'] = allowed
+    session['download_file'] = history_csv_name
+    session['paid'] = True
+
     summary_context.update({
-        "download_link": "#",
-        "payment_required": True,
+        "download_link": f"/download/{history_csv_name}",
+        "payment_required": False,
         "razorpay_key_id": os.environ.get('RAZORPAY_KEY_ID', ''),
         "razorpay_amount": int(os.environ.get('RAZORPAY_AMOUNT', '0')),
         "razorpay_currency": os.environ.get('RAZORPAY_CURRENCY', 'INR'),
     })
 
     return render_template('summary.html', **summary_context)
+
+
+@app.route('/history_entry/<int:entry_index>/label', methods=['POST'])
+@login_required
+def history_entry_label(entry_index):
+    user_email = session.get("user_email")
+    if not user_email:
+        return jsonify({"ok": False, "error": "Login required"}), 401
+
+    data = request.get_json(silent=True) or {}
+    label = (data.get("label") or "").strip()
+    try:
+        collection = get_normalized_collection()
+        record = collection.find_one({"user_email": user_email}) or {}
+        entries = _load_history_entries(record)
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+    if entry_index < 0 or entry_index >= len(entries):
+        return jsonify({"ok": False, "error": "Entry not found"}), 404
+
+    entries[entry_index]["label"] = label or None
+
+    try:
+        collection.update_one({"user_email": user_email}, {"$set": {"entries": entries}})
+    except Exception as exc:
+        return jsonify({"ok": False, "error": f"Unable to update label: {exc}"}), 500
+
+    return jsonify({"ok": True, "label": label})
 
 
 @app.route('/summary')
@@ -787,6 +832,7 @@ def save_normalized():
     auth_block = _require_login_json()
     if auth_block:
         return auth_block
+    data = request.get_json(silent=True) or {}
     user_email = session.get("user_email")
     if not user_email:
         return jsonify({"ok": False, "error": "User not logged in"}), 401
@@ -850,6 +896,7 @@ def save_normalized():
     ist_now = datetime.utcnow() + pd.Timedelta(hours=5, minutes=30)
     saved_at_ist = ist_now.strftime("%Y-%m-%d %H:%M:%S IST")
 
+    entry_label = (data.get("label") or "").strip()
     entry = {
         "columns": new_columns,
         "rows": normalize_rows(new_columns, new_rows),
@@ -857,6 +904,8 @@ def save_normalized():
         "saved_at": datetime.utcnow(),
         "saved_at_ist": saved_at_ist,
     }
+    if entry_label:
+        entry["label"] = entry_label
 
     entries = existing.get("entries") or []
     entries.append(entry)
