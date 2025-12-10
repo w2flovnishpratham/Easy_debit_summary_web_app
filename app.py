@@ -32,7 +32,7 @@ def _env(key: str, default: str = "") -> str:
 
 PAYMENT_GATE_ENABLED = (_env('ENABLE_PAYMENT_GATE', 'true') or 'true').lower() in {'1', 'true', 'yes', 'on'}
 GOOGLE_CLIENT_ID = _env("GOOGLE_CLIENT_ID")
-GOOGLE_REDIRECT_URI = _env("GOOGLE_REDIRECT_URI")
+GOOGLE_REDIRECT_URI = _env("GOOGLE_REDIRECT_URI") or "/auth/gsi-login"
 GOOGLE_CLIENT_SECRET = _env("GOOGLE_CLIENT_SECRET")
 MONGO_URI = _env("MONGO_URI")
 MONGO_DB_NAME = _env("MONGO_DB_NAME")
@@ -455,7 +455,15 @@ def login():
 
     client_error = None if GOOGLE_CLIENT_ID else "Google client ID is not configured. Set GOOGLE_CLIENT_ID in .env."
     next_target = request.args.get("next") or ""
-    return render_template('login.html', google_client_id=GOOGLE_CLIENT_ID or "", google_client_error=client_error, next_target=next_target)
+    force_webview = (request.args.get("wv") == "1")
+    return render_template(
+        'login.html',
+        google_client_id=GOOGLE_CLIENT_ID or "",
+        google_client_error=client_error,
+        next_target=next_target,
+        google_redirect_uri=GOOGLE_REDIRECT_URI,
+        force_webview=force_webview,
+    )
 
 
 @app.route('/google_auth', methods=['POST'])
@@ -495,13 +503,17 @@ def google_auth():
     return jsonify({"ok": True, "redirect": url_for('dashboard')})
 
 
-@app.post("/auth/gsi-login")
-def gsi_login():
-    # Accept JSON (fetch) or form-POST (GSI redirect mode).
+def _handle_gsi_login():
     data = request.get_json(silent=True) or request.form or {}
-    credential = data.get("credential")
+    credential = data.get("credential") or request.args.get("credential")
+
+    if request.method == "GET" and not credential:
+        return redirect(url_for("login"))
 
     if not credential:
+        if request.form:
+            # Redirect mode posted without credential (blocked/stripped); recover gracefully.
+            return redirect(url_for("login"))
         return jsonify({"ok": False, "error": "Missing credential"}), 400
 
     if not GOOGLE_CLIENT_ID:
@@ -535,6 +547,23 @@ def gsi_login():
         return redirect("/dashboard")
 
     return jsonify({"ok": True, "success": True, "redirect": "/dashboard"})
+
+
+@app.route("/auth/gsi-login", methods=["GET", "POST"])
+def gsi_login():
+    """
+    Handles Google Identity Services sign-in.
+    - JSON body -> popup mode
+    - form POST -> redirect mode (WebView safe)
+    - GET       -> recover to /login instead of blank page
+    """
+    return _handle_gsi_login()
+
+
+@app.route("/auth/callback", methods=["GET", "POST"])
+def gsi_callback():
+    """Alternate redirect URI to match GOOGLE_REDIRECT_URI from env."""
+    return _handle_gsi_login()
 
 
 @app.route('/logout')

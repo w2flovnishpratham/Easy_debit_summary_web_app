@@ -116,7 +116,8 @@ frame-ancestors 'self' *;
 
     .hidden { display: none; }
 
-    .g_id_signin { margin: 10px 0 16px; }
+    .g_id_signin,
+    #gsi-button { margin: 10px 0 16px; }
 
     .hint {
       color: var(--muted);
@@ -171,20 +172,7 @@ frame-ancestors 'self' *;
       {% endif %}
 
       {% if google_client_id %}
-        <div id="g_id_onload"
-          data-client_id="{{ google_client_id }}"
-          data-context="signin"
-          data-ux_mode="popup"
-          data-callback="handleCredentialResponse">
-        </div>
-        <div class="g_id_signin"
-          data-type="standard"
-          data-shape="rectangular"
-          data-theme="outline"
-          data-text="continue_with"
-          data-size="large"
-          data-logo_alignment="left">
-        </div>
+        <div id="gsi-button"></div>
       {% else %}
         <div class="alert">Google client ID is not configured yet. Add GOOGLE_CLIENT_ID in your .env file.</div>
       {% endif %}
@@ -195,8 +183,16 @@ frame-ancestors 'self' *;
   </main>
 
   <script>
+    const googleClientId = "{{ google_client_id }}";
+    const ORIGIN = window.location.origin;
+    const REDIRECT_PATH = "{{ google_redirect_uri or '/auth/gsi-login' }}";
+    const LOGIN_URI_REDIRECT = new URL(REDIRECT_PATH, ORIGIN).toString();
+    const LOGIN_URI_POPUP = new URL("/auth/gsi-login", ORIGIN).toString();
+    const FORCE_WEBVIEW = {{ 'true' if force_webview else 'false' }};
+    let flowStarted = false;
+
     function handleCredentialResponse(response) {
-      fetch("/auth/gsi-login", {
+      fetch(LOGIN_URI_POPUP, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -204,7 +200,7 @@ frame-ancestors 'self' *;
       })
         .then(r => r.json())
         .then(data => {
-          if (data && data.success) {
+          if (data && (data.success || data.ok)) {
             window.location.href = data.redirect || "/dashboard";
           } else {
             alert("Login failed: " + (data.error || "Unknown error"));
@@ -215,6 +211,77 @@ frame-ancestors 'self' *;
           alert("Network error while logging in.");
         });
     }
+
+    function isWebView() {
+      const ua = navigator.userAgent || "";
+      const isAndroidWV = /\bwv\b|Android.*Version\/\d+\.\d+.*Chrome\/\d+/i.test(ua);
+      const isIOSWV = /\b(iPhone|iPad|iPod).*AppleWebKit(?!.*Safari)/i.test(ua);
+      const inIframe = window !== window.parent;
+      return isAndroidWV || isIOSWV || !!window.ReactNativeWebView || inIframe;
+    }
+
+    function initGoogle() {
+      if (!googleClientId || !window.google || !google.accounts || !google.accounts.id) {
+        return;
+      }
+
+      const webview = FORCE_WEBVIEW || isWebView();
+      const useRedirect = webview;
+
+      google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: useRedirect ? undefined : handleCredentialResponse,
+        ux_mode: useRedirect ? "redirect" : "popup",
+        login_uri: useRedirect ? LOGIN_URI_REDIRECT : LOGIN_URI_POPUP,
+        context: "signin",
+        auto_select: !useRedirect,
+        itp_support: true,
+      });
+
+      const btn = document.getElementById("gsi-button");
+      if (btn) {
+        btn.innerHTML = "";
+        google.accounts.id.renderButton(btn, {
+          type: "standard",
+          shape: "rectangular",
+          theme: "outline",
+          text: "continue_with",
+          size: "large",
+          logo_alignment: "left",
+        });
+      }
+
+      if (!useRedirect) {
+        google.accounts.id.prompt((notification) => {
+          flowStarted = true;
+          if (notification && notification.isNotDisplayed() && notification.getNotDisplayedReason()) {
+            console.warn("GSI prompt not displayed:", notification.getNotDisplayedReason());
+          }
+        });
+      }
+
+      // If Google never redirects (blocked by WebView), show a manual open link after a short delay.
+      setTimeout(() => {
+        if (!flowStarted) {
+          const errorEl = document.getElementById("login-error");
+          if (errorEl) {
+            errorEl.classList.remove("hidden");
+            errorEl.textContent = "Having trouble? Tap here to open Google sign-in in a browser.";
+            errorEl.onclick = () => {
+              window.location.href = LOGIN_URI_REDIRECT;
+            };
+          }
+        }
+      }, 4000);
+    }
+
+    (function waitForGoogle() {
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        initGoogle();
+      } else {
+        setTimeout(waitForGoogle, 50);
+      }
+    })();
 
     document.addEventListener("click", function(e) {
       const a = e.target.closest("a[target='_blank']");
