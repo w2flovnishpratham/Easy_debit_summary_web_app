@@ -840,6 +840,50 @@
 </head>
 <body>
 
+  <script>
+    // -----updated or added-----
+    (function() {
+      window.sendAppMessage = function(name) {
+        try {
+          if (!name) return;
+          const msg = typeof name === 'string' ? name : JSON.stringify(name);
+          if (window.AppChannel && typeof window.AppChannel.postMessage === 'function') {
+            window.AppChannel.postMessage(msg);
+          }
+          if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+            window.ReactNativeWebView.postMessage(msg);
+          }
+          if (window.Android && typeof window.Android.postMessage === 'function') {
+            window.Android.postMessage(msg);
+          }
+          const iosBridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.easyDebitBridge;
+          if (iosBridge && typeof iosBridge.postMessage === 'function') {
+            iosBridge.postMessage(msg);
+          }
+        } catch (err) {
+          // ignore when bridge is unavailable
+        }
+      };
+
+      const _originalWindowOpen = window.open;
+      window.open = function(url, name, specs) {
+        const allowList = ['accounts.google.com', 'gstatic.com'];
+        if (url && allowList.some((host) => url.includes(host))) {
+          return _originalWindowOpen ? _originalWindowOpen.call(window, url, name, specs) : null;
+        }
+        if (url) {
+          window.location.href = url;
+        }
+        return null;
+      };
+
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll("a[target='_blank']").forEach(function(a) { a.target = "_self"; });
+      });
+    })();
+    // -----updated or added-----
+  </script>
+
   <nav class="navbar">
     <a href="{{ url_for('index') }}" class="nav-brand">
       <span class="nav-dot"></span>
@@ -1079,10 +1123,83 @@
   </script>
 
   <script>
+    // WebView upload hook for rewarded ad
+    (function() {
+      const form = document.getElementById('multiUploadForm');
+      const submitBtn = form ? form.querySelector('.primary-btn') : null;
+      const audioSubmit = document.getElementById('audio4');
+      if (!form) return;
+
+      const defaultLabel = submitBtn ? submitBtn.value : 'Upload and Extract';
+      let allowSubmit = false;
+      let resetTimer = null;
+
+      function setButton(state) {
+        if (!submitBtn) return;
+        if (state === 'loading') {
+          submitBtn.disabled = true;
+          submitBtn.style.opacity = '0.8';
+          submitBtn.style.cursor = 'not-allowed';
+          submitBtn.value = 'Loading ad...';
+        } else if (state === 'processing') {
+          submitBtn.disabled = false;
+          submitBtn.style.opacity = '0.8';
+          submitBtn.style.cursor = 'not-allowed';
+          submitBtn.value = 'Processing...';
+        } else {
+          submitBtn.disabled = false;
+          submitBtn.style.opacity = '';
+          submitBtn.style.cursor = '';
+          submitBtn.value = defaultLabel;
+        }
+      }
+
+      window.cancelUploadAd = function () {
+        allowSubmit = false;
+        clearTimeout(resetTimer);
+        setButton('ready');
+      };
+
       window.submitUploadFormAfterAd = function () {
-    const form = document.getElementById("multiUploadForm");
-    if (form) form.submit();
-  };
+        allowSubmit = true;
+        clearTimeout(resetTimer);
+        setButton('processing');
+        if (audioSubmit) {
+          try { audioSubmit.currentTime = 0; audioSubmit.play(); } catch (_) {}
+        }
+        form.submit();
+      };
+
+      form.addEventListener('submit', function(event) {
+        const hasBridge = !!window.flutter_inappwebview && window.AppChannel && typeof window.AppChannel.postMessage === 'function';
+
+        if (hasBridge && !allowSubmit) {
+          event.preventDefault();
+          setButton('loading');
+          try {
+            sendAppMessage('show_rewarded_upload');
+            sendAppMessage({ type: "SHOW_REWARDED_AD", action: "upload", source: "webview" });
+          } catch (_) {
+            // fall back below
+          }
+          resetTimer = setTimeout(() => {
+            if (!allowSubmit) {
+              window.cancelUploadAd();
+            }
+          }, 12000);
+          return;
+        }
+
+        allowSubmit = false;
+        sendAppMessage('upload_clicked');
+        setButton('processing');
+        if (audioSubmit) {
+          try { audioSubmit.currentTime = 0; audioSubmit.play(); } catch (_) {}
+        }
+      });
+
+    })();
+
     (function() {
       const statementList = document.getElementById('statementList');
       const addBtn = document.getElementById('addStatement');
@@ -1302,8 +1419,20 @@
         updateImage(firstSelect.value);
       }
 
-      form.addEventListener('submit', function() {
-        
+      form.addEventListener('submit', function(event) {
+        const canBridge = window.flutter_inappwebview && window.AppChannel && typeof window.AppChannel.postMessage === 'function';
+        if (canBridge) {
+          event.preventDefault();
+          try {
+            window.AppChannel.postMessage("show_upload_ad");
+            return;
+          } catch (err) {
+            // If bridge fails, fall back to normal submit below
+          }
+        }
+        // -----updated or added-----
+        sendAppMessage('upload_clicked');
+        // -----updated or added-----
         const submitBtn = this.querySelector('.primary-btn');
         audio4.play();
         submitBtn.value = 'Processing...';
@@ -1320,6 +1449,21 @@
     (function() {
       // Navbar stays fixed and visible while scrolling.
     })();
+  </script>
+
+  <script>
+    // Bridge for WebView → Flutter
+    window.AppChannel = {
+      postMessage: function (msg) {
+        try {
+          if (window.flutter_inappwebview) {
+            window.flutter_inappwebview.callHandler("AppChannel", msg);
+          }
+        } catch (e) {
+          console.warn("AppChannel error:", e);
+        }
+      }
+    };
   </script>
 
 </body>

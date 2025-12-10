@@ -8,8 +8,10 @@ import base64
 import json
 import hmac
 import hashlib
+import secrets
 import urllib.request
 import urllib.error
+import urllib.parse
 import tempfile
 from typing import Optional, Tuple
 from functools import wraps
@@ -30,6 +32,8 @@ def _env(key: str, default: str = "") -> str:
 
 PAYMENT_GATE_ENABLED = (_env('ENABLE_PAYMENT_GATE', 'true') or 'true').lower() in {'1', 'true', 'yes', 'on'}
 GOOGLE_CLIENT_ID = _env("GOOGLE_CLIENT_ID")
+GOOGLE_REDIRECT_URI = _env("GOOGLE_REDIRECT_URI")
+GOOGLE_CLIENT_SECRET = _env("GOOGLE_CLIENT_SECRET")
 MONGO_URI = _env("MONGO_URI")
 MONGO_DB_NAME = _env("MONGO_DB_NAME")
 GOOGLE_CLOCK_SKEW = int(_env("GOOGLE_CLOCK_SKEW", "120") or "120")
@@ -39,9 +43,22 @@ app = Flask(__name__)
 app.secret_key = _env("SECRET_KEY") or _env("FLASK_SECRET_KEY") or "dev-secret-change-me"
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
+    # WebView + local dev need Lax/False; do not force SameSite=None+Secure globally.
     SESSION_COOKIE_SAMESITE="Lax",
-    SESSION_COOKIE_SECURE=(_env("SESSION_COOKIE_SECURE", "false") or "false").lower() in {"1", "true", "yes", "on"},
+    SESSION_COOKIE_SECURE=False,
 )
+
+@app.after_request
+def fix_webview_headers(response):
+    # Allow WebView to keep cookies
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+
+    # Make Google Identity Services / popups behave inside WebView
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
+    response.headers["Cross-Origin-Embedder-Policy"] = "unsafe-none"
+    return response
+
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
@@ -76,7 +93,7 @@ if MONGO_URI:
         normalized_collection = db["normalized_data"]
         normalized_collection.create_index("user_email", unique=True)
     except Exception as exc:
-        print(f"MongoDB connection failed: {exc}")
+        # In production, avoid verbose logging; keep the app running without exposing details.
         users_collection = None
         normalized_collection = None
 
@@ -95,10 +112,12 @@ def get_normalized_collection():
 
 @app.context_processor
 def inject_user():
+    user_email = session.get("user_email")
+    picture = session.get("picture") or _fallback_picture(user_email or "") or _placeholder_avatar(session.get("full_name") or user_email or "U")
     return {
-        "user_email": session.get("user_email"),
+        "user_email": user_email,
         "full_name": session.get("full_name"),
-        "user_picture": session.get("picture"),
+        "user_picture": picture,
         "login_required": LOGIN_REQUIRED,
     }
 
@@ -133,6 +152,39 @@ def _verify_google_credential(token: str):
         GOOGLE_CLIENT_ID,
         clock_skew_in_seconds=GOOGLE_CLOCK_SKEW,
     )
+
+
+# -----updated or added-----
+def _fallback_picture(email: str) -> str:
+    if not email:
+        return ""
+    try:
+        digest = hashlib.md5(email.strip().lower().encode("utf-8")).hexdigest()
+        return f"https://www.gravatar.com/avatar/{digest}?d=identicon"
+    except Exception:
+        return ""
+# -----updated or added-----
+
+
+# -----updated or added-----
+def _placeholder_avatar(initial: str = "U") -> str:
+    letter = (initial or "U").strip()[:1].upper() or "U"
+    svg = f"""
+    <svg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'>
+      <defs>
+        <linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'>
+          <stop offset='0%' stop-color='#00d4ff'/>
+          <stop offset='100%' stop-color='#0078ff'/>
+        </linearGradient>
+      </defs>
+      <rect width='96' height='96' rx='18' fill='url(#g)'/>
+      <text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle'
+            font-family='Arial, sans-serif' font-size='42' fill='#ffffff' font-weight='700'>{letter}</text>
+    </svg>
+    """
+    encoded = base64.b64encode(svg.encode("utf-8")).decode("utf-8")
+    return f"data:image/svg+xml;base64,{encoded}"
+# -----updated or added-----
 
 
 def _upsert_user(email: str, full_name: str, picture: str):
@@ -402,7 +454,8 @@ def login():
         return redirect(url_for('dashboard'))
 
     client_error = None if GOOGLE_CLIENT_ID else "Google client ID is not configured. Set GOOGLE_CLIENT_ID in .env."
-    return render_template('login.html', google_client_id=GOOGLE_CLIENT_ID or "", google_client_error=client_error)
+    next_target = request.args.get("next") or ""
+    return render_template('login.html', google_client_id=GOOGLE_CLIENT_ID or "", google_client_error=client_error, next_target=next_target)
 
 
 @app.route('/google_auth', methods=['POST'])
@@ -422,7 +475,7 @@ def google_auth():
 
     email = id_info.get("email")
     full_name = id_info.get("name") or email or ""
-    picture = id_info.get("picture") or ""
+    picture = id_info.get("picture") or _fallback_picture(email) or _placeholder_avatar(full_name or email)
     if not email:
         return jsonify({"ok": False, "error": "Email not available in Google profile"}), 400
 
@@ -440,6 +493,48 @@ def google_auth():
     session["picture"] = user.get("picture") or picture
 
     return jsonify({"ok": True, "redirect": url_for('dashboard')})
+
+
+@app.post("/auth/gsi-login")
+def gsi_login():
+    # Accept JSON (fetch) or form-POST (GSI redirect mode).
+    data = request.get_json(silent=True) or request.form or {}
+    credential = data.get("credential")
+
+    if not credential:
+        return jsonify({"ok": False, "error": "Missing credential"}), 400
+
+    if not GOOGLE_CLIENT_ID:
+        return jsonify({"ok": False, "error": "Server missing GOOGLE_CLIENT_ID"}), 500
+
+    try:
+        idinfo = id_token.verify_oauth2_token(
+            credential,
+            google_requests.Request(),
+            GOOGLE_CLIENT_ID,
+            clock_skew_in_seconds=GOOGLE_CLOCK_SKEW,
+        )
+    except Exception as e:
+        print("GSI verify error:", e)
+        return jsonify({"ok": False, "error": "invalid_credential"}), 400
+
+    email = idinfo.get("email")
+    name = idinfo.get("name")
+    picture = idinfo.get("picture")
+
+    if not email:
+        return jsonify({"ok": False, "error": "no_email"}), 400
+
+    session["user_email"] = email
+    session["name"] = name
+    session["full_name"] = name
+    session["picture"] = picture
+
+    # If invoked via redirect mode (form POST), send a real redirect.
+    if request.form or request.args.get("mode") == "redirect":
+        return redirect("/dashboard")
+
+    return jsonify({"ok": True, "success": True, "redirect": "/dashboard"})
 
 
 @app.route('/logout')
@@ -483,11 +578,16 @@ def dashboard():
         except Exception as exc:
             history_error = str(exc)
 
+    fallback_picture = _fallback_picture(session.get('user_email') or "")
+    placeholder_picture = _placeholder_avatar(session.get("full_name") or session.get("user_email") or "U")
+    if not session.get("picture"):
+        session["picture"] = fallback_picture or placeholder_picture
+
     return render_template(
         'dashboard.html',
         full_name=session.get('full_name'),
         email=session.get('user_email'),
-        picture=session.get('picture'),
+        picture=session.get('picture') or fallback_picture or placeholder_picture,
         history_columns=history_columns,
         history_rows=history_rows_full,
         history_preview=history_preview,
