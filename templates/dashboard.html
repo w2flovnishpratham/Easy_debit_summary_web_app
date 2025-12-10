@@ -59,6 +59,7 @@
       padding: 32px 20px 60px;
       line-height: 1.6;
       font-weight: 400;
+      overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
@@ -96,6 +97,7 @@
     /* Top Navigation */
     .topbar {
       max-width: 1200px;
+      width: 100%;
       margin: 0 auto 32px;
       display: flex;
       justify-content: space-between;
@@ -204,6 +206,7 @@
     /* Main Layout */
     main {
       max-width: 1200px;
+      width: 100%;
       margin: 0 auto;
       display: grid;
       gap: 24px;
@@ -380,6 +383,7 @@
       box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
       scrollbar-width: thin;
       scrollbar-color: rgba(0, 212, 255, 0.5) transparent;
+      width: 100%;
     }
 
     .history-table-wrapper::-webkit-scrollbar {
@@ -436,16 +440,15 @@
       border-collapse: collapse;
       color: var(--text-primary);
       table-layout: fixed;
-      min-width: 500px;
+      min-width: 0;
     }
 
     .history-table th,
     .history-table td {
       text-align: left;
       padding: 16px 20px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      white-space: normal;
+      word-break: break-word;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       font-size: 0.95rem;
     }
@@ -777,27 +780,48 @@
     }
 
     /* Responsive Design */
-    @media (max-width: 768px) {
+    @media (max-width: 900px) {
       body { padding: 24px 16px 48px; }
-      h1 { font-size: 2rem; }
-      h2 { font-size: 1.5rem; }
+      h1 { font-size: 2.1rem; }
+      h2 { font-size: 1.6rem; }
+      .topbar { flex-direction: column; align-items: flex-start; gap: 12px; }
       .hero { padding: 24px; flex-direction: column; align-items: flex-start; }
       .grid { grid-template-columns: 1fr; }
-      .topbar { flex-direction: column; align-items: flex-start; gap: 16px; }
-      .top-actions { width: 100%; justify-content: flex-start; }
-      .history-header { flex-direction: column; gap: 16px; }
-      .modal { padding: 20px 16px; }
-      .modal-table th, 
-      .modal-table td { padding: 10px 12px; }
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 18px 12px 36px; }
+      h1 { font-size: 1.9rem; }
+      h2 { font-size: 1.4rem; }
+      .topbar { margin-bottom: 20px; padding-bottom: 12px; }
+      .top-actions { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+      .top-actions .btn { flex: 1 1 48%; min-width: 140px; }
+      .btn { padding: 10px 16px; width: auto; }
+      .hero { padding: 20px; gap: 18px; flex-direction: column; align-items: stretch; }
+      .profile { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .avatar { width: 72px; height: 72px; }
+      main { gap: 18px; }
+      .card { padding: 20px; }
+      .history-card { padding: 20px; }
+      .entry-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+      .entry-badges { justify-content: flex-start; flex-wrap: wrap; }
+      .history-header { flex-direction: column; gap: 12px; align-items: flex-start; }
       .history-table-scroll { display: none; }
+      .history-table-wrapper { margin: 0; padding: 0; }
+      .history-table th,
+      .history-table td { padding: 12px 10px; font-size: 0.9rem; }
     }
 
     @media (max-width: 480px) {
-      .btn { padding: 10px 16px; }
-      .card { padding: 20px; }
-      .history-card { padding: 20px; }
-      .entry-header { flex-direction: column; gap: 12px; }
-      .entry-badges { justify-content: flex-start; }
+      body { padding: 16px 12px 32px; }
+      .btn { padding: 9px 14px; font-size: 0.9rem; width: 100%; }
+      .top-actions .btn { flex: 1 1 100%; }
+      .card { padding: 18px; }
+      .history-card { padding: 18px; }
+      .hero { padding: 18px; }
+      .history-table-wrapper { margin: 0; padding: 0; }
+      .history-table th,
+      .history-table td { padding: 10px 8px; font-size: 0.88rem; }
     }
 
     /* Loading States */
@@ -853,6 +877,24 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+
+  <script>
+    // -----updated or added-----
+    (function() {
+      if (!window.sendAppMessage) {
+        window.sendAppMessage = function(name) {
+          try {
+            if (window.AppChannel && typeof window.AppChannel.postMessage === 'function' && name) {
+              window.AppChannel.postMessage(String(name));
+            }
+          } catch (err) {
+            // ignore when bridge is unavailable
+          }
+        };
+      }
+    })();
+    // -----updated or added-----
+  </script>
   <div class="topbar">
     <div class="brand">
       <span class="logo-dot"></span>
@@ -975,8 +1017,9 @@
         </div>
       {% else %}
         <div style="padding: 40px 20px; text-align: center;">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--text-muted); margin-bottom: 16px;">
-            <path d="M9 13h6m-3-3v6m-9 1V8a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); margin-bottom: 16px;">
+            <path d="M12 8v8m-4-4h8"/>
+            <path d="M5 6a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2z"/>
           </svg>
           <p class="muted" style="max-width: 400px; margin: 0 auto;">
             No saved extracts yet. Upload a statement and click "Save to history" to populate this space.
@@ -1096,8 +1139,9 @@
             {% endfor %}
           {% else %}
             <div style="padding: 40px; text-align: center;">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--text-muted); margin-bottom: 16px;">
-                <path d="M9 13h6m-3-3v6m-9 1V8a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); margin-bottom: 16px;">
+                <path d="M12 8v8m-4-4h8"/>
+                <path d="M5 6a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2z"/>
               </svg>
               <p class="muted">No transaction history available yet.</p>
             </div>
@@ -1117,12 +1161,14 @@
           </h3>
           <p>Upload your bank statements in PDF format. Our system will extract and normalize transaction data for easy analysis.</p>
           <div class="cta">
-            <a class="btn" href="{{ url_for('index') }}">
+            <!-- -----updated or added----- -->
+            <a class="btn" href="{{ url_for('index') }}" data-app-event="show_rewarded_interstitial">
               Go to Uploader
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
             </a>
+            <!-- -----updated or added----- -->
           </div>
         </div>
       </div>
@@ -1150,6 +1196,17 @@
 
   <script>
     (function() {
+      // -----updated or added-----
+      try {
+        const appEventElements = document.querySelectorAll('[data-app-event]');
+        appEventElements.forEach((el) => {
+          el.addEventListener('click', () => sendAppMessage(el.dataset.appEvent));
+        });
+      } catch (err) {
+        // ignore when AppChannel bridge is unavailable
+      }
+      // -----updated or added-----
+
       // Modal Management
       const modal = document.getElementById('historyModal');
       const previewRows = Array.from(document.querySelectorAll('.history-row'));
@@ -1423,6 +1480,30 @@
             card.style.opacity = '1';
             card.style.transform = 'translateY(0)';
           }, 100 + index * 100);
+        });
+      });
+    })();
+  </script>
+
+  <script>
+    // Bridge for WebView -> Flutter
+    window.AppChannel = {
+      postMessage: function (msg) {
+        try {
+          if (window.flutter_inappwebview) {
+            window.flutter_inappwebview.callHandler("AppChannel", msg);
+          }
+        } catch (e) {
+        }
+      }
+    };
+    (function() {
+      const uploadLinks = Array.from(document.querySelectorAll(`a[href="${ "{{ url_for('index') }}" }"]`));
+      uploadLinks.forEach((link) => {
+        link.addEventListener('click', () => {
+          if (window.AppChannel && typeof window.AppChannel.postMessage === 'function') {
+            window.AppChannel.postMessage('show_rewarded_upload');
+          }
         });
       });
     })();

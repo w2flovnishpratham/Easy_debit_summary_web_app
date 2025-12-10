@@ -1219,6 +1219,16 @@
 </style>
 </head>
 <body>
+  <script>
+    // Bridge for WebView → Flutter
+    window.sendAppMessage = function(name) {
+      try {
+        if (window.AppChannel && typeof window.AppChannel.postMessage === 'function') {
+          window.AppChannel.postMessage(String(name));
+        }
+      } catch (e) {}
+    };
+  </script>
   <div class="page">
     <header class="hero card">
       <div class="eyebrow">Easy Debit Summary</div>
@@ -2872,7 +2882,23 @@
   (function () {
     // Save-as-PDF button removed.
   })();
-</script>
+  </script>
+
+
+  <script>
+    // -----updated or added-----
+    (function() {
+      try {
+        const appEventElements = document.querySelectorAll('[data-app-event]');
+        appEventElements.forEach((el) => {
+          el.addEventListener('click', () => sendAppMessage(el.dataset.appEvent));
+        });
+      } catch (err) {
+        // ignore when AppChannel bridge is unavailable
+      }
+    })();
+    // -----updated or added-----
+  </script>
 
 
   {% if payment_required %}
@@ -2967,5 +2993,20 @@
     })();
   </script>
   {% endif %}
+
+  <script>
+    // Bridge for WebView → Flutter
+    window.AppChannel = {
+      postMessage: function (msg) {
+        try {
+          if (window.flutter_inappwebview) {
+            window.flutter_inappwebview.callHandler("AppChannel", msg);
+          }
+        } catch (e) {
+          console.warn("AppChannel error:", e);
+        }
+      }
+    };
+  </script>
 </body>
 </html>

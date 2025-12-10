@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="
+script-src 'self' https://accounts.google.com https://*.gstatic.com 'unsafe-inline' 'unsafe-eval';
+frame-ancestors 'self' *;
+">
   <title>Login | Easy Debit Summary</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
@@ -120,6 +124,26 @@
       line-height: 1.4;
     }
 
+    .google-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: #fff;
+      color: #1f1f1f;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .google-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+    .google-btn:active { transform: translateY(0); box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+    .google-btn svg { width: 20px; height: 20px; }
+
     @media (max-width: 600px) {
       body { padding: 18px 12px 36px; }
       .topbar { flex-direction: column; align-items: flex-start; }
@@ -151,8 +175,7 @@
           data-client_id="{{ google_client_id }}"
           data-context="signin"
           data-ux_mode="popup"
-          data-callback="handleCredentialResponse"
-          data-auto_prompt="false">
+          data-callback="handleCredentialResponse">
         </div>
         <div class="g_id_signin"
           data-type="standard"
@@ -172,38 +195,36 @@
   </main>
 
   <script>
-    const errorBox = document.getElementById('login-error');
-    function showError(message) {
-      if (!errorBox) return;
-      errorBox.textContent = message || 'Sign-in failed. Please try again.';
-      errorBox.classList.remove('hidden');
-    }
-
     function handleCredentialResponse(response) {
-      if (!response || !response.credential) {
-        showError('No credential received from Google.');
-        return;
-      }
-
-      fetch('/google_auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      fetch("/auth/gsi-login", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ credential: response.credential })
       })
-        .then((resp) => resp.json().then((body) => ({ ok: resp.ok && body && body.ok, body })))
-        .then(({ ok, body }) => {
-          if (ok) {
-            const params = new URLSearchParams(window.location.search);
-            const nextUrl = params.get('next') || (body && body.redirect) || '/dashboard';
-            window.location.href = nextUrl;
-            return;
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.success) {
+            window.location.href = data.redirect || "/dashboard";
+          } else {
+            alert("Login failed: " + (data.error || "Unknown error"));
           }
-          showError((body && body.error) || 'Unable to log in right now.');
         })
-        .catch(() => showError('Network error while contacting the server.'));
+        .catch(err => {
+          console.error("GSI login error", err);
+          alert("Network error while logging in.");
+        });
     }
 
-    
+    document.addEventListener("click", function(e) {
+      const a = e.target.closest("a[target='_blank']");
+      if (a && a.href) {
+        if (!a.href.startsWith("https://accounts.google.com")) {
+          e.preventDefault();
+          window.location.href = a.href;
+        }
+      }
+    });
   </script>
 </body>
 </html>
