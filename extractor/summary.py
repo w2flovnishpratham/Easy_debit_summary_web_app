@@ -8,6 +8,7 @@ from .extractor_hdfc import extract_hdfc_transactions
 from .extractor_icici import extract_icici_transactions
 from .extractor_sbi import extract_sbi_transactions
 from .extractor_yes import extract_yes_transactions
+from .Indus import extract_indus_transactions
 
 
 ExtractorFn = Callable[[str], Any]
@@ -18,6 +19,7 @@ EXTRACTOR_REGISTRY: Dict[str, ExtractorFn] = {
     "SBI": extract_sbi_transactions,
     "AXIS": extract_axis_transactions,
     "YES": extract_yes_transactions,
+    "INDUS": extract_indus_transactions,
 }
 
 RENAME_MAP = {
