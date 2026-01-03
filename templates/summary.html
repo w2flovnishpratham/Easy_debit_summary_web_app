@@ -1070,9 +1070,49 @@
     }
 
     .chat-ledger-table td.debit {
-      color: var(--danger);
-      font-weight: 600;
-    }
+        color: var(--danger);
+        font-weight: 600;
+        }
+
+    .ledger-llm-table {
+        margin-top: 12px;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+    .ledger-llm-table table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+    .ledger-llm-table th,
+    .ledger-llm-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+        text-align: left;
+        font-size: 0.95rem;
+      }
+
+    .ledger-llm-table th {
+        background: rgba(15, 23, 42, 0.04);
+        font-weight: 700;
+        color: var(--accent-strong);
+      }
+
+    .ledger-llm-table tr:last-child td {
+        border-bottom: none;
+      }
+
+    .ledger-llm-table td.debit {
+        color: var(--danger);
+        font-weight: 600;
+      }
+
+    .ledger-llm-table td.credit {
+        color: var(--success);
+        font-weight: 600;
+      }
 
     @media (max-width: 600px) {
       body{
@@ -1551,29 +1591,23 @@
       <div class="section-heading">
         <div>
           <h2>Ledger Chatbot</h2>
-          <p>Pick one of the planning prompts, optionally filter by a keyword, and we will surface the relevant ledger insights.</p>
+          <p>Ask the ledger anything about your transactions and we will surface the relevant insights.</p>
         </div>
         <button class="toggle-btn" data-target="body-ledger-chat">Collapse</button>
       </div>
       <div class="section-body" id="body-ledger-chat">
         <article class="card table-card">
-          <div class="chat-ledger">
-            <div class="chat-ledger-toolbar">
+            <div class="chat-ledger">
+              <div class="chat-ledger-toolbar">
               <label style="flex:2 1 300px;">
-                Pick a question
-                <select id="chatLedgerSelect">
-                  <option value="">Select a planning prompt</option>
-                </select>
-              </label>
-              <label style="flex:1 1 220px;">
-                Keyword filter (required)
-                <input type="text" id="chatLedgerFilter" placeholder="e.g. rent, salary, vendor name">
+                Ask a ledger question
+                <input type="text" id="chatLedgerQuestion" placeholder="e.g. What were my top debits in October?">
               </label>
               <button type="button" class="btn primary" id="chatLedgerRun" style="flex:0 0 auto;">Ask</button>
-            </div>
+              </div>
             <div class="chat-ledger-response" id="chatLedgerResponse">
               <strong>Ledger assistant ready</strong>
-              <p class="chat-ledger-hint">Choose a question, enter a keyword, and hit Ask to interrogate the ledger.</p>
+              <p class="chat-ledger-hint">Ask any ledger-related question and hit Ask to interrogate the ledger.</p>
               <div class="chat-ledger-cards" id="chatLedgerCards"></div>
               <div class="chat-ledger-table" id="chatLedgerTable"></div>
             </div>
@@ -2005,6 +2039,8 @@
       const runButton = document.getElementById('chatLedgerRun');
 
       if (!promptSelect || !responseContainer || !runButton) return;
+   
+      return;
 
       const prompts = [
         { id: 'credit_total', label: 'Total Credit Received from keyword' },
@@ -2759,6 +2795,135 @@
         rows: [],
         emptyMessage: 'Results will appear once a prompt is selected.',
       });
+    })();
+  </script>
+
+  <script>
+    (function() {
+      const questionInput = document.getElementById('chatLedgerQuestion');
+      const responseContainer = document.getElementById('chatLedgerResponse');
+      const runButton = document.getElementById('chatLedgerRun');
+
+      if (!questionInput || !responseContainer || !runButton) return;
+
+      function escapeHtml(value) {
+        return String(value ?? '').replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+        function setStatus(title, summary) {
+          responseContainer.innerHTML = `
+            <strong>${escapeHtml(title)}</strong>
+            <p class="chat-ledger-hint">${escapeHtml(summary)}</p>
+            <div class="chat-ledger-cards" id="chatLedgerCards"></div>
+            <div class="chat-ledger-table" id="chatLedgerTable"></div>
+          `;
+        }
+
+        function renderLedgerAnswer(answerRaw) {
+          const answer = String(answerRaw || '').trim();
+          const lines = answer.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+          const tableRows = [];
+          const narrative = [];
+
+          lines.forEach((line) => {
+            const parts = line.split('|').map((part) => part.trim());
+            if (parts.length === 5 && parts.some((p) => p)) {
+              tableRows.push(parts);
+            } else {
+              narrative.push(line);
+            }
+          });
+
+          let html ;
+
+          if (narrative.length) {
+            html = narrative.map((line) => `<p class="chat-ledger-hint">${escapeHtml(line)}</p>`).join('');
+          }
+
+          if (tableRows.length) {
+            html = `
+              <div class="ledger-llm-table">
+                <table aria-label="LLM ledger table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Description</th>
+                      <th>Debit</th>
+                      <th>Credit</th>
+                      <th>Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${tableRows.map((row) => `
+                      <tr>
+                        <td>${escapeHtml(row[0])}</td>
+                        <td>${escapeHtml(row[1])}</td>
+                        <td class="debit">${escapeHtml(row[2])}</td>
+                        <td class="credit">${escapeHtml(row[3])}</td>
+                        <td>${escapeHtml(row[4])}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `;
+          }
+
+          if (!narrative.length && !tableRows.length) {
+            html = `<p class="chat-ledger-hint">${escapeHtml(answer || 'No answer returned.')}</p>`;
+          }
+
+          responseContainer.innerHTML = html;
+        }
+
+        function optionLabel(promptId) {
+          return promptId || 'Ledger question';
+        }
+
+      async function handleRun(event) {
+        event?.preventDefault();
+        const question = (questionInput?.value || '').trim();
+        const keyword = '';
+        if (!question) {
+          setStatus('Ask a question', 'Type your ledger question (e.g. top debits last month) and try again.');
+          return;
+        }
+        setStatus('Thinking...', 'Querying the ledger with the selected prompt.');
+        runButton.disabled = true;
+        try {
+          const resp = await fetch('/chat/ledger', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ question, keyword }),
+          });
+            const data = await resp.json();
+            if (!data?.ok) {
+              const msg = data?.error || 'Unable to fetch answer. Please try again.';
+              setStatus('No results', msg);
+              return;
+            }
+
+            renderLedgerAnswer(data.answer || 'No answer returned.');
+          } catch (err) {
+            setStatus('Error', err?.message || 'Something went wrong. Please try again.');
+          } finally {
+            runButton.disabled = false;
+          }
+      }
+
+      runButton.addEventListener('click', handleRun);
+      questionInput?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          handleRun(event);
+        }
+      });
+
+      setStatus('Ledger assistant ready', 'Type a ledger-related question and press Ask.');
     })();
   </script>
 

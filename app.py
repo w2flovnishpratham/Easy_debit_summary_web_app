@@ -15,6 +15,7 @@ import urllib.parse
 import tempfile
 from typing import Optional, Tuple
 from functools import wraps
+import requests
 
 from pymongo import MongoClient, errors as pymongo_errors
 from google.oauth2 import id_token
@@ -25,9 +26,17 @@ from PyPDF2.errors import DependencyError
 load_dotenv()
 
 
+
 def _env(key: str, default: str = "") -> str:
     value = os.environ.get(key, default)
     return value.strip() if isinstance(value, str) else value
+
+
+def _env_required(key: str, default: str | None = None) -> str:
+    val = os.getenv(key, default)
+    if val is None or str(val).strip() == "":
+        raise RuntimeError(f"Missing required env var: {key}")
+    return str(val).strip()
 
 
 PAYMENT_GATE_ENABLED = (_env('ENABLE_PAYMENT_GATE', 'true') or 'true').lower() in {'1', 'true', 'yes', 'on'}
@@ -38,6 +47,25 @@ MONGO_URI = _env("MONGO_URI")
 MONGO_DB_NAME = _env("MONGO_DB_NAME")
 GOOGLE_CLOCK_SKEW = int(_env("GOOGLE_CLOCK_SKEW", "120") or "120")
 LOGIN_REQUIRED = (_env("LOGIN_REQUIRED", "false") or "false").lower() in {"1", "true", "yes", "on"}
+LLM_MODEL = _env_required("LLM_MODEL", "llama3.1:8b")
+LLM_TIMEOUT = int(_env_required("LLM_TIMEOUT", "90"))
+OLLAMA_API_KEY = _env_required("OLLAMA_API_KEY")
+OLLAMA_HOST = _env_required("OLLAMA_HOST", "https://ollama.com").rstrip("/")
+combined_df: Optional[pd.DataFrame] = None
+
+_original_requests_post = requests.post
+
+
+def _guarded_post(url, *args, **kwargs):
+    url_str = str(url)
+    lowered = url_str.lower()
+    if "localhost" in lowered or "127.0.0.1" in lowered or "11434" in lowered:
+        raise RuntimeError(f"BLOCKED LOCAL OLLAMA CALL: {url_str}")
+    return _original_requests_post(url, *args, **kwargs)
+
+
+requests.post = _guarded_post
+
 
 app = Flask(__name__)
 app.secret_key = _env("SECRET_KEY") or _env("FLASK_SECRET_KEY") or "dev-secret-change-me"
@@ -329,13 +357,16 @@ def _render_summary_from_entries(entries, batch_id: Optional[str] = None):
     if not normalized_frames:
         raise ValueError('Failed to process uploads')
 
+    global combined_df
     combined_df = pd.concat(normalized_frames, ignore_index=True)
+
     summary_context = _build_summary_page_context(
         combined_df,
         statement_sources=statement_sources,
     )
     output_csv_name = f"{batch_identifier}_combined_output.csv"
     output_csv_path = os.path.join(OUTPUT_FOLDER, output_csv_name)
+
     combined_df.to_csv(output_csv_path, index=False)
 
     session['download_file'] = output_csv_name
@@ -420,6 +451,7 @@ def _build_summary_page_context(df: pd.DataFrame, statement_sources=None):
         "peak_credit_day": combined_summary.get("peak_credit_day"),
         "top_category": combined_summary.get("category_topline", {}),
     }
+
 
     return {
         "opening_balance": combined_summary["opening_balance"],
@@ -527,7 +559,7 @@ def _handle_gsi_login():
             clock_skew_in_seconds=GOOGLE_CLOCK_SKEW,
         )
     except Exception as e:
-        print("GSI verify error:", e)
+    
         return jsonify({"ok": False, "error": "invalid_credential"}), 400
 
     email = idinfo.get("email")
@@ -748,6 +780,242 @@ def summary():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+def _load_session_dataframe() -> pd.DataFrame:
+    """
+    Load the latest normalized CSV for the current session.
+    Raises ValueError if unavailable.
+    """
+    allowed = []
+    stored = session.get('download_files')
+    if isinstance(stored, list):
+        allowed.extend(stored)
+    legacy = session.get('download_file')
+    if isinstance(legacy, str):
+        allowed.append(legacy)
+
+    if not allowed:
+        raise ValueError("No normalized file available for this session.")
+
+    latest_file = allowed[-1]
+    csv_path = os.path.join(OUTPUT_FOLDER, latest_file)
+    if not os.path.exists(csv_path):
+        raise ValueError("Normalized file missing on server.")
+
+    df = pd.read_csv(csv_path)
+    if "Date" in df.columns:
+        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+        df = df.dropna(subset=["Date"])
+    return df
+
+
+def _filter_ledger(df: pd.DataFrame, start_date: str = "", end_date: str = "") -> pd.DataFrame:
+    filtered = df.copy()
+    if start_date:
+        try:
+            start = pd.to_datetime(start_date, errors="coerce")
+            if not pd.isna(start):
+                filtered = filtered[filtered["Date"] >= start]
+        except Exception:
+            pass
+    if end_date:
+        try:
+            end = pd.to_datetime(end_date, errors="coerce")
+            if not pd.isna(end):
+                filtered = filtered[filtered["Date"] <= end]
+        except Exception:
+            pass
+
+    filtered = filtered.sort_values("Date", ascending=False).reset_index(drop=True)
+    return filtered
+
+
+def _sanitize_text(value, limit: int = 160) -> str:
+    text = "" if value is None else str(value)
+    text = text.replace("\t", " ").replace("\n", " ").strip()
+    return text[:limit]
+
+
+def build_statement_context(df: pd.DataFrame, keyword: str = "") -> str:
+    if df is None or df.empty:
+        return "No statement data available."
+
+    working = df.copy()
+    if "Date" in working.columns:
+        working["Date"] = pd.to_datetime(working["Date"], errors="coerce")
+
+    columns = list(working.columns)
+    date_min = ""
+    date_max = ""
+    if "Date" in working.columns and not working["Date"].dropna().empty:
+        date_min_ts = working["Date"].min()
+        date_max_ts = working["Date"].max()
+        date_min = date_min_ts.strftime("%Y-%m-%d") if isinstance(date_min_ts, pd.Timestamp) else ""
+        date_max = date_max_ts.strftime("%Y-%m-%d") if isinstance(date_max_ts, pd.Timestamp) else ""
+
+    total_debit = float(working["Debit"].sum()) if "Debit" in working.columns else None
+    total_credit = float(working["Credit"].sum()) if "Credit" in working.columns else None
+
+    def _top_transactions(kind: str):
+        col = "Debit" if kind == "debit" else "Credit"
+        if col not in working.columns:
+            return []
+        subset = working.copy()
+        subset[col] = pd.to_numeric(subset[col], errors="coerce").fillna(0)
+        subset = subset[subset[col] > 0]
+        subset = subset.sort_values(col, ascending=False).head(5)
+        results = []
+        for _, row in subset.iterrows():
+            results.append({
+                "Date": row["Date"].strftime("%Y-%m-%d") if isinstance(row.get("Date"), pd.Timestamp) else _sanitize_text(row.get("Date", "")),
+                "Details": _sanitize_text(row.get("Details", ""), 120),
+                "Amount": float(row.get(col, 0) or 0),
+                "Balance": row.get("Balance", ""),
+            })
+        return results
+
+    top_debits = _top_transactions("debit")
+    top_credits = _top_transactions("credit")
+
+    selected_columns = [col for col in ["Date", "Details", "Debit", "Credit", "Balance", "Transaction Type", "Payment Category", "Merchant", "Bank"] if col in working.columns]
+    rows = working.tail(40)
+    if "Date" in rows.columns:
+        rows["Date"] = rows["Date"].dt.strftime("%Y-%m-%d")
+
+    def _format_row(row):
+        return "\t".join(_sanitize_text(row.get(col, "")) for col in selected_columns)
+
+    keyword_rows = []
+    if keyword:
+        keyword_lower = keyword.lower()
+        def _match(val):
+            return keyword_lower in str(val).lower()
+        mask = False
+        for col in ["Details", "Merchant", "Payment Category", "Transaction Type"]:
+            if col in working.columns:
+                col_mask = working[col].astype(str).str.lower().str.contains(keyword_lower, na=False)
+                mask = col_mask if isinstance(mask, bool) else (mask | col_mask)
+        keyword_rows = working[mask].tail(10) if not isinstance(mask, bool) else working.head(0)
+        if "Date" in keyword_rows.columns:
+            keyword_rows["Date"] = keyword_rows["Date"].dt.strftime("%Y-%m-%d")
+
+    lines = []
+    lines.append(f"COLUMNS: {', '.join(columns)}")
+    if date_min or date_max:
+        lines.append(f"DATE_RANGE: {date_min} to {date_max}")
+    if total_debit is not None or total_credit is not None:
+        lines.append(f"TOTALS: debit={total_debit or 0:.2f}, credit={total_credit or 0:.2f}")
+    lines.append("TOP_DEBITS (max 5):")
+    for item in top_debits:
+        bal = f" | Balance={item['Balance']}" if "Balance" in working.columns else ""
+        lines.append(f"{item['Date']} | {item['Details']} | {item['Amount']:.2f}{bal}")
+    lines.append("TOP_CREDITS (max 5):")
+    for item in top_credits:
+        bal = f" | Balance={item['Balance']}" if "Balance" in working.columns else ""
+        lines.append(f"{item['Date']} | {item['Details']} | {item['Amount']:.2f}{bal}")
+    lines.append("LAST_ROWS (most recent 40):")
+    lines.append("\t".join(selected_columns))
+    for _, row in rows.iterrows():
+        lines.append(_format_row(row))
+    if keyword_rows is not None and len(keyword_rows) > 0:
+        lines.append(f"KEYWORD_MATCHES (keyword='{keyword}') latest 10:")
+        lines.append("\t".join(selected_columns))
+        for _, row in keyword_rows.tail(10).iterrows():
+            lines.append(_format_row(row))
+    return "\n".join(lines)
+
+
+def call_ollama_cloud_chat(system_prompt: str, statement_context: str, question: str) -> str:
+    final_url = f"{OLLAMA_HOST}/api/chat"
+    headers = {
+        "Authorization": f"Bearer {OLLAMA_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": f"STATEMENT_CONTEXT:\n{statement_context}\n\nQUESTION:\n{question}"},
+    ]
+    payload = {
+        "model": LLM_MODEL,
+        "messages": messages,
+        "stream": False
+    }
+
+
+    try:
+        resp = requests.post(final_url, json=payload, headers=headers, timeout=LLM_TIMEOUT)
+    except Exception as exc:
+        raise RuntimeError(f"LLM call failed: {exc}") from exc
+    if not resp.ok:
+        raise RuntimeError(f"LLM call failed: HTTP {resp.status_code} {resp.text}")
+    data = resp.json()
+    message = data.get("message") or {}
+    content = message.get("content") or data.get("response") or ""
+    if not isinstance(content, str):
+        raise RuntimeError("LLM call failed: Empty response body.")
+    return content.strip()
+
+
+def _get_combined_df() -> pd.DataFrame:
+    global combined_df
+    if combined_df is not None and not combined_df.empty:
+        return combined_df
+
+    raise ValueError("No combined statement available for this session.")
+
+
+@app.route('/chat/ledger', methods=['POST'])
+@login_required
+def chat_ledger():
+    auth_block = _require_login_json()
+    if auth_block:
+        return auth_block
+
+    try:
+        data = request.get_json(force=True) or {}
+        question = (data.get("question") or "").strip()
+        keyword = (data.get("keyword") or "").strip()
+
+        if not question:
+            return jsonify(ok=False, error="Missing question"), 400
+
+        df = _get_combined_df()
+        if df is None or df.empty:
+            return jsonify(ok=False, error="No transactions available"), 400
+
+        statement_context = build_statement_context(df, keyword=keyword)
+
+        system_prompt = (
+            "You are LedgerBot. Answer ONLY using STATEMENT_CONTEXT. "
+            "If the question cannot be answered from the statement, reply exactly: This information is not available in the provided statement.\n"
+            "OUTPUT FORMAT RULES (MANDATORY):\n"
+            "1) Plain text only. Do NOT use markdown, code blocks, bullets, or decorative characters.\n"
+            "2) Do NOT expose internal or debug phrases such as: Rows used, filtered total, context length, tokens, analysis, based on the data above, according to the rows.\n"
+            "3) Use clean, human-friendly financial language with short sentences; avoid technical terms unless required.\n"
+            "4) Currency formatting: use the currency symbol exactly as shown in the statement (e.g., ₹) with comma separators for thousands (₹25,000).\n"
+            "5) When listing transactions (max 5 rows unless asked for more), use this format exactly:\n"
+            "   Date | Description | Debit | Credit | Balance\n"
+            "   Leave a field blank if not available. Do not add extra columns.\n"
+            "6) When summarizing numbers, start with a short title line, then list key values on separate lines, e.g.:\n"
+            "   Monthly Summary\n"
+            "   Total debit: ₹12,450\n"
+            "   Total credit: ₹18,000\n"
+            "   Net difference: ₹5,550 credit surplus\n"
+            "7) If there are no matching transactions, say exactly: No transactions matching this query were found in the statement.\n"
+            "8) Tone: neutral, professional, calm, no opinions.\n"
+            "9) End the response cleanly. Do NOT add explanations or follow-up questions unless clarification is required by ambiguity."
+        )
+
+        answer = call_ollama_cloud_chat(system_prompt, statement_context, question)
+
+        return jsonify(ok=True, answer=answer)
+
+    except Exception as e:
+        err_msg = str(e)
+        if not err_msg.startswith("LLM call failed:"):
+            err_msg = f"LLM call failed: {err_msg}"
+        return jsonify(ok=False, error=err_msg), 500
 
 
 def _build_sample_entries(selection_key: str):

@@ -185,11 +185,7 @@ frame-ancestors 'self' *;
   <script>
     const googleClientId = "{{ google_client_id }}";
     const ORIGIN = window.location.origin;
-    const REDIRECT_PATH = "{{ google_redirect_uri or '/auth/gsi-login' }}";
-    const LOGIN_URI_REDIRECT = new URL(REDIRECT_PATH, ORIGIN).toString();
     const LOGIN_URI_POPUP = new URL("/auth/gsi-login", ORIGIN).toString();
-    const FORCE_WEBVIEW = {{ 'true' if force_webview else 'false' }};
-    let flowStarted = false;
 
     function handleCredentialResponse(response) {
       fetch(LOGIN_URI_POPUP, {
@@ -212,30 +208,21 @@ frame-ancestors 'self' *;
         });
     }
 
-    function isWebView() {
-      const ua = navigator.userAgent || "";
-      const isAndroidWV = /\bwv\b|Android.*Version\/\d+\.\d+.*Chrome\/\d+/i.test(ua);
-      const isIOSWV = /\b(iPhone|iPad|iPod).*AppleWebKit(?!.*Safari)/i.test(ua);
-      const inIframe = window !== window.parent;
-      return isAndroidWV || isIOSWV || !!window.ReactNativeWebView || inIframe;
-    }
-
     function initGoogle() {
       if (!googleClientId || !window.google || !google.accounts || !google.accounts.id) {
         return;
       }
 
-      const webview = FORCE_WEBVIEW || isWebView();
-      const useRedirect = webview;
-
       google.accounts.id.initialize({
         client_id: googleClientId,
-        callback: useRedirect ? undefined : handleCredentialResponse,
-        ux_mode: useRedirect ? "redirect" : "popup",
-        login_uri: useRedirect ? LOGIN_URI_REDIRECT : LOGIN_URI_POPUP,
+        callback: handleCredentialResponse,
+        // Force popup flow so the user stays inside the app.
+        ux_mode: "popup",
+        // Explicitly set popup endpoint; omit redirect so Google does not fall back to opening the browser.
+        login_uri: LOGIN_URI_POPUP,
         context: "signin",
-        auto_select: !useRedirect,
-        itp_support: true,
+        auto_select: false,
+        itp_support: true
       });
 
       const btn = document.getElementById("gsi-button");
@@ -250,29 +237,6 @@ frame-ancestors 'self' *;
           logo_alignment: "left",
         });
       }
-
-      if (!useRedirect) {
-        google.accounts.id.prompt((notification) => {
-          flowStarted = true;
-          if (notification && notification.isNotDisplayed() && notification.getNotDisplayedReason()) {
-            console.warn("GSI prompt not displayed:", notification.getNotDisplayedReason());
-          }
-        });
-      }
-
-      // If Google never redirects (blocked by WebView), show a manual open link after a short delay.
-      setTimeout(() => {
-        if (!flowStarted) {
-          const errorEl = document.getElementById("login-error");
-          if (errorEl) {
-            errorEl.classList.remove("hidden");
-            errorEl.textContent = "Having trouble? Tap here to open Google sign-in in a browser.";
-            errorEl.onclick = () => {
-              window.location.href = LOGIN_URI_REDIRECT;
-            };
-          }
-        }
-      }, 4000);
     }
 
     (function waitForGoogle() {
