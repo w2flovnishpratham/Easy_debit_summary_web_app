@@ -10,11 +10,11 @@ def extract_axis_transactions(pdf_path):
     with pdfplumber.open(pdf_path) as pdf:
         for page_num, page in enumerate(pdf.pages, start=1):
             tables = page.extract_tables()
-            # print(f"Page {page_num} tables: {tables}")  # Axis.ipynb debug
+         
 
             for table in tables:
                 for row in table:
-                    # print(f"Row: {row}")  # Axis.ipynb debug
+            
                     if row and len(row) >= 6 and re.match(r"\d{2}-\d{2}-\d{4}", row[0]):
                         rows.append(row[:6])
 
