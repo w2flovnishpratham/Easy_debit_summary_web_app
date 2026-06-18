@@ -957,14 +957,6 @@ def call_ollama_cloud_chat(system_prompt: str, statement_context: str, question:
     return content.strip()
 
 
-def _get_combined_df() -> pd.DataFrame:
-    global combined_df
-    if combined_df is not None and not combined_df.empty:
-        return combined_df
-
-    raise ValueError("No combined statement available for this session.")
-
-
 @app.route('/chat/ledger', methods=['POST'])
 @login_required
 def chat_ledger():
@@ -980,7 +972,7 @@ def chat_ledger():
         if not question:
             return jsonify(ok=False, error="Missing question"), 400
 
-        df = _get_combined_df()
+        df = _load_session_dataframe()
         if df is None or df.empty:
             return jsonify(ok=False, error="No transactions available"), 400
 
