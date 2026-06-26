@@ -1,0 +1,78 @@
+name: Build & Deploy Android APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - '.github/workflows/build_android.yml'
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Generate debug keystore
+        run: |
+          keytool -genkey -v -keystore android/app/debug.keystore \
+            -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass android -keypass android \
+            -dname "CN=Easy Debit Summary, OU=App, O=EDS, L=IN, S=IN, C=IN"
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+        continue-on-error: true
+
+      - name: Download Gradle wrapper
+        working-directory: android
+        run: |
+          curl -L https://services.gradle.org/distributions/gradle-8.4-bin.zip -o gradle.zip
+          unzip -q gradle.zip
+          mv gradle-8.4/bin/gradle .
+          chmod +x gradle
+
+      - name: Build release APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon 2>/dev/null || gradle assembleRelease --no-daemon
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+
+      - name: Rename APK
+        run: |
+          find android -name "*.apk" | head -1
+          cp $(find android -name "*.apk" | head -1) EasyDebitSummary-Android.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EasyDebitSummary-Android
+          path: EasyDebitSummary-Android.apk
+
+      - name: Deploy APK to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 187.127.153.128
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          source: EasyDebitSummary-Android.apk
+          target: /root/eds/static/downloads/
+
+      - name: Restart EDS on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 187.127.153.128
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: systemctl restart eds
