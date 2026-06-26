@@ -1115,56 +1115,61 @@
       }
 
     @media (max-width: 600px) {
-      body{
-        padding-top: 80px;
-      }
-      .card {
-        padding: 20px;
-      }
+      body { padding-top: 80px; }
+      .page { padding: 16px 12px 48px; }
+      .card { padding: 16px; }
+      .hero h1 { font-size: 1.5rem; }
+      .hero p { font-size: 0.9rem; }
 
-      .hero h1 {
-        font-size: 1.6rem;
-      }
+      /* Fix grids that overflow narrow phones */
+      .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .pulse-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .statement-grid { grid-template-columns: 1fr; }
+      .bank-grid { grid-template-columns: 1fr; }
+      .split-grid { grid-template-columns: 1fr; gap: 14px; }
+      .accuracy-grid { grid-template-columns: 1fr; }
 
-      .chat-ledger-toolbar {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .chat-ledger-toolbar label {
-        flex: 1 1 100% !important;
-        width: 100%;
-      }
-      .chat-ledger-toolbar input,
-      .chat-ledger-toolbar select {
-        width: 100%;
-      }
+      .stat-card { padding: 14px; }
+      .stat-value { font-size: 1.3rem; }
+      .pulse-card { padding: 12px; }
+      .pulse-value { font-size: 1.3rem; }
 
-      .cta-actions {
-        flex-direction: column;
-      }
+      /* Section headings */
+      .section-heading { flex-direction: column; gap: 8px; align-items: flex-start; }
+      .section { margin-top: 20px; }
 
-      .btn,
-      #payBtn {
-        width: 100%;
-      }
+      /* Chat ledger */
+      .chat-ledger-toolbar { flex-direction: column; align-items: stretch; }
+      .chat-ledger-toolbar label { flex: 1 1 100% !important; width: 100%; min-width: 0; }
+      .chat-ledger-toolbar input, .chat-ledger-toolbar select { width: 100%; min-width: 0; }
 
-      .filter-controls input[type="date"] {
-        min-width: 0;
-        width: 100%;
-      }
+      /* CTA buttons */
+      .cta-actions { flex-direction: column; }
+      .btn, #payBtn { width: 100%; }
 
-      .chart-card canvas {
-        height: 260px !important;
-      }
+      /* Date filter */
+      .filter-controls { flex-direction: column; }
+      .filter-controls input[type="date"] { min-width: 0; width: 100%; }
+      .filter-controls button { width: 100%; }
 
-      .leader-card {
-        grid-template-columns: auto 1fr;
-      }
+      /* Charts */
+      .chart-card canvas { height: 220px !important; }
 
-      .leader-amount {
-        grid-column: 1 / -1;
-        margin-top: 6px;
-      }
+      /* Leaderboard */
+      .leader-card { grid-template-columns: auto 1fr; }
+      .leader-amount { grid-column: 1 / -1; margin-top: 6px; }
+
+      /* Table horizontal scroll */
+      .table-wrapper, .chat-ledger-table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    }
+
+    @media (max-width: 400px) {
+      .stat-grid { grid-template-columns: 1fr; }
+      .pulse-grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 1.3rem; }
+      .stat-value { font-size: 1.2rem; }
+      .pulse-value { font-size: 1.2rem; }
+      .card { padding: 12px; }
     }
   
 /* === Glassmorphism system === */

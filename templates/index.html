@@ -835,7 +835,36 @@
       .how-card { padding: 16px; }
       .how-controls { justify-content: space-between; }
     }
-    
+
+    /* Mobile-first touch & usability fixes */
+    @media (max-width: 768px) {
+      .nav-user {
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    /* Bigger tap targets for slider dots */
+    .how-dot {
+      width: 14px;
+      height: 14px;
+      padding: 4px;
+      box-sizing: content-box;
+    }
+
+    /* Prevent horizontal overflow on very small screens */
+    @media (max-width: 400px) {
+      .card { padding: 14px; }
+      .statement-block { padding: 12px; }
+      .navbar { padding: 8px 10px; }
+      .nav-brand { font-size: 0.95rem; }
+      .nav-btn { padding: 8px 12px; font-size: 0.88rem; }
+      .how-control { padding: 8px 12px; font-size: 0.88rem; }
+      .primary-btn { padding: 14px; font-size: 1rem; }
+      select, input[type="file"], input[type="password"] { font-size: 16px; padding: 12px; }
+    }
   </style>
 </head>
 <body>
@@ -1117,6 +1146,14 @@
 
       slider.addEventListener('mouseenter', () => clearInterval(autoTimer));
       slider.addEventListener('mouseleave', startAutoCycle);
+
+      // Touch swipe support
+      let touchStartX = 0;
+      track.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
+      track.addEventListener('touchend', (e) => {
+        const diff = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 40) { goTo(diff > 0 ? current + 1 : current - 1); startAutoCycle(); }
+      }, { passive: true });
 
       goTo(0);
       startAutoCycle();
