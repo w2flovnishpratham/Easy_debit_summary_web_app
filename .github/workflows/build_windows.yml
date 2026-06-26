@@ -1,0 +1,62 @@
+name: Build & Deploy Windows .exe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app.py'
+      - 'desktop/**'
+      - 'utils/**'
+      - 'extractor/**'
+      - 'templates/**'
+      - 'static/**'
+      - 'requirements.txt'
+      - '.github/workflows/build_windows.yml'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build .exe with PyInstaller
+        run: |
+          pyinstaller desktop/pyinstaller_windows.spec --noconfirm --clean
+        env:
+          APP_MODE: desktop
+          VPS_URL: https://easydebitsummary.com
+
+      - name: Zip the build
+        run: |
+          Compress-Archive -Path dist\EasyDebitSummary\* -DestinationPath EasyDebitSummary-Windows.zip
+
+      - name: Upload to VPS via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 187.127.153.128
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          source: EasyDebitSummary-Windows.zip
+          target: /root/eds/static/downloads/
+
+      - name: Update downloads page on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 187.127.153.128
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            systemctl restart eds
+            echo "Windows build deployed at $(date)"

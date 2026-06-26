@@ -1261,6 +1261,290 @@
   }
 }
 
+/* ===== ERP Light Theme ===== */
+:root {
+  --erp-bg:        #f1f5f9;
+  --erp-surface:   #ffffff;
+  --erp-surface2:  #f8fafc;
+  --erp-border:    #e2e8f0;
+  --erp-border-md: #cbd5e1;
+  --erp-text-1:    #0f172a;
+  --erp-text-2:    #334155;
+  --erp-text-3:    #64748b;
+  --erp-text-4:    #94a3b8;
+  --erp-accent:    #1d4ed8;
+  --erp-accent-h:  #1e40af;
+  --erp-accent-lt: #eff6ff;
+  --erp-success:   #059669;
+  --erp-danger:    #dc2626;
+  --erp-warning:   #d97706;
+  --erp-shadow:    0 1px 3px rgba(15,23,42,.07), 0 0 0 1px rgba(15,23,42,.04);
+}
+
+body {
+  background: var(--erp-bg) !important;
+  color: var(--erp-text-1) !important;
+  padding-top: 0 !important;
+}
+body::before, body::after { display: none !important; }
+
+/* Page wrapper */
+.page { padding: 28px 28px 64px !important; }
+
+/* Hero / header card */
+.hero.card {
+  background: var(--erp-surface) !important;
+  border: 1px solid var(--erp-border) !important;
+  box-shadow: var(--erp-shadow) !important;
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  border-radius: 12px !important;
+}
+.hero.card::after { display: none !important; }
+.hero h1 {
+  color: var(--erp-text-1) !important;
+  font-size: clamp(1.4rem, 3vw, 1.75rem) !important;
+  letter-spacing: -.02em !important;
+}
+.hero p { color: var(--erp-text-2) !important; }
+.eyebrow { color: var(--erp-accent) !important; letter-spacing: .12em !important; font-size: .72rem !important; }
+
+/* All cards */
+.card, .glass-card {
+  background: var(--erp-surface) !important;
+  border: 1px solid var(--erp-border) !important;
+  box-shadow: var(--erp-shadow) !important;
+  border-radius: 12px !important;
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+}
+.card::after, .glass-card::after { display: none !important; }
+
+/* Section headings */
+.section { margin-top: 24px !important; }
+.section-heading h2 { color: var(--erp-text-1) !important; font-size: 1.1rem !important; letter-spacing: -.01em !important; }
+.section-heading p  { color: var(--erp-text-3) !important; font-size: .88rem !important; }
+.toggle-btn {
+  background: var(--erp-surface2) !important;
+  border: 1px solid var(--erp-border) !important;
+  color: var(--erp-accent) !important;
+  border-radius: 5px !important;
+  font-size: .78rem !important;
+}
+.toggle-btn:hover { background: var(--erp-accent-lt) !important; }
+
+/* Buttons */
+.btn { border-radius: 6px !important; box-shadow: none !important; font-size: .88rem !important; }
+.btn::before { display: none !important; }
+.btn:hover { transform: none !important; box-shadow: 0 2px 8px rgba(15,23,42,.1) !important; }
+.btn.primary   { background: var(--erp-accent) !important; color: #fff !important; }
+.btn.primary:hover { background: var(--erp-accent-h) !important; }
+.btn.secondary { background: var(--erp-surface2) !important; color: var(--erp-text-2) !important; border: 1px solid var(--erp-border) !important; }
+.btn.secondary:hover { background: var(--erp-accent-lt) !important; color: var(--erp-accent) !important; border-color: #bfdbfe !important; }
+.btn.ghost     { background: transparent !important; color: var(--erp-accent) !important; border: 1px solid var(--erp-border-md) !important; }
+.btn.ghost:hover { background: var(--erp-accent-lt) !important; }
+.btn.accent    { background: var(--erp-warning) !important; box-shadow: none !important; }
+#payBtn        { background: var(--erp-warning) !important; }
+
+/* Stat cards */
+.stat-card, .pulse-card, .statement-card {
+  background: var(--erp-surface) !important;
+  border: 1px solid var(--erp-border) !important;
+  box-shadow: var(--erp-shadow) !important;
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  border-radius: 10px !important;
+}
+.stat-card h3 { color: var(--erp-text-3) !important; font-size: .82rem !important; text-transform: uppercase !important; letter-spacing: .05em !important; }
+.stat-value { color: var(--erp-text-1) !important; font-size: 1.5rem !important; }
+.stat-trend { color: var(--erp-text-4) !important; font-size: .8rem !important; }
+.stat-card.positive { border-left: 3px solid var(--erp-success) !important; }
+.stat-card.positive .stat-value { color: var(--erp-success) !important; }
+.stat-card.negative { border-left: 3px solid var(--erp-danger) !important; }
+.stat-card.negative .stat-value { color: var(--erp-danger) !important; }
+
+/* KPI dark cards — keep dark for contrast */
+.kpi-grid .stat-card {
+  background: linear-gradient(160deg, #1e3a5f, #1d4ed8) !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(29,78,216,.25) !important;
+}
+.kpi-grid .stat-card h3  { color: rgba(255,255,255,.75) !important; }
+.kpi-grid .stat-value    { color: #fff !important; }
+.kpi-grid .stat-trend    { color: rgba(255,255,255,.65) !important; }
+
+/* Pulse cards */
+.pulse-card h3 { color: var(--erp-text-3) !important; font-size: .75rem !important; text-transform: uppercase !important; letter-spacing: .06em !important; }
+.pulse-value   { font-size: 1.4rem !important; color: var(--erp-text-1) !important; }
+.pulse-detail  { color: var(--erp-text-4) !important; font-size: .8rem !important; }
+.pulse-card.positive { border-left: 3px solid var(--erp-success) !important; background: #f0fdf9 !important; }
+.pulse-card.warning  { border-left: 3px solid var(--erp-warning) !important; background: #fffbeb !important; }
+
+/* Statement cards */
+.stmt-bank  { color: var(--erp-text-1) !important; }
+.stmt-range { color: var(--erp-text-3) !important; }
+.stmt-meta  { color: var(--erp-text-4) !important; }
+.stmt-totals { color: var(--erp-text-2) !important; }
+
+/* Bank cards */
+.bank-card {
+  background: var(--erp-surface) !important;
+  border: 1px solid var(--erp-border) !important;
+  box-shadow: var(--erp-shadow) !important;
+  border-radius: 10px !important;
+}
+.bank-card h3 { color: var(--erp-text-1) !important; }
+.bank-chip { background: var(--erp-accent-lt) !important; color: var(--erp-accent) !important; border-radius: 4px !important; }
+.bank-meta { color: var(--erp-text-3) !important; }
+.bank-net.positive { color: var(--erp-success) !important; }
+.bank-net.negative { color: var(--erp-danger) !important; }
+
+/* Accuracy cards */
+.accuracy-card.pass { background: #f0fdf9 !important; border: 1px solid rgba(5,150,105,.25) !important; }
+.accuracy-card.fail { background: #fef2f2 !important; border: 1px solid rgba(220,38,38,.25) !important; }
+.accuracy-table th { color: var(--erp-text-2) !important; }
+.accuracy-table td { color: var(--erp-text-1) !important; }
+
+/* Movement / Top movers cards */
+.movement-card {
+  border: 1px solid var(--erp-border) !important;
+  box-shadow: var(--erp-shadow) !important;
+  border-radius: 12px !important;
+}
+.movement-card.debit  { background: #fff5f5 !important; border-left: 3px solid var(--erp-danger) !important; }
+.movement-card.credit { background: #f0fdf9 !important; border-left: 3px solid var(--erp-success) !important; }
+.movement-eyebrow { color: var(--erp-text-4) !important; }
+.movement-header h3 { color: var(--erp-text-1) !important; }
+.movement-note { color: var(--erp-text-3) !important; }
+.movement-icon { background: var(--erp-surface2) !important; color: var(--erp-text-2) !important; box-shadow: none !important; border-radius: 8px !important; }
+.movement-card.debit  .movement-icon { background: #fee2e2 !important; color: var(--erp-danger) !important; }
+.movement-card.credit .movement-icon { background: #d1fae5 !important; color: var(--erp-success) !important; }
+.movement-body { background: var(--erp-surface) !important; border: 1px solid var(--erp-border) !important; border-radius: 8px !important; }
+
+/* Leaderboard */
+.leader-card {
+  background: var(--erp-surface) !important;
+  border: 1px solid var(--erp-border) !important;
+  box-shadow: var(--erp-shadow) !important;
+  border-radius: 10px !important;
+}
+.leader-card.debit  { border-left: 3px solid var(--erp-danger) !important; }
+.leader-card.credit { border-left: 3px solid var(--erp-success) !important; }
+.leader-rank { background: var(--erp-accent-lt) !important; color: var(--erp-accent) !important; border-radius: 8px !important; }
+.leader-card.debit  .leader-rank { background: #fee2e2 !important; color: var(--erp-danger) !important; }
+.leader-card.credit .leader-rank { background: #d1fae5 !important; color: var(--erp-success) !important; }
+.leader-details { color: var(--erp-text-1) !important; }
+.leader-date, .leader-bank { color: var(--erp-text-4) !important; }
+.leader-amount { color: var(--erp-danger) !important; }
+.leader-card.credit .leader-amount { color: var(--erp-success) !important; }
+
+/* Tables */
+.table-wrapper { border: 1px solid var(--erp-border) !important; border-radius: 8px !important; }
+.table-wrapper th { background: var(--erp-surface2) !important; color: var(--erp-text-2) !important; font-size: .82rem !important; }
+.table-wrapper td { color: var(--erp-text-2) !important; font-size: .88rem !important; border-top-color: var(--erp-border) !important; }
+.table-wrapper tr:nth-child(even) td { background: #fafbfd !important; }
+
+/* Filter card */
+.filter-card label { color: var(--erp-text-2) !important; }
+.filter-controls input[type="date"] { border: 1px solid var(--erp-border-md) !important; border-radius: 6px !important; color: var(--erp-text-1) !important; background: var(--erp-surface) !important; }
+.filter-controls input[type="date"]:focus { outline: none; border-color: var(--erp-accent) !important; box-shadow: 0 0 0 3px rgba(29,78,216,.12) !important; }
+.filter-note { color: var(--erp-text-3) !important; }
+
+/* Chart canvases */
+.chart-card canvas {
+  background: var(--erp-surface) !important;
+  border: 1px solid var(--erp-border) !important;
+  box-shadow: var(--erp-shadow) !important;
+  border-radius: 10px !important;
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+}
+
+/* Category highlight */
+.category-highlight { background: var(--erp-accent-lt) !important; color: var(--erp-text-2) !important; border-radius: 8px !important; }
+.category-highlight strong { color: var(--erp-text-1) !important; }
+
+/* Pills */
+.pill { background: var(--erp-surface2) !important; color: var(--erp-text-2) !important; border-radius: 5px !important; font-size: .8rem !important; }
+
+/* History label field */
+.history-label-field label { color: var(--erp-text-3) !important; }
+.history-label-field input {
+  border: 1px solid var(--erp-border-md) !important;
+  border-radius: 6px !important;
+  color: var(--erp-text-1) !important;
+  background: var(--erp-surface) !important;
+}
+.history-label-field input:focus { border-color: var(--erp-accent) !important; box-shadow: 0 0 0 3px rgba(29,78,216,.12) !important; outline: none; }
+
+/* Callout card */
+.callout-card { background: var(--erp-surface) !important; border: 1px solid var(--erp-border) !important; }
+
+/* Chat ledger */
+.chat-ledger-toolbar { background: var(--erp-surface2) !important; border: 1px solid var(--erp-border) !important; border-radius: 8px !important; }
+.chat-ledger-toolbar input, .chat-ledger-toolbar select {
+  border: 1px solid var(--erp-border-md) !important;
+  border-radius: 6px !important;
+  background: var(--erp-surface) !important;
+  color: var(--erp-text-1) !important;
+}
+.chat-ledger-response { background: var(--erp-surface2) !important; border: 1px solid var(--erp-border) !important; border-radius: 8px !important; border-style: solid !important; }
+.chat-ledger-response strong { color: var(--erp-accent) !important; }
+.chat-ledger-empty { background: var(--erp-border) !important; color: var(--erp-text-3) !important; }
+.chat-ledger-hint { color: var(--erp-text-4) !important; }
+.chat-ledger-table { border: 1px solid var(--erp-border) !important; border-radius: 8px !important; background: var(--erp-surface) !important; }
+.chat-ledger-table th { background: var(--erp-surface2) !important; color: var(--erp-text-2) !important; }
+.chat-ledger-table td { color: var(--erp-text-2) !important; border-bottom-color: var(--erp-border) !important; }
+.chat-ledger-table td.credit { color: var(--erp-success) !important; }
+.chat-ledger-table td.debit  { color: var(--erp-danger) !important; }
+
+/* Footer */
+footer { color: var(--erp-text-3) !important; margin-top: 36px !important; }
+
+/* Responsive */
+@media (max-width: 600px) { .page { padding: 16px 12px 48px !important; } }
+@media (max-width: 768px) { .page { padding: 20px 16px 56px !important; } }
+
+/* ===== CA Dashboard ===== */
+.ca-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.ca-grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+.ca-kpi-card { padding: 20px 22px !important; display: flex; flex-direction: column; gap: 4px; }
+.ca-kpi-label { font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--erp-text-3); }
+.ca-kpi-val   { font-size: 1.6rem; font-weight: 700; letter-spacing: -.03em; color: var(--erp-text-1); }
+.ca-kpi-sub   { font-size: .82rem; color: var(--erp-text-3); }
+.ca-biz    { border-left: 4px solid #0f766e !important; }
+.ca-personal { border-left: 4px solid #7c3aed !important; }
+.ca-unknown  { border-left: 4px solid #94a3b8 !important; }
+
+.ca-table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+.ca-table th { background: var(--erp-surface2); color: var(--erp-text-2); font-weight: 600; font-size:.75rem; text-transform:uppercase; letter-spacing:.06em; padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--erp-border); white-space:nowrap; }
+.ca-table td { padding: 9px 12px; border-bottom: 1px solid var(--erp-border); color: var(--erp-text-1); vertical-align: middle; }
+.ca-table tr:last-child td { border-bottom: none; }
+.ca-table tfoot td { font-weight: 700; background: var(--erp-surface2); color: var(--erp-text-1); border-top: 2px solid var(--erp-border-md); }
+.ca-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.ca-table .pos { color: #0f766e; font-weight: 600; }
+.ca-table .neg { color: #dc2626; font-weight: 600; }
+.ca-table .tag { display: inline-block; font-size:.7rem; font-weight:600; padding:2px 8px; border-radius:4px; }
+.ca-tag-biz      { background:#dcfce7; color:#166534; }
+.ca-tag-personal { background:#ede9fe; color:#5b21b6; }
+.ca-tag-unknown  { background:#f1f5f9; color:#475569; }
+.ca-tag-salary   { background:#dbeafe; color:#1e40af; }
+.ca-tag-freelance{ background:#fef3c7; color:#92400e; }
+.ca-tag-passive  { background:#f0fdf4; color:#166534; }
+.ca-tag-emi      { background:#fee2e2; color:#991b1b; }
+.ca-tag-sub      { background:#fdf4ff; color:#6b21a8; }
+.ca-tag-recurring{ background:#e0f2fe; color:#0369a1; }
+.ca-tag-flag     { background:#fef2f2; color:#b91c1c; }
+
+.ca-flag-card { background: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid #f59e0b; border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; }
+.ca-flag-card.red { background:#fef2f2; border-color:#fecaca; border-left-color:#ef4444; }
+.ca-flag-card.green { background:#f0fdf4; border-color:#bbf7d0; border-left-color:#22c55e; }
+.ca-flag-title { font-weight: 700; font-size: .9rem; color: var(--erp-text-1); margin-bottom: 4px; }
+.ca-flag-detail { font-size: .83rem; color: var(--erp-text-2); }
+
+.chart-card canvas { max-height: 300px; }
+
+@media (max-width: 768px) {
+  .ca-grid-2, .ca-grid-3 { grid-template-columns: 1fr; }
+  .ca-kpi-val { font-size: 1.3rem; }
+}
+
 </style>
 </head>
 <body>
@@ -1624,6 +1908,177 @@
      <audio id="audio2" preload="auto">
               <source src="{{ url_for('static', filename='whooshTrimed.mp3') }}" type="audio/mpeg">
             </audio>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         CA INSIGHTS DASHBOARD
+    ═══════════════════════════════════════════════════════════ -->
+
+    <!-- 1. Monthly Cash Flow Trend -->
+    <section class="section" data-section="ca-monthly">
+      <div class="section-heading">
+        <div>
+          <h2>Monthly Cash Flow</h2>
+          <p>Month-by-month credits, debits, net flow and closing balance — the core CA reconciliation view.</p>
+        </div>
+        <button class="toggle-btn" data-target="body-ca-monthly">Collapse</button>
+      </div>
+      <div class="section-body" id="body-ca-monthly">
+        <div class="ca-grid-2">
+          <article class="card chart-card">
+            <canvas id="monthlyFlowChart" height="220"></canvas>
+          </article>
+          <article class="card table-card" style="overflow:auto">
+            <table class="ca-table" id="monthlyTable">
+              <thead><tr><th>Month</th><th>Credits ₹</th><th>Debits ₹</th><th>Net ₹</th><th>Closing ₹</th></tr></thead>
+              <tbody id="monthlyTableBody"></tbody>
+              <tfoot id="monthlyTableFoot"></tfoot>
+            </table>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Business vs Personal Classification -->
+    <section class="section" data-section="ca-biz-personal">
+      <div class="section-heading">
+        <div>
+          <h2>Business vs Personal</h2>
+          <p>Spend classified by likely purpose — essential for GST, ITR, and audit trail separation.</p>
+        </div>
+        <button class="toggle-btn" data-target="body-ca-biz-personal">Collapse</button>
+      </div>
+      <div class="section-body" id="body-ca-biz-personal">
+        <div class="ca-grid-3">
+          <article class="card ca-kpi-card ca-biz">
+            <div class="ca-kpi-label">Business Debits</div>
+            <div class="ca-kpi-val" id="bizDebit">—</div>
+            <div class="ca-kpi-sub" id="bizDebitPct">—</div>
+          </article>
+          <article class="card ca-kpi-card ca-personal">
+            <div class="ca-kpi-label">Personal Debits</div>
+            <div class="ca-kpi-val" id="personalDebit">—</div>
+            <div class="ca-kpi-sub" id="personalDebitPct">—</div>
+          </article>
+          <article class="card ca-kpi-card ca-unknown">
+            <div class="ca-kpi-label">Unclassified</div>
+            <div class="ca-kpi-val" id="unknownDebit">—</div>
+            <div class="ca-kpi-sub" id="unknownDebitPct">—</div>
+          </article>
+        </div>
+        <div class="ca-grid-2" style="margin-top:16px">
+          <article class="card chart-card">
+            <canvas id="bizPersonalChart" height="240"></canvas>
+          </article>
+          <article class="card table-card" style="overflow:auto">
+            <table class="ca-table">
+              <thead><tr><th>Category</th><th>Type</th><th>Amount ₹</th><th>Txns</th><th>% of Debits</th></tr></thead>
+              <tbody id="bizPersonalTableBody"></tbody>
+            </table>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Income Analysis -->
+    <section class="section" data-section="ca-income">
+      <div class="section-heading">
+        <div>
+          <h2>Income Analysis</h2>
+          <p>Recurring salary, freelance receipts, interest, dividends — credit source breakdown.</p>
+        </div>
+        <button class="toggle-btn" data-target="body-ca-income">Collapse</button>
+      </div>
+      <div class="section-body" id="body-ca-income">
+        <div class="ca-grid-2">
+          <article class="card chart-card">
+            <canvas id="incomeSourceChart" height="240"></canvas>
+          </article>
+          <article class="card table-card" style="overflow:auto">
+            <table class="ca-table">
+              <thead><tr><th>Source / Merchant</th><th>Category</th><th>Occurrences</th><th>Total ₹</th><th>Type</th></tr></thead>
+              <tbody id="incomeTableBody"></tbody>
+            </table>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Recurring Transactions -->
+    <section class="section" data-section="ca-recurring">
+      <div class="section-heading">
+        <div>
+          <h2>Recurring Transactions</h2>
+          <p>Same merchant appearing multiple months — subscriptions, EMIs, rent, SIPs.</p>
+        </div>
+        <button class="toggle-btn" data-target="body-ca-recurring">Collapse</button>
+      </div>
+      <div class="section-body" id="body-ca-recurring">
+        <article class="card table-card" style="overflow:auto">
+          <table class="ca-table">
+            <thead><tr><th>Merchant</th><th>Category</th><th>Months Active</th><th>Avg Amount ₹</th><th>Total ₹</th><th>Tag</th></tr></thead>
+            <tbody id="recurringTableBody"></tbody>
+          </table>
+        </article>
+      </div>
+    </section>
+
+    <!-- 5. Bank-wise Summary -->
+    <section class="section" data-section="ca-bank-summary">
+      <div class="section-heading">
+        <div>
+          <h2>Bank-wise Summary</h2>
+          <p>Per-bank opening, closing, total inflow, outflow and net — for multi-bank reconciliation.</p>
+        </div>
+        <button class="toggle-btn" data-target="body-ca-bank-summary">Collapse</button>
+      </div>
+      <div class="section-body" id="body-ca-bank-summary">
+        <article class="card table-card" style="overflow:auto">
+          <table class="ca-table">
+            <thead><tr><th>Bank</th><th>Opening ₹</th><th>Total Credits ₹</th><th>Total Debits ₹</th><th>Closing ₹</th><th>Net ₹</th><th>Txns</th></tr></thead>
+            <tbody id="bankSummaryBody"></tbody>
+          </table>
+        </article>
+      </div>
+    </section>
+
+    <!-- 6. CA Flag / Audit Alerts -->
+    <section class="section" data-section="ca-flags">
+      <div class="section-heading">
+        <div>
+          <h2>Audit Flags</h2>
+          <p>Patterns that a CA or auditor should review — large cash withdrawals, unusual credits, round-number transactions.</p>
+        </div>
+        <button class="toggle-btn" data-target="body-ca-flags">Collapse</button>
+      </div>
+      <div class="section-body" id="body-ca-flags">
+        <div id="caFlagsContainer"></div>
+      </div>
+    </section>
+
+    <!-- 7. Merchant Spend Leaderboard -->
+    <section class="section" data-section="ca-merchants">
+      <div class="section-heading">
+        <div>
+          <h2>Top Merchants by Spend</h2>
+          <p>Where money is going — ranked by total debit amount across the statement period.</p>
+        </div>
+        <button class="toggle-btn" data-target="body-ca-merchants">Collapse</button>
+      </div>
+      <div class="section-body" id="body-ca-merchants">
+        <div class="ca-grid-2">
+          <article class="card chart-card">
+            <canvas id="merchantChart" height="300"></canvas>
+          </article>
+          <article class="card table-card" style="overflow:auto">
+            <table class="ca-table">
+              <thead><tr><th>Merchant</th><th>Txns</th><th>Total ₹</th><th>Avg ₹</th><th>Category</th></tr></thead>
+              <tbody id="merchantTableBody"></tbody>
+            </table>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <section class="section" data-section="download">
       <div class="section-heading">
         <div>
@@ -3178,5 +3633,342 @@
       }
     };
   </script>
+
+<script>
+/* ═══════════════════════════════════════════════
+   CA INSIGHTS DASHBOARD — all computed client-side
+   from `transactions` already in the page
+═══════════════════════════════════════════════ */
+(function () {
+  if (typeof transactions === 'undefined' || !transactions.length) return;
+
+  const fmt  = n => '₹' + Number(n).toLocaleString('en-IN', {minimumFractionDigits:0, maximumFractionDigits:0});
+  const pct  = (a,b) => b ? ((a/b)*100).toFixed(1)+'%' : '0%';
+  const txns = transactions.map(t => ({
+    ...t,
+    date   : new Date(t.Date),
+    debit  : parseFloat(t.Debit)  || 0,
+    credit : parseFloat(t.Credit) || 0,
+    cat    : (t['Payment Category'] || t['Transaction Type'] || '').toUpperCase(),
+    merchant: (t.Merchant || t.Details || '').trim(),
+    bank   : (t.Bank || '').trim(),
+    type   : (t['Transaction Type'] || '').toUpperCase(),
+  }));
+
+  /* ── Classification maps ── */
+  const BIZ_CATS      = new Set(['NEFT','IMPS','CHEQUE','RAZORPAY']);
+  const PERSONAL_CATS = new Set(['ATM','CARD/POS','SUBSCRIPTION']);
+  const classify = cat => BIZ_CATS.has(cat) ? 'business' : PERSONAL_CATS.has(cat) ? 'personal' : 'unknown';
+
+  const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const monthKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  const monthLabel = k => { const [y,m]=k.split('-'); return MONTH_LABELS[+m-1]+' '+y; };
+
+  /* ════════════════════════════════════════
+     1. MONTHLY CASH FLOW
+  ════════════════════════════════════════ */
+  const monthMap = {};
+  txns.forEach(t => {
+    const k = monthKey(t.date);
+    if (!monthMap[k]) monthMap[k] = { credit:0, debit:0, balance:0 };
+    monthMap[k].credit += t.credit;
+    monthMap[k].debit  += t.debit;
+  });
+
+  // closing balance: take last balance value in each month
+  const balByMonth = {};
+  [...txns].sort((a,b)=>a.date-b.date).forEach(t => {
+    const k = monthKey(t.date);
+    if (parseFloat(t.Balance)) balByMonth[k] = parseFloat(t.Balance);
+  });
+
+  const months = Object.keys(monthMap).sort();
+  const mCredits = months.map(k => monthMap[k].credit);
+  const mDebits  = months.map(k => monthMap[k].debit);
+  const mNet     = months.map(k => monthMap[k].credit - monthMap[k].debit);
+  const mClose   = months.map(k => balByMonth[k] || 0);
+
+  // Table
+  const tbody = document.getElementById('monthlyTableBody');
+  const tfoot = document.getElementById('monthlyTableFoot');
+  let totC=0,totD=0;
+  months.forEach((k,i) => {
+    const net = mNet[i];
+    totC += mCredits[i]; totD += mDebits[i];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${monthLabel(k)}</td>
+      <td class="num pos">${fmt(mCredits[i])}</td>
+      <td class="num neg">${fmt(mDebits[i])}</td>
+      <td class="num ${net>=0?'pos':'neg'}">${net>=0?'+':''}${fmt(net)}</td>
+      <td class="num">${fmt(mClose[i])}</td>`;
+    tbody.appendChild(tr);
+  });
+  tfoot.innerHTML = `<tr><td><strong>Total</strong></td>
+    <td class="num pos">${fmt(totC)}</td>
+    <td class="num neg">${fmt(totD)}</td>
+    <td class="num ${totC-totD>=0?'pos':'neg'}">${totC-totD>=0?'+':''}${fmt(totC-totD)}</td>
+    <td class="num">—</td></tr>`;
+
+  // Chart
+  new Chart(document.getElementById('monthlyFlowChart'), {
+    type: 'bar',
+    data: {
+      labels: months.map(monthLabel),
+      datasets: [
+        { label:'Credits', data: mCredits, backgroundColor:'rgba(15,118,110,.75)', borderRadius:4 },
+        { label:'Debits',  data: mDebits,  backgroundColor:'rgba(220,38,38,.65)',  borderRadius:4 },
+        { label:'Net',     data: mNet,     type:'line', borderColor:'#1d4ed8', backgroundColor:'rgba(29,78,216,.1)', tension:.35, pointRadius:3, fill:true, yAxisID:'y' }
+      ]
+    },
+    options: { responsive:true, plugins:{ legend:{ position:'top' }, tooltip:{ callbacks:{ label: ctx => ' '+fmt(ctx.raw) } } },
+      scales:{ y:{ ticks:{ callback: v => '₹'+Number(v/1000).toFixed(0)+'k' } } } }
+  });
+
+  /* ════════════════════════════════════════
+     2. BUSINESS vs PERSONAL
+  ════════════════════════════════════════ */
+  const debits = txns.filter(t => t.debit > 0);
+  const totalDebit = debits.reduce((s,t)=>s+t.debit,0);
+  const clsMap = { business:0, personal:0, unknown:0 };
+  const clsCnt = { business:0, personal:0, unknown:0 };
+  debits.forEach(t => { const c=classify(t.cat); clsMap[c]+=t.debit; clsCnt[c]++; });
+
+  document.getElementById('bizDebit').textContent     = fmt(clsMap.business);
+  document.getElementById('bizDebitPct').textContent  = pct(clsMap.business,totalDebit) + ' of total debits';
+  document.getElementById('personalDebit').textContent    = fmt(clsMap.personal);
+  document.getElementById('personalDebitPct').textContent = pct(clsMap.personal,totalDebit) + ' of total debits';
+  document.getElementById('unknownDebit').textContent     = fmt(clsMap.unknown);
+  document.getElementById('unknownDebitPct').textContent  = pct(clsMap.unknown,totalDebit) + ' of total debits';
+
+  // Donut chart
+  new Chart(document.getElementById('bizPersonalChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Business','Personal','Unclassified'],
+      datasets:[{ data:[clsMap.business,clsMap.personal,clsMap.unknown],
+        backgroundColor:['#0f766e','#7c3aed','#94a3b8'], borderWidth:2, hoverOffset:6 }]
+    },
+    options:{ responsive:true, plugins:{ legend:{position:'bottom'}, tooltip:{ callbacks:{ label: ctx => ' '+fmt(ctx.raw)+' ('+pct(ctx.raw,totalDebit)+')' } } } }
+  });
+
+  // Category breakdown table
+  const catDebitMap = {};
+  debits.forEach(t => {
+    if (!catDebitMap[t.cat]) catDebitMap[t.cat] = { amount:0, count:0 };
+    catDebitMap[t.cat].amount += t.debit;
+    catDebitMap[t.cat].count++;
+  });
+  const bpBody = document.getElementById('bizPersonalTableBody');
+  Object.entries(catDebitMap).sort((a,b)=>b[1].amount-a[1].amount).forEach(([cat,d]) => {
+    const cls = classify(cat);
+    const tagCls = cls==='business'?'ca-tag-biz':cls==='personal'?'ca-tag-personal':'ca-tag-unknown';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${cat}</td>
+      <td><span class="tag ${tagCls}">${cls}</span></td>
+      <td class="num neg">${fmt(d.amount)}</td>
+      <td class="num">${d.count}</td>
+      <td class="num">${pct(d.amount,totalDebit)}</td>`;
+    bpBody.appendChild(tr);
+  });
+
+  /* ════════════════════════════════════════
+     3. INCOME ANALYSIS
+  ════════════════════════════════════════ */
+  const credits = txns.filter(t => t.credit > 0);
+
+  // Group by merchant
+  const incomeMap = {};
+  credits.forEach(t => {
+    const key = t.merchant || t.cat;
+    if (!incomeMap[key]) incomeMap[key] = { amount:0, count:0, cat:t.cat, months:new Set() };
+    incomeMap[key].amount += t.credit;
+    incomeMap[key].count++;
+    incomeMap[key].months.add(monthKey(t.date));
+  });
+
+  const tagIncome = (merchant, cat, count, months) => {
+    const m = merchant.toLowerCase();
+    if (cat==='NEFT' && count>=3 && months>=3) return 'salary';
+    if (['razorpay','stripe','payu'].some(s=>m.includes(s))) return 'freelance';
+    if (['interest','dividend','fd','fixed'].some(s=>m.includes(s))) return 'passive';
+    if (cat==='IMPS' && count>=2) return 'freelance';
+    return 'other';
+  };
+
+  const incomeEntries = Object.entries(incomeMap)
+    .sort((a,b)=>b[1].amount-a[1].amount)
+    .slice(0,15);
+
+  const incBody = document.getElementById('incomeTableBody');
+  const incSrc = { salary:0, freelance:0, passive:0, other:0 };
+  incomeEntries.forEach(([merchant, d]) => {
+    const tag = tagIncome(merchant, d.cat, d.count, d.months.size);
+    incSrc[tag] = (incSrc[tag]||0) + d.amount;
+    const tagCls = tag==='salary'?'ca-tag-salary':tag==='freelance'?'ca-tag-freelance':tag==='passive'?'ca-tag-passive':'ca-tag-unknown';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${merchant||'—'}</td><td>${d.cat}</td>
+      <td class="num">${d.count}</td>
+      <td class="num pos">${fmt(d.amount)}</td>
+      <td><span class="tag ${tagCls}">${tag}</span></td>`;
+    incBody.appendChild(tr);
+  });
+
+  // Income donut
+  const incLabels = Object.keys(incSrc).filter(k=>incSrc[k]>0);
+  new Chart(document.getElementById('incomeSourceChart'), {
+    type: 'doughnut',
+    data: {
+      labels: incLabels.map(l=>l.charAt(0).toUpperCase()+l.slice(1)),
+      datasets:[{ data: incLabels.map(k=>incSrc[k]),
+        backgroundColor:['#1d4ed8','#d97706','#16a34a','#94a3b8'], borderWidth:2, hoverOffset:6 }]
+    },
+    options:{ responsive:true, plugins:{ legend:{position:'bottom'}, tooltip:{ callbacks:{ label: ctx=>' '+fmt(ctx.raw) } } } }
+  });
+
+  /* ════════════════════════════════════════
+     4. RECURRING TRANSACTIONS
+  ════════════════════════════════════════ */
+  const recMap = {};
+  debits.forEach(t => {
+    const key = t.merchant || t.cat;
+    if (!key) return;
+    if (!recMap[key]) recMap[key] = { amounts:[], months:new Set(), cat:t.cat };
+    recMap[key].amounts.push(t.debit);
+    recMap[key].months.add(monthKey(t.date));
+  });
+
+  const recBody = document.getElementById('recurringTableBody');
+  Object.entries(recMap)
+    .filter(([,d])=>d.months.size>=2)
+    .sort((a,b)=>b[1].months.size-a[1].months.size || b[1].amounts.reduce((s,v)=>s+v,0)-a[1].amounts.reduce((s,v)=>s+v,0))
+    .slice(0,20)
+    .forEach(([merchant,d]) => {
+      const total = d.amounts.reduce((s,v)=>s+v,0);
+      const avg   = total/d.amounts.length;
+      const tag   = d.cat==='SUBSCRIPTION'?'sub': d.cat==='OTHER'&&merchant.toLowerCase().includes('emi')?'emi':'recurring';
+      const tagCls= tag==='sub'?'ca-tag-sub':tag==='emi'?'ca-tag-emi':'ca-tag-recurring';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${merchant}</td><td>${d.cat}</td>
+        <td class="num">${d.months.size}</td>
+        <td class="num">${fmt(avg)}</td>
+        <td class="num neg">${fmt(total)}</td>
+        <td><span class="tag ${tagCls}">${tag}</span></td>`;
+      recBody.appendChild(tr);
+    });
+
+  /* ════════════════════════════════════════
+     5. BANK-WISE SUMMARY
+  ════════════════════════════════════════ */
+  if (typeof bankAccuracy !== 'undefined') {
+    const bsBody = document.getElementById('bankSummaryBody');
+    const bankTxnCount = {};
+    txns.forEach(t => { bankTxnCount[t.bank] = (bankTxnCount[t.bank]||0)+1; });
+    bankAccuracy.forEach(b => {
+      const net = b.closing_balance - b.opening_balance;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><strong>${b.bank}</strong></td>
+        <td class="num">${fmt(b.opening_balance)}</td>
+        <td class="num pos">${fmt(b.total_credit)}</td>
+        <td class="num neg">${fmt(b.total_debit)}</td>
+        <td class="num">${fmt(b.closing_balance)}</td>
+        <td class="num ${net>=0?'pos':'neg'}">${net>=0?'+':''}${fmt(net)}</td>
+        <td class="num">${bankTxnCount[b.bank]||0}</td>`;
+      bsBody.appendChild(tr);
+    });
+  }
+
+  /* ════════════════════════════════════════
+     6. AUDIT FLAGS
+  ════════════════════════════════════════ */
+  const flags = [];
+  const totalDebits = txns.reduce((s,t)=>s+t.debit,0);
+
+  // Large ATM withdrawals
+  const largeATM = debits.filter(t=>t.cat==='ATM' && t.debit>=10000);
+  if (largeATM.length) {
+    const total = largeATM.reduce((s,t)=>s+t.debit,0);
+    flags.push({ level:'yellow', title:`${largeATM.length} large cash withdrawal${largeATM.length>1?'s':''} (ATM ≥ ₹10,000)`,
+      detail:`Total: ${fmt(total)} — Large cash withdrawals may require explanation in ITR/audit. Dates: ${largeATM.slice(0,3).map(t=>t.Date).join(', ')}${largeATM.length>3?'…':''}` });
+  }
+
+  // Round-number large transactions
+  const roundBig = debits.filter(t=>t.debit>=50000 && t.debit%10000===0);
+  if (roundBig.length) {
+    flags.push({ level:'yellow', title:`${roundBig.length} round-number large debit${roundBig.length>1?'s':''} (≥ ₹50,000, multiple of ₹10k)`,
+      detail:`Amounts: ${roundBig.slice(0,4).map(t=>fmt(t.debit)).join(', ')} — Common in cash structuring or advance payments. Verify purpose.` });
+  }
+
+  // High cash ratio months
+  const cashByMonth = {}; const debitByMonth = {};
+  debits.forEach(t => {
+    const k = monthKey(t.date);
+    if (t.cat==='ATM') cashByMonth[k] = (cashByMonth[k]||0) + t.debit;
+    debitByMonth[k] = (debitByMonth[k]||0) + t.debit;
+  });
+  const highCashMonths = Object.keys(cashByMonth).filter(k => debitByMonth[k] && cashByMonth[k]/debitByMonth[k] > 0.25);
+  if (highCashMonths.length) {
+    flags.push({ level:'yellow', title:`High cash usage in ${highCashMonths.length} month${highCashMonths.length>1?'s':''}`,
+      detail:`${highCashMonths.map(monthLabel).join(', ')} — ATM withdrawals exceeded 25% of total debits. Cash-heavy months warrant scrutiny in tax audits.` });
+  }
+
+  // Large unexplained credits (IMPS/OTHER > ₹50k, single occurrence)
+  const unexplained = credits.filter(t => t.credit>=50000 && ['OTHER','IMPS'].includes(t.cat));
+  if (unexplained.length) {
+    flags.push({ level:'red', title:`${unexplained.length} large unexplained credit${unexplained.length>1?'s':''} (≥ ₹50,000 via IMPS/OTHER)`,
+      detail:`${unexplained.slice(0,3).map(t=>fmt(t.credit)+' on '+t.Date).join('; ')} — Source should be documented for TDS/ITR purposes.` });
+  }
+
+  // No flags
+  if (!flags.length) {
+    flags.push({ level:'green', title:'No audit flags detected', detail:'All transaction patterns are within normal ranges. Statement looks clean.' });
+  }
+
+  const flagsContainer = document.getElementById('caFlagsContainer');
+  flags.forEach(f => {
+    const div = document.createElement('div');
+    div.className = `ca-flag-card${f.level==='red'?' red':f.level==='green'?' green':''}`;
+    div.innerHTML = `<div class="ca-flag-title">${f.level==='red'?'🔴':f.level==='green'?'✅':'⚠️'} ${f.title}</div><div class="ca-flag-detail">${f.detail}</div>`;
+    flagsContainer.appendChild(div);
+  });
+
+  /* ════════════════════════════════════════
+     7. TOP MERCHANTS
+  ════════════════════════════════════════ */
+  const merchantMap = {};
+  debits.forEach(t => {
+    const key = t.merchant || '(Unknown)';
+    if (!merchantMap[key]) merchantMap[key] = { amount:0, count:0, cat:t.cat };
+    merchantMap[key].amount += t.debit;
+    merchantMap[key].count++;
+  });
+
+  const topMerchants = Object.entries(merchantMap).sort((a,b)=>b[1].amount-a[1].amount).slice(0,15);
+
+  // Bar chart
+  new Chart(document.getElementById('merchantChart'), {
+    type: 'bar',
+    data: {
+      labels: topMerchants.slice(0,10).map(([m])=>m.length>18?m.slice(0,16)+'…':m),
+      datasets:[{ label:'Total Spend', data: topMerchants.slice(0,10).map(([,d])=>d.amount),
+        backgroundColor:'rgba(124,58,237,.75)', borderRadius:5 }]
+    },
+    options:{ indexAxis:'y', responsive:true,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx=>' '+fmt(ctx.raw) } } },
+      scales:{ x:{ ticks:{ callback: v=>'₹'+Number(v/1000).toFixed(0)+'k' } } } }
+  });
+
+  const mBody = document.getElementById('merchantTableBody');
+  topMerchants.forEach(([merchant,d]) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${merchant}</td>
+      <td class="num">${d.count}</td>
+      <td class="num neg">${fmt(d.amount)}</td>
+      <td class="num">${fmt(d.amount/d.count)}</td>
+      <td>${d.cat}</td>`;
+    mBody.appendChild(tr);
+  });
+
+})();
+</script>
 </body>
 </html>

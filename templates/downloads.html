@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Download Easy Debit Summary Desktop — easydebitsummary.com</title>
+  <style>
+    :root {
+      --erp-bg: #f1f5f9;
+      --erp-surface: #ffffff;
+      --erp-accent: #1d4ed8;
+      --erp-accent-hover: #1e40af;
+      --erp-teal: #0f766e;
+      --erp-text: #1e293b;
+      --erp-muted: #64748b;
+      --erp-border: #e2e8f0;
+      --erp-radius: 10px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--erp-bg); color: var(--erp-text); font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; }
+
+    /* NAV */
+    nav { background: var(--erp-surface); border-bottom: 1px solid var(--erp-border); padding: 0 1.5rem; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .nav-logo { font-size: 1rem; font-weight: 700; color: var(--erp-accent); text-decoration: none; }
+    .nav-links { display: flex; gap: 1rem; align-items: center; }
+    .nav-btn { padding: 0.45rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; border: 1.5px solid var(--erp-accent); color: var(--erp-accent); transition: all .2s; }
+    .nav-btn:hover { background: var(--erp-accent); color: #fff; }
+    .nav-btn.solid { background: var(--erp-accent); color: #fff; }
+    .nav-btn.solid:hover { background: var(--erp-accent-hover); }
+
+    /* HERO */
+    .hero { background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%); padding: 4rem 1.5rem 3rem; text-align: center; border-bottom: 1px solid var(--erp-border); }
+    .hero-eyebrow { display: inline-block; background: #dbeafe; color: var(--erp-accent); font-size: 0.75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 0.3rem 0.85rem; border-radius: 99px; margin-bottom: 1rem; }
+    .hero h1 { font-size: clamp(1.6rem, 4vw, 2.5rem); font-weight: 800; line-height: 1.2; margin-bottom: 0.75rem; }
+    .hero h1 span { color: var(--erp-accent); }
+    .hero p { font-size: 1rem; color: var(--erp-muted); max-width: 540px; margin: 0 auto 2rem; line-height: 1.6; }
+
+    /* DOWNLOAD CARDS */
+    .dl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; max-width: 820px; margin: 3rem auto; padding: 0 1.5rem; }
+    .dl-card { background: var(--erp-surface); border: 1px solid var(--erp-border); border-radius: var(--erp-radius); padding: 2rem 1.75rem; box-shadow: 0 2px 12px rgba(0,0,0,.05); display: flex; flex-direction: column; gap: 1rem; }
+    .dl-card .os-icon { font-size: 2.5rem; line-height: 1; }
+    .dl-card h3 { font-size: 1.15rem; font-weight: 700; }
+    .dl-card .req { font-size: 0.8rem; color: var(--erp-muted); }
+    .dl-card .dl-btn { margin-top: auto; padding: 0.75rem 1rem; border-radius: 7px; font-size: 0.9rem; font-weight: 700; text-align: center; cursor: pointer; border: none; background: var(--erp-accent); color: #fff; text-decoration: none; display: block; transition: background .2s; }
+    .dl-card .dl-btn:hover { background: var(--erp-accent-hover); }
+    .dl-card .dl-btn.soon { background: #e2e8f0; color: var(--erp-muted); cursor: not-allowed; pointer-events: none; }
+    .coming-soon-badge { display: inline-block; background: #fef3c7; color: #92400e; font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 99px; margin-left: 0.5rem; vertical-align: middle; }
+
+    /* FEATURES */
+    .features { max-width: 820px; margin: 0 auto 3rem; padding: 0 1.5rem; }
+    .features h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem; }
+    .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+    .feat { background: var(--erp-surface); border: 1px solid var(--erp-border); border-radius: 8px; padding: 1rem 1.1rem; }
+    .feat .icon { font-size: 1.3rem; margin-bottom: 0.5rem; }
+    .feat h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .feat p { font-size: 0.8rem; color: var(--erp-muted); line-height: 1.5; }
+
+    /* PRICING NOTE */
+    .pricing-note { max-width: 820px; margin: 0 auto 3rem; padding: 0 1.5rem; }
+    .pricing-card { background: var(--erp-surface); border: 1.5px solid var(--erp-accent); border-radius: var(--erp-radius); padding: 1.75rem; display: flex; align-items: flex-start; gap: 1.25rem; }
+    .pricing-card .badge { background: var(--erp-accent); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 0.3rem 0.75rem; border-radius: 99px; white-space: nowrap; }
+    .pricing-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.35rem; }
+    .pricing-card p { font-size: 0.85rem; color: var(--erp-muted); line-height: 1.55; }
+    .pricing-card a { color: var(--erp-accent); text-decoration: none; font-weight: 600; }
+
+    /* SECURITY */
+    .security { max-width: 820px; margin: 0 auto 4rem; padding: 0 1.5rem; }
+    .security h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; }
+    .sec-list { list-style: none; display: flex; flex-direction: column; gap: 0.55rem; }
+    .sec-list li { font-size: 0.85rem; color: var(--erp-muted); display: flex; align-items: flex-start; gap: 0.5rem; }
+    .sec-list li::before { content: "✓"; color: var(--erp-teal); font-weight: 700; flex-shrink: 0; }
+
+    footer { border-top: 1px solid var(--erp-border); padding: 1.5rem; text-align: center; font-size: 0.8rem; color: var(--erp-muted); }
+    footer a { color: var(--erp-accent); text-decoration: none; }
+
+    @media (max-width: 480px) {
+      .pricing-card { flex-direction: column; }
+      nav { padding: 0 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="{{ url_for('index') }}">Easy Debit Summary</a>
+  <div class="nav-links">
+    <a class="nav-btn ghost" href="{{ url_for('demo_dashboard') }}" style="color:#0f766e;border-color:#0f766e;">Try Demo</a>
+    <a class="nav-btn solid" href="{{ url_for('index') }}">Web App →</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">Desktop App</div>
+  <h1>Parse Bank Statements <span>Offline</span></h1>
+  <p>All PDF parsing happens on your computer — no file uploads, no cloud storage. AI chat features connect to our secure server for analysis only.</p>
+</div>
+
+<div class="dl-grid">
+  <div class="dl-card">
+    <div class="os-icon">🪟</div>
+    <h3>Windows <span class="coming-soon-badge">Coming Soon</span></h3>
+    <div class="req">Windows 10 / 11 &nbsp;·&nbsp; 64-bit &nbsp;·&nbsp; ~120 MB</div>
+    <p style="font-size:.82rem;color:var(--erp-muted);line-height:1.5">Single-click installer. No Python required. Works offline for PDF parsing.</p>
+    <a class="dl-btn" href="/static/downloads/EasyDebitSummary-Windows.zip" download>⬇ Download EasyDebitSummary-Windows.zip</a>
+    <p style="font-size:.75rem;color:var(--erp-muted);margin-top:.5rem;">Unzip → run EasyDebitSummary.exe &nbsp;·&nbsp; No Python needed &nbsp;·&nbsp; ~120 MB</p>
+  </div>
+
+  <div class="dl-card">
+    <div class="os-icon">🍎</div>
+    <h3>macOS</h3>
+    <div class="req">macOS 12 Monterey or later &nbsp;·&nbsp; Apple Silicon + Intel</div>
+    <p style="font-size:.82rem;color:var(--erp-muted);line-height:1.5">Double-click the .command file in Finder. Installs Python + app automatically via Homebrew.</p>
+    <a class="dl-btn" href="/static/downloads/EasyDebitSummary-macOS.zip" download>⬇ Download EasyDebitSummary-macOS.zip</a>
+    <p style="font-size:.75rem;color:var(--erp-muted);margin-top:.5rem;">Unzip → drag to Applications → double-click &nbsp;·&nbsp; ~87 MB &nbsp;·&nbsp; No Python needed</p>
+  </div>
+</div>
+
+<div class="features">
+  <h2>What the desktop app includes</h2>
+  <div class="feat-grid">
+    <div class="feat">
+      <div class="icon">🔒</div>
+      <h4>Fully offline parsing</h4>
+      <p>PDFs and passwords never leave your machine. Parsing runs locally.</p>
+    </div>
+    <div class="feat">
+      <div class="icon">🏦</div>
+      <h4>Multi-bank support</h4>
+      <p>HDFC, ICICI, SBI, Axis, Kotak and more — same as the web version.</p>
+    </div>
+    <div class="feat">
+      <div class="icon">🤖</div>
+      <h4>AI chat via secure gateway</h4>
+      <p>LLM queries go through our VPS — your API keys stay on our server, not your PC.</p>
+    </div>
+    <div class="feat">
+      <div class="icon">📊</div>
+      <h4>CA dashboard</h4>
+      <p>Full 7-section CA insights dashboard — same as the web, runs locally.</p>
+    </div>
+    <div class="feat">
+      <div class="icon">📁</div>
+      <h4>Unlimited exports</h4>
+      <p>Export to CSV with no file-size limits. Files stay on your disk.</p>
+    </div>
+    <div class="feat">
+      <div class="icon">🔑</div>
+      <h4>License-based access</h4>
+      <p>One license key, one device. Works offline for 48 hours between license checks.</p>
+    </div>
+  </div>
+</div>
+
+<div class="pricing-note">
+  <div class="pricing-card">
+    <div class="badge">License</div>
+    <div>
+      <h3>Annual subscription — desktop access</h3>
+      <p>Purchase a license at <a href="https://easydebitsummary.com">easydebitsummary.com</a> to activate the desktop app. The license binds to one device. AI chat features require an active internet connection; PDF parsing works fully offline.</p>
+    </div>
+  </div>
+</div>
+
+<div class="security">
+  <h2>Security &amp; Privacy</h2>
+  <ul class="sec-list">
+    <li>PDFs and passwords are processed locally — never uploaded to any server</li>
+    <li>LLM queries are sent only as text summaries, not raw transaction data</li>
+    <li>License validation sends only your license token and device fingerprint</li>
+    <li>No telemetry, no analytics, no third-party trackers in the desktop build</li>
+    <li>All server communication is HTTPS / TLS encrypted</li>
+    <li>LLM provider API keys are stored on the VPS only — not in the desktop bundle</li>
+  </ul>
+</div>
+
+<footer>
+  &copy; 2026 Easy Debit Summary &nbsp;·&nbsp;
+  <a href="{{ url_for('index') }}">Home</a> &nbsp;·&nbsp;
+  <a href="{{ url_for('demo_dashboard') }}">Try Demo</a>
+</footer>
+
+</body>
+</html>

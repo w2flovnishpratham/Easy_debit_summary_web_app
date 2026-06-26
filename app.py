@@ -13,11 +13,10 @@ import urllib.request
 import urllib.error
 import urllib.parse
 import tempfile
+import sqlite3
+import requests
 from typing import Optional, Tuple
 from functools import wraps
-import requests
-
-from pymongo import MongoClient, errors as pymongo_errors
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from PyPDF2 import PdfReader, PdfWriter
@@ -25,6 +24,7 @@ from PyPDF2.errors import DependencyError
 
 load_dotenv()
 
+from utils.llm import chat as llm_chat
 
 
 def _env(key: str, default: str = "") -> str:
@@ -43,28 +43,15 @@ PAYMENT_GATE_ENABLED = (_env('ENABLE_PAYMENT_GATE', 'true') or 'true').lower() i
 GOOGLE_CLIENT_ID = _env("GOOGLE_CLIENT_ID")
 GOOGLE_REDIRECT_URI = _env("GOOGLE_REDIRECT_URI") or "/auth/gsi-login"
 GOOGLE_CLIENT_SECRET = _env("GOOGLE_CLIENT_SECRET")
-MONGO_URI = _env("MONGO_URI")
-MONGO_DB_NAME = _env("MONGO_DB_NAME")
 GOOGLE_CLOCK_SKEW = int(_env("GOOGLE_CLOCK_SKEW", "120") or "120")
 LOGIN_REQUIRED = (_env("LOGIN_REQUIRED", "false") or "false").lower() in {"1", "true", "yes", "on"}
-LLM_MODEL = _env_required("LLM_MODEL", "llama3.1:8b")
-LLM_TIMEOUT = int(_env_required("LLM_TIMEOUT", "90"))
-OLLAMA_API_KEY = _env_required("OLLAMA_API_KEY")
-OLLAMA_HOST = _env_required("OLLAMA_HOST", "https://ollama.com").rstrip("/")
+
+# APP_MODE: "web" (default, VPS-hosted) | "desktop" (local PyInstaller build)
+APP_MODE = _env("APP_MODE", "web").lower()
+IS_DESKTOP = APP_MODE == "desktop"
+VPS_URL = _env("VPS_URL", "https://easydebitsummary.com").rstrip("/")
+
 combined_df: Optional[pd.DataFrame] = None
-
-_original_requests_post = requests.post
-
-
-def _guarded_post(url, *args, **kwargs):
-    url_str = str(url)
-    lowered = url_str.lower()
-    if "localhost" in lowered or "127.0.0.1" in lowered or "11434" in lowered:
-        raise RuntimeError(f"BLOCKED LOCAL OLLAMA CALL: {url_str}")
-    return _original_requests_post(url, *args, **kwargs)
-
-
-requests.post = _guarded_post
 
 
 app = Flask(__name__)
@@ -105,37 +92,41 @@ SAMPLE_SELECTIONS = {
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
-mongo_client: Optional[MongoClient] = None
-users_collection = None
-normalized_collection = None
-
-if MONGO_URI:
-    try:
-        mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-        mongo_client.admin.command("ping")
-        db = mongo_client[MONGO_DB_NAME] if MONGO_DB_NAME else mongo_client.get_default_database()
-        if db is None:
-            raise RuntimeError("Mongo URI must include a database name or set MONGO_DB_NAME.")
-        users_collection = db["users"]
-        users_collection.create_index("email", unique=True)
-        normalized_collection = db["normalized_data"]
-        normalized_collection.create_index("user_email", unique=True)
-    except Exception as exc:
-        # In production, avoid verbose logging; keep the app running without exposing details.
-        users_collection = None
-        normalized_collection = None
+DB_PATH = os.path.join(BASE_DIR, "eds_data.db")
 
 
-def get_users_collection():
-    if users_collection is None:
-        raise RuntimeError("User store unavailable. Check MONGO_URI configuration.")
-    return users_collection
+def _get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 
-def get_normalized_collection():
-    if normalized_collection is None:
-        raise RuntimeError("Normalized data store unavailable. Check MONGO_URI / MONGO_DB_NAME.")
-    return normalized_collection
+def _init_db():
+    with _get_db() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                email TEXT PRIMARY KEY,
+                full_name TEXT,
+                picture TEXT,
+                created_at TEXT
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS history_entries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_email TEXT NOT NULL,
+                label TEXT,
+                columns_json TEXT,
+                rows_json TEXT,
+                row_count INTEGER,
+                saved_at TEXT,
+                saved_at_ist TEXT
+            )
+        """)
+        conn.commit()
+
+
+_init_db()
 
 
 @app.context_processor
@@ -168,6 +159,30 @@ def _require_login_json():
         return None
     if not session.get("user_email"):
         return jsonify({"ok": False, "error": "Login required"}), 401
+    return None
+
+
+def desktop_license_required(view_func):
+    """In desktop mode, block guarded routes unless a valid license token is in the session."""
+    @wraps(view_func)
+    def wrapped(*args, **kwargs):
+        if not IS_DESKTOP:
+            return view_func(*args, **kwargs)
+        from desktop.license_client import is_license_valid
+        if not is_license_valid():
+            if request.is_json or request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return jsonify({"ok": False, "error": "Desktop license required. Please activate.", "license_required": True}), 403
+            return redirect(url_for("desktop_activate"))
+        return view_func(*args, **kwargs)
+    return wrapped
+
+
+def _require_desktop_license_json():
+    if not IS_DESKTOP:
+        return None
+    from desktop.license_client import is_license_valid
+    if not is_license_valid():
+        return jsonify({"ok": False, "error": "Desktop license required.", "license_required": True}), 403
     return None
 
 
@@ -216,20 +231,16 @@ def _placeholder_avatar(initial: str = "U") -> str:
 
 
 def _upsert_user(email: str, full_name: str, picture: str):
-    users = get_users_collection()
-    now = datetime.utcnow()
-    try:
-        users.update_one(
-            {"email": email},
-            {
-                "$set": {"full_name": full_name, "picture": picture},
-                "$setOnInsert": {"created_at": now},
-            },
-            upsert=True,
-        )
-    except pymongo_errors.PyMongoError as exc:
-        raise RuntimeError(f"User database error: {exc}") from exc
-    return users.find_one({"email": email})
+    now = datetime.utcnow().isoformat()
+    with _get_db() as conn:
+        conn.execute("""
+            INSERT INTO users (email, full_name, picture, created_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(email) DO UPDATE SET full_name=excluded.full_name, picture=excluded.picture
+        """, (email, full_name, picture, now))
+        conn.commit()
+        row = conn.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
+    return dict(row) if row else {"email": email, "full_name": full_name, "picture": picture}
 
 
 def _prepare_pdf_for_processing(source_path: str, password: Optional[str], display_name: str) -> Tuple[str, Optional[str]]:
@@ -288,21 +299,24 @@ def _prepare_pdf_for_processing(source_path: str, password: Optional[str], displ
     return temp_path, temp_path
 
 
-def _load_history_entries(record: dict):
-    entries = record.get("entries") or []
-    if not entries and record.get("rows"):
-        entries = [{
-            "columns": record.get("columns") or [],
-            "rows": record.get("rows") or [],
-            "row_count": len(record.get("rows") or []),
-            "saved_at": record.get("saved_at"),
-            "saved_at_ist": record.get("saved_at_ist") or "",
-        }]
-    return sorted(
-        entries,
-        key=lambda e: e.get("saved_at") or datetime.min,
-        reverse=True
-    )
+def _load_history_entries_for_user(user_email: str):
+    with _get_db() as conn:
+        rows = conn.execute(
+            "SELECT * FROM history_entries WHERE user_email=? ORDER BY saved_at DESC",
+            (user_email,)
+        ).fetchall()
+    entries = []
+    for row in rows:
+        entries.append({
+            "id": row["id"],
+            "label": row["label"],
+            "columns": json.loads(row["columns_json"] or "[]"),
+            "rows": json.loads(row["rows_json"] or "[]"),
+            "row_count": row["row_count"],
+            "saved_at": row["saved_at"],
+            "saved_at_ist": row["saved_at_ist"] or "",
+        })
+    return entries
 
 
 def _render_summary_from_entries(entries, batch_id: Optional[str] = None):
@@ -519,9 +533,6 @@ def google_auth():
     if not email:
         return jsonify({"ok": False, "error": "Email not available in Google profile"}), 400
 
-    if users_collection is None:
-        return jsonify({"ok": False, "error": "User store unavailable. Configure MONGO_URI / MONGO_DB_NAME."}), 500
-
     try:
         user = _upsert_user(email=email, full_name=full_name, picture=picture)
     except Exception as exc:
@@ -618,9 +629,7 @@ def dashboard():
 
     if user_email:
         try:
-            collection = get_normalized_collection()
-            record = collection.find_one({"user_email": user_email}) or {}
-            history_entries = _load_history_entries(record)
+            history_entries = _load_history_entries_for_user(user_email)
 
             if history_entries:
                 latest = history_entries[0]
@@ -667,9 +676,7 @@ def history_summary(entry_index):
         return redirect(url_for('login'))
 
     try:
-        collection = get_normalized_collection()
-        record = collection.find_one({"user_email": user_email}) or {}
-        history_entries = _load_history_entries(record)
+        history_entries = _load_history_entries_for_user(user_email)
     except Exception as exc:
         return str(exc), 500
 
@@ -751,19 +758,18 @@ def history_entry_label(entry_index):
     data = request.get_json(silent=True) or {}
     label = (data.get("label") or "").strip()
     try:
-        collection = get_normalized_collection()
-        record = collection.find_one({"user_email": user_email}) or {}
-        entries = _load_history_entries(record)
+        entries = _load_history_entries_for_user(user_email)
     except Exception as exc:
         return jsonify({"ok": False, "error": str(exc)}), 500
 
     if entry_index < 0 or entry_index >= len(entries):
         return jsonify({"ok": False, "error": "Entry not found"}), 404
 
-    entries[entry_index]["label"] = label or None
-
+    entry_id = entries[entry_index]["id"]
     try:
-        collection.update_one({"user_email": user_email}, {"$set": {"entries": entries}})
+        with _get_db() as conn:
+            conn.execute("UPDATE history_entries SET label=? WHERE id=?", (label or None, entry_id))
+            conn.commit()
     except Exception as exc:
         return jsonify({"ok": False, "error": f"Unable to update label: {exc}"}), 500
 
@@ -780,6 +786,183 @@ def summary():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/downloads')
+def downloads_page():
+    return render_template('downloads.html')
+
+
+# ── Desktop-mode routes (no-ops in web mode) ────────────────────────────────
+
+@app.route('/desktop/activate', methods=['GET'])
+def desktop_activate():
+    if not IS_DESKTOP:
+        return redirect(url_for('index'))
+    return render_template('desktop_activate.html')
+
+
+@app.route('/desktop/activate', methods=['POST'])
+def desktop_activate_submit():
+    if not IS_DESKTOP:
+        return jsonify({"ok": False, "error": "Not in desktop mode"}), 400
+    from desktop.license_client import activate_license
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").strip()
+    key   = (data.get("license_key") or "").strip()
+    if not email or not key:
+        return jsonify({"ok": False, "error": "Email and license key required"}), 400
+    result = activate_license(email, key)
+    return jsonify(result), (200 if result.get("ok") else 402)
+
+
+@app.route('/desktop/license/status')
+def desktop_license_status():
+    if not IS_DESKTOP:
+        return jsonify({"ok": True, "mode": "web"})
+    from desktop.license_client import license_status
+    return jsonify(license_status())
+
+
+@app.route('/desktop/license/refresh', methods=['POST'])
+def desktop_license_refresh():
+    if not IS_DESKTOP:
+        return jsonify({"ok": True, "mode": "web"})
+    from desktop.license_client import refresh_license
+    return jsonify(refresh_license())
+
+
+# ── VPS-side LLM gateway (web mode only — desktop calls this endpoint) ───────
+
+@app.route('/api/llm/chat', methods=['POST'])
+def vps_llm_gateway():
+    """
+    Desktop apps call this endpoint on the VPS for LLM/chatbot responses.
+    The VPS verifies the license token, then forwards to LiteLLM.
+    LLM provider keys never leave the VPS.
+    """
+    if IS_DESKTOP:
+        return jsonify({"ok": False, "error": "Gateway only available on VPS"}), 400
+
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header.replace("Bearer ", "").strip()
+    if not token:
+        return jsonify({"ok": False, "error": "License token required"}), 401
+
+    # Verify token signature
+    from desktop.license_client import verify_gateway_token
+    if not verify_gateway_token(token):
+        return jsonify({"ok": False, "error": "Invalid or expired license token"}), 403
+
+    data = request.get_json(silent=True) or {}
+    system_prompt = data.get("system_prompt", "You are a financial assistant.")
+    user_message  = data.get("user_message", "")
+    if not user_message:
+        return jsonify({"ok": False, "error": "user_message required"}), 400
+
+    try:
+        answer = llm_chat(system_prompt, user_message)
+        return jsonify({"ok": True, "answer": answer})
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+# ── VPS license management endpoints (web mode only) ─────────────────────────
+
+@app.route('/api/license/activate', methods=['POST'])
+def api_license_activate():
+    """
+    Called by desktop apps to activate a license key.
+    In production: validate key against your payment/license DB.
+    """
+    if IS_DESKTOP:
+        return jsonify({"ok": False, "error": "Not available in desktop mode"}), 400
+    data = request.get_json(silent=True) or {}
+    email      = (data.get("email") or "").strip()
+    license_key = (data.get("license_key") or "").strip()
+    device_id  = (data.get("device_id") or "").strip()
+    if not email or not license_key:
+        return jsonify({"ok": False, "error": "email and license_key required"}), 400
+
+    # TODO: replace stub with real license DB lookup
+    # For now: any non-empty key is accepted (replace before production)
+    import time, hashlib, hmac as _hmac, os as _os
+    secret = _os.environ.get("LICENSE_GATEWAY_SECRET", "change-me-in-env")
+    payload = f"{email}.{device_id}.{int(time.time()) // 3600}"
+    sig = _hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
+    token = f"{payload}.{sig}"
+    expires_at = int(time.time()) + 30 * 86400  # 30 days
+
+    return jsonify({"ok": True, "token": token, "expires_at": expires_at})
+
+
+@app.route('/api/license/refresh', methods=['POST'])
+def api_license_refresh():
+    if IS_DESKTOP:
+        return jsonify({"ok": False, "error": "Not available in desktop mode"}), 400
+    import time, hashlib, hmac as _hmac, os as _os
+    data = request.get_json(silent=True) or {}
+    token = (data.get("token") or "").strip()
+    device_id = (data.get("device_id") or "").strip()
+    if not token:
+        return jsonify({"ok": False, "error": "token required"}), 400
+
+    from desktop.license_client import verify_gateway_token
+    if not verify_gateway_token(token):
+        return jsonify({"ok": False, "error": "Invalid token"}), 403
+
+    secret = _os.environ.get("LICENSE_GATEWAY_SECRET", "change-me-in-env")
+    payload = f"refresh.{device_id}.{int(time.time()) // 3600}"
+    sig = _hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
+    new_token = f"{payload}.{sig}"
+    expires_at = int(time.time()) + 30 * 86400
+
+    return jsonify({"ok": True, "token": new_token, "expires_at": expires_at})
+
+
+@app.route('/demo')
+def demo_dashboard():
+    demo_csv = os.path.join(app.static_folder, 'demo_data.csv')
+    try:
+        df = pd.read_csv(demo_csv)
+        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+        df = df.dropna(subset=["Date"])
+        for col in ("Debit", "Credit", "Balance"):
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0)
+
+        statement_sources = []
+        for bank_name, bank_df in df.groupby("Bank"):
+            statement_sources.append({
+                "bank": bank_name,
+                "filename": f"{bank_name} Demo Statement (Jan–Jun 2025)",
+                "transactions": int(len(bank_df)),
+                "date_min": bank_df["Date"].min().strftime("%Y-%m-%d"),
+                "date_max": bank_df["Date"].max().strftime("%Y-%m-%d"),
+                "total_credit": float(bank_df["Credit"].sum()),
+                "total_debit": float(bank_df["Debit"].sum()),
+            })
+
+        # Copy demo CSV into outputs so the chat endpoint can load it via session
+        demo_output_name = "demo_combined_output.csv"
+        demo_output_path = os.path.join(OUTPUT_FOLDER, demo_output_name)
+        df.to_csv(demo_output_path, index=False)
+        session['download_file'] = demo_output_name
+        session['download_files'] = [demo_output_name]
+        session['paid'] = True
+
+        summary_context = _build_summary_page_context(df, statement_sources=statement_sources)
+        summary_context.update({
+            "download_link": f"/download/{demo_output_name}",
+            "payment_required": False,
+            "razorpay_key_id": "",
+            "razorpay_amount": 0,
+            "razorpay_currency": "INR",
+            "is_demo": True,
+        })
+        return render_template('summary.html', **summary_context)
+    except Exception as exc:
+        return f"Demo unavailable: {exc}", 500
 
 
 def _load_session_dataframe() -> pd.DataFrame:
@@ -926,35 +1109,6 @@ def build_statement_context(df: pd.DataFrame, keyword: str = "") -> str:
     return "\n".join(lines)
 
 
-def call_ollama_cloud_chat(system_prompt: str, statement_context: str, question: str) -> str:
-    final_url = f"{OLLAMA_HOST}/api/chat"
-    headers = {
-        "Authorization": f"Bearer {OLLAMA_API_KEY}",
-        "Content-Type": "application/json",
-    }
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"STATEMENT_CONTEXT:\n{statement_context}\n\nQUESTION:\n{question}"},
-    ]
-    payload = {
-        "model": LLM_MODEL,
-        "messages": messages,
-        "stream": False
-    }
-
-
-    try:
-        resp = requests.post(final_url, json=payload, headers=headers, timeout=LLM_TIMEOUT)
-    except Exception as exc:
-        raise RuntimeError(f"LLM call failed: {exc}") from exc
-    if not resp.ok:
-        raise RuntimeError(f"LLM call failed: HTTP {resp.status_code} {resp.text}")
-    data = resp.json()
-    message = data.get("message") or {}
-    content = message.get("content") or data.get("response") or ""
-    if not isinstance(content, str):
-        raise RuntimeError("LLM call failed: Empty response body.")
-    return content.strip()
 
 
 @app.route('/chat/ledger', methods=['POST'])
@@ -999,7 +1153,7 @@ def chat_ledger():
             "9) End the response cleanly. Do NOT add explanations or follow-up questions unless clarification is required by ambiguity."
         )
 
-        answer = call_ollama_cloud_chat(system_prompt, statement_context, question)
+        answer = llm_chat(system_prompt, f"STATEMENT_CONTEXT:\n{statement_context}\n\nQUESTION:\n{question}")
 
         return jsonify(ok=True, answer=answer)
 
@@ -1251,16 +1405,6 @@ def save_normalized():
     new_columns = df.columns.tolist()
     new_rows = df.to_dict(orient="records")
 
-    try:
-        collection = get_normalized_collection()
-    except Exception as exc:
-        return jsonify({"ok": False, "error": str(exc)}), 500
-
-    try:
-        existing = collection.find_one({"user_email": user_email}) or {}
-    except Exception as exc:
-        return jsonify({"ok": False, "error": f"Unable to read existing normalized data: {exc}"}), 500
-
     def to_primitive(value):
         try:
             if pd.isna(value):
@@ -1277,45 +1421,36 @@ def save_normalized():
         return str(value)
 
     def normalize_rows(columns, rows):
-        normalized = []
-        for row in rows:
-            normalized.append({col: to_primitive(row.get(col, "")) for col in columns})
-        return normalized
+        return [{col: to_primitive(row.get(col, "")) for col in columns} for row in rows]
 
     ist_now = datetime.utcnow() + pd.Timedelta(hours=5, minutes=30)
     saved_at_ist = ist_now.strftime("%Y-%m-%d %H:%M:%S IST")
-
+    saved_at = datetime.utcnow().isoformat()
     entry_label = (data.get("label") or "").strip()
-    entry = {
-        "columns": new_columns,
-        "rows": normalize_rows(new_columns, new_rows),
-        "row_count": len(new_rows),
-        "saved_at": datetime.utcnow(),
-        "saved_at_ist": saved_at_ist,
-    }
-    if entry_label:
-        entry["label"] = entry_label
-
-    entries = existing.get("entries") or []
-    entries.append(entry)
-
-    payload = {
-        "user_email": user_email,
-        "full_name": session.get("full_name", ""),
-        # legacy fields point to latest entry for backward compatibility
-        "columns": entry["columns"],
-        "rows": entry["rows"],
-        "saved_at": entry["saved_at"],
-        "saved_at_ist": entry["saved_at_ist"],
-        "entries": entries,
-    }
+    clean_rows = normalize_rows(new_columns, new_rows)
 
     try:
-        collection.update_one({"user_email": user_email}, {"$set": payload}, upsert=True)
+        with _get_db() as conn:
+            conn.execute("""
+                INSERT INTO history_entries (user_email, label, columns_json, rows_json, row_count, saved_at, saved_at_ist)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (
+                user_email,
+                entry_label or None,
+                json.dumps(new_columns),
+                json.dumps(clean_rows),
+                len(clean_rows),
+                saved_at,
+                saved_at_ist,
+            ))
+            conn.commit()
+            total = conn.execute(
+                "SELECT COUNT(*) FROM history_entries WHERE user_email=?", (user_email,)
+            ).fetchone()[0]
     except Exception as exc:
-        return jsonify({"ok": False, "error": f"Unable to save normalized data: {exc}"}), 500
+        return jsonify({"ok": False, "error": f"Unable to save: {exc}"}), 500
 
-    return jsonify({"ok": True, "saved": entry["row_count"], "entries": len(entries)})
+    return jsonify({"ok": True, "saved": len(clean_rows), "entries": total})
 
 if __name__ == '__main__':
     app.run(debug=os.environ.get("FLASK_DEBUG", "false").lower() in {"1", "true", "yes", "on"})

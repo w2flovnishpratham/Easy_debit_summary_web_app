@@ -150,6 +150,79 @@ frame-ancestors 'self' *;
       .topbar { flex-direction: column; align-items: flex-start; }
       h1 { font-size: 1.6rem; }
     }
+
+    /* ===== ERP Light Theme ===== */
+    body {
+      background: #f1f5f9 !important;
+      color: #0f172a !important;
+      padding: 0 !important;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .topbar {
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 0 28px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(15,23,42,.06);
+      max-width: unset !important;
+      margin: 0 !important;
+      gap: 16px;
+    }
+    .brand { color: #0f172a !important; font-size: .95rem; letter-spacing: -.01em; }
+    .brand .dot { background: #1d4ed8 !important; box-shadow: none !important; }
+    .top-link {
+      color: #334155 !important;
+      background: #f8fafc !important;
+      border: 1px solid #e2e8f0 !important;
+      border-radius: 6px !important;
+      font-size: .85rem;
+      padding: 7px 14px;
+    }
+    .top-link:hover { background: #eff6ff !important; color: #1d4ed8 !important; }
+
+    .auth-wrapper {
+      max-width: 440px;
+      margin: 48px auto;
+      padding: 0 16px;
+      flex: 1;
+    }
+    .card {
+      background: #ffffff !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: 0 1px 4px rgba(15,23,42,.08) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      border-radius: 12px !important;
+      padding: 32px 28px !important;
+    }
+    .eyebrow { color: #1d4ed8 !important; font-size: .72rem; letter-spacing: .1em; }
+    h1 { color: #0f172a !important; font-size: 1.6rem; font-weight: 700; letter-spacing: -.02em; }
+    .muted { color: #64748b !important; }
+    .alert {
+      background: #fffbeb !important;
+      border: 1px solid #fde68a !important;
+      color: #92400e !important;
+      border-radius: 8px !important;
+    }
+    .hint { color: #94a3b8 !important; font-size: .85rem; }
+
+    .google-btn {
+      border: 1px solid #e2e8f0 !important;
+      border-radius: 8px !important;
+      box-shadow: 0 1px 3px rgba(15,23,42,.06) !important;
+      font-size: .92rem;
+    }
+    .google-btn:hover { box-shadow: 0 4px 12px rgba(15,23,42,.1) !important; transform: none !important; }
+
+    @media (max-width: 600px) {
+      .topbar { padding: 0 16px !important; }
+      .auth-wrapper { margin: 24px auto; }
+      .card { padding: 24px 18px !important; }
+    }
   </style>
 </head>
 <body>

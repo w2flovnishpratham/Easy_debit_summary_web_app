@@ -13,3 +13,4 @@ pycryptodome==3.21.0
 pymongo[srv]==4.10.1
 google-auth==2.35.0
 requests==2.32.3
+litellm>=1.40.0

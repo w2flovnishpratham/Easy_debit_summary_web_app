@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Easy Debit Summary - Bank Statement Uploader</title>
+  <title>Easy Debit Summary — Indian Bank Statement PDF to CSV & Insights</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -865,6 +865,427 @@
       .primary-btn { padding: 14px; font-size: 1rem; }
       select, input[type="file"], input[type="password"] { font-size: 16px; padding: 12px; }
     }
+
+    /* ============================================================
+       ERP FINANCIAL THEME  — Light, Minimal, Professional
+       Overrides the dark-gradient base with a clean CA-firm look
+    ============================================================ */
+    :root {
+      --erp-bg:          #f1f5f9;
+      --erp-surface:     #ffffff;
+      --erp-surface-alt: #f8fafc;
+      --erp-border:      #e2e8f0;
+      --erp-border-md:   #cbd5e1;
+      --erp-text-1:      #0f172a;
+      --erp-text-2:      #334155;
+      --erp-text-3:      #64748b;
+      --erp-text-4:      #94a3b8;
+      --erp-accent:      #1d4ed8;
+      --erp-accent-h:    #1e40af;
+      --erp-accent-lt:   #eff6ff;
+      --erp-accent-bd:   #bfdbfe;
+      --erp-success:     #059669;
+      --erp-danger:      #dc2626;
+      --erp-shadow:      0 1px 3px rgba(15,23,42,.07), 0 0 0 1px rgba(15,23,42,.04);
+    }
+
+    body {
+      background: var(--erp-bg) !important;
+      color: var(--erp-text-1) !important;
+      padding-top: 0 !important;
+    }
+    @media (max-width: 768px) { body { padding-top: 0 !important; } }
+    @media (max-width: 640px) { body { padding-top: 0 !important; } }
+
+    /* ── Navbar ── */
+    .navbar {
+      position: sticky !important;
+      top: 0 !important; left: 0 !important;
+      transform: none !important;
+      width: 100% !important; margin: 0 !important;
+      border-radius: 0 !important;
+      background: var(--erp-surface) !important;
+      border: none !important;
+      border-bottom: 1px solid var(--erp-border) !important;
+      backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+      box-shadow: 0 1px 3px rgba(15,23,42,.06) !important;
+      padding: 0 28px !important; height: 56px !important;
+      z-index: 200 !important;
+    }
+    .nav-brand { color: var(--erp-text-1) !important; font-size: 0.95rem !important; letter-spacing: -.01em !important; }
+    .nav-dot   { background: var(--erp-accent) !important; box-shadow: none !important; width: 8px !important; height: 8px !important; }
+    .nav-user  { color: var(--erp-text-3) !important; background: var(--erp-surface-alt) !important; border: 1px solid var(--erp-border) !important; font-size: .85rem !important; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .nav-btn   { background: var(--erp-accent) !important; color: #fff !important; border-color: transparent !important; box-shadow: none !important; font-size: .85rem !important; padding: 7px 16px !important; border-radius: 6px !important; }
+    .nav-btn:hover { background: var(--erp-accent-h) !important; transform: none !important; box-shadow: none !important; }
+    .nav-btn.ghost { background: transparent !important; color: var(--erp-text-2) !important; border: 1px solid var(--erp-border) !important; }
+    .nav-btn.ghost:hover { background: var(--erp-surface-alt) !important; box-shadow: none !important; transform: none !important; }
+
+    /* ── Page Header ── */
+    header {
+      text-align: left !important;
+      padding: 28px 28px 18px !important;
+      max-width: 1200px !important; margin: 0 auto !important;
+      animation: none !important;
+    }
+    header h1 {
+      background: none !important;
+      -webkit-background-clip: unset !important;
+      -webkit-text-fill-color: var(--erp-text-1) !important;
+      color: var(--erp-text-1) !important;
+      text-shadow: none !important;
+      font-size: clamp(1.4rem, 3vw, 1.75rem) !important;
+      letter-spacing: -.02em !important;
+      margin-bottom: 4px !important;
+    }
+    header p { color: var(--erp-text-3) !important; font-size: .92rem !important; }
+
+    /* ── Layout ── */
+    .container { padding: 0 28px 36px !important; gap: 24px !important; }
+    @media (min-width: 900px) {
+      .container { display: grid !important; grid-template-columns: 1fr 1fr !important; align-items: start !important; }
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--erp-surface) !important;
+      border: 1px solid var(--erp-border) !important;
+      box-shadow: var(--erp-shadow) !important;
+      border-radius: 12px !important;
+      backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+    }
+    .card:hover { transform: none !important; box-shadow: 0 4px 12px rgba(15,23,42,.10) !important; }
+
+    /* ── Form Elements ── */
+    .statement-block { background: var(--erp-surface-alt) !important; border-color: var(--erp-border) !important; border-radius: 8px !important; }
+    label { color: var(--erp-text-2) !important; font-size: .82rem !important; font-weight: 600 !important; letter-spacing: .01em !important; }
+    label::before { content: none !important; }
+    select, input[type="file"], input[type="password"] {
+      background: var(--erp-surface) !important;
+      border: 1px solid var(--erp-border-md) !important;
+      color: var(--erp-text-1) !important;
+      border-radius: 6px !important;
+      font-size: .92rem !important;
+      padding: 9px 12px !important;
+    }
+    select:focus, input[type="file"]:focus, input[type="password"]:focus {
+      border-color: var(--erp-accent) !important;
+      box-shadow: 0 0 0 3px rgba(29,78,216,.12) !important;
+    }
+    .password-hint { color: var(--erp-text-4) !important; }
+    .file-name     { color: var(--erp-text-3) !important; }
+
+    /* ── Buttons ── */
+    .primary-btn {
+      background: var(--erp-accent) !important;
+      box-shadow: none !important;
+      border-radius: 6px !important;
+      font-size: .92rem !important;
+      letter-spacing: .01em !important;
+    }
+    .primary-btn::before { display: none !important; }
+    .primary-btn:hover   { background: var(--erp-accent-h) !important; transform: none !important; box-shadow: none !important; }
+
+    .inline-btn {
+      border: 1px solid var(--erp-border-md) !important;
+      color: var(--erp-text-2) !important;
+      background: var(--erp-surface) !important;
+      border-radius: 6px !important;
+      font-size: .88rem !important;
+    }
+    .inline-btn:hover { border-color: var(--erp-accent) !important; color: var(--erp-accent) !important; background: var(--erp-accent-lt) !important; }
+
+    .remove-block { background: #fef2f2 !important; color: var(--erp-danger) !important; border-color: #fecaca !important; border-radius: 5px !important; }
+
+    input[type="file"]::file-selector-button {
+      background: var(--erp-accent) !important;
+      border-radius: 5px !important;
+    }
+    input[type="file"]::file-selector-button:hover { background: var(--erp-accent-h) !important; transform: none !important; box-shadow: none !important; }
+
+    /* ── How-to Slider ── */
+    .how-section { padding: 0 28px !important; margin-bottom: 20px !important; }
+    .how-card {
+      background: var(--erp-surface) !important;
+      border: 1px solid var(--erp-border) !important;
+      box-shadow: var(--erp-shadow) !important;
+      border-radius: 12px !important;
+      padding: clamp(14px, 2vw, 20px) !important;
+    }
+    .how-eyebrow { color: var(--erp-accent) !important; }
+    .how-title   { color: var(--erp-text-1) !important; font-size: 1rem !important; }
+    .how-subtitle { color: var(--erp-text-3) !important; }
+    .how-chip    { border: 1px solid var(--erp-border) !important; background: var(--erp-surface-alt) !important; color: var(--erp-text-2) !important; border-radius: 5px !important; }
+    .how-number  { color: var(--erp-accent) !important; -webkit-text-fill-color: var(--erp-accent) !important; background: none !important; font-size: 1.6rem !important; }
+    .step-tag    { background: var(--erp-accent-lt) !important; color: var(--erp-accent) !important; border: 1px solid var(--erp-accent-bd) !important; border-radius: 5px !important; }
+    .how-step-title { color: var(--erp-text-1) !important; }
+    .how-points li  { background: var(--erp-surface-alt) !important; border: 1px solid var(--erp-border) !important; color: var(--erp-text-2) !important; border-radius: 6px !important; }
+    .how-text p     { color: var(--erp-text-3) !important; }
+    .how-visual     { background: var(--erp-surface-alt) !important; border: 1px solid var(--erp-border) !important; border-radius: 10px !important; }
+    .how-visual img { background: var(--erp-surface) !important; border: 1px solid var(--erp-border) !important; border-radius: 7px !important; }
+    .how-footnote, .how-slide.image-only .how-footnote { color: var(--erp-text-3) !important; }
+    .how-nav { border-top: 1px solid var(--erp-border) !important; }
+    .how-control {
+      border: 1px solid var(--erp-border-md) !important;
+      background: var(--erp-surface) !important;
+      color: var(--erp-text-2) !important;
+      border-radius: 6px !important;
+      box-shadow: none !important;
+    }
+    .how-control:hover { border-color: var(--erp-accent) !important; color: var(--erp-accent) !important; background: var(--erp-accent-lt) !important; transform: none !important; box-shadow: none !important; }
+    .how-dot        { border-color: var(--erp-border-md) !important; background: transparent !important; }
+    .how-dot.active { background: var(--erp-accent) !important; border-color: var(--erp-accent) !important; box-shadow: none !important; }
+
+    /* ── CTA button — distinct teal/green ── */
+    .primary-btn {
+      background: #0f766e !important;
+      font-size: .95rem !important;
+      padding: 12px 20px !important;
+      font-weight: 700 !important;
+      letter-spacing: .02em !important;
+    }
+    .primary-btn:hover { background: #0d6460 !important; }
+
+    /* ── Guide Card ── */
+    .guide-card { padding: 24px 24px 20px !important; }
+
+    .guide-header { margin-bottom: 20px; }
+    .guide-tag {
+      display: inline-block;
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      color: var(--erp-accent);
+      background: var(--erp-accent-lt);
+      border: 1px solid var(--erp-accent-bd);
+      border-radius: 4px;
+      padding: 3px 8px;
+      margin-bottom: 10px;
+    }
+    .guide-header h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--erp-text-1);
+      margin-bottom: 4px;
+      letter-spacing: -.01em;
+    }
+    .guide-header p { font-size: .85rem; color: var(--erp-text-3); margin: 0; }
+
+    .guide-steps {
+      list-style: none;
+      padding: 0; margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .guide-step {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--erp-border);
+      position: relative;
+    }
+    .guide-step:last-child { border-bottom: none; }
+
+    .guide-num {
+      flex-shrink: 0;
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--erp-accent-lt);
+      border: 1px solid var(--erp-accent-bd);
+      color: var(--erp-accent);
+      font-size: .75rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      letter-spacing: .03em;
+    }
+
+    .guide-body { flex: 1; min-width: 0; padding-top: 4px; }
+    .guide-body strong {
+      display: block;
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--erp-text-1);
+      margin-bottom: 3px;
+    }
+    .guide-body p {
+      font-size: .82rem;
+      color: var(--erp-text-3);
+      margin: 0;
+      line-height: 1.5;
+    }
+    .guide-body em { font-style: normal; font-weight: 600; color: var(--erp-text-2); }
+    .guide-optional {
+      font-size: .72rem;
+      font-weight: 500;
+      color: var(--erp-text-4);
+      background: var(--erp-surface-alt, #f8fafc);
+      border: 1px solid var(--erp-border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .guide-banks {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--erp-border);
+    }
+    .guide-banks-label {
+      display: block;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--erp-text-4);
+      margin-bottom: 8px;
+    }
+    .guide-bank-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .guide-bank-chips span {
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--erp-text-2);
+      background: var(--erp-surface-alt, #f8fafc);
+      border: 1px solid var(--erp-border);
+      border-radius: 5px;
+      padding: 4px 10px;
+    }
+
+    /* ── Footer ── */
+    footer { color: var(--erp-text-3) !important; padding: 24px 28px 28px !important; }
+    .footer-content {
+      background: var(--erp-surface) !important;
+      border: 1px solid var(--erp-border) !important;
+      box-shadow: var(--erp-shadow) !important;
+      backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+      border-radius: 12px !important;
+      max-width: 1200px !important; margin: 0 auto !important;
+    }
+    .footer-line { color: var(--erp-text-3) !important; font-size: .85rem !important; }
+    .footer-line .highlight { color: var(--erp-text-1) !important; }
+    .footer-line .separator { color: var(--erp-border-md) !important; }
+
+    /* ── Responsive adjustments ── */
+    @media (max-width: 768px) {
+      .navbar  { padding: 0 16px !important; }
+      header   { padding: 20px 16px 14px !important; }
+      .container { padding: 0 16px 24px !important; }
+      .how-section { padding: 0 16px !important; }
+      footer   { padding: 20px 16px 24px !important; }
+    }
+    @media (max-width: 480px) {
+      header   { padding: 16px 12px 12px !important; }
+      .container { padding: 0 12px 20px !important; }
+      .how-section { padding: 0 12px !important; }
+    }
+
+    /* ── Hero chips ── */
+    header { text-align: center !important; }
+    .hero-eyebrow {
+      display: inline-block;
+      font-size: .72rem; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--erp-accent);
+      background: var(--erp-accent-lt); border: 1px solid var(--erp-accent-bd);
+      border-radius: 5px; padding: 3px 10px; margin-bottom: 14px;
+    }
+    header h1 { font-size: 1.9rem !important; line-height: 1.25 !important; max-width: 700px; margin: 0 auto 12px !important; }
+    header p  { max-width: 600px; margin: 0 auto 20px !important; }
+    .hero-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 4px; }
+    .hero-chip {
+      font-size: .8rem; font-weight: 600; padding: 5px 13px;
+      border-radius: 20px; background: var(--erp-surface-alt, #f8fafc);
+      border: 1px solid var(--erp-border); color: var(--erp-text-2);
+    }
+
+    /* ── What you get strip ── */
+    .what-you-get {
+      margin: 20px 0 4px;
+      padding: 14px 16px;
+      background: var(--erp-surface-alt, #f8fafc);
+      border: 1px solid var(--erp-border);
+      border-radius: 10px;
+    }
+    .wyg-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--erp-text-3); display: block; margin-bottom: 10px; }
+    .wyg-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+    .wyg-chips span {
+      font-size: .78rem; font-weight: 600; padding: 4px 11px;
+      border-radius: 5px; background: #fff; border: 1px solid var(--erp-border);
+      color: var(--erp-text-2);
+    }
+
+    /* ── Landing sections ── */
+    .landing-section { background: #fff; border-top: 1px solid var(--erp-border); }
+    .landing-section.ls-alt { background: var(--erp-surface-alt, #f8fafc); }
+    .landing-section-inner { max-width: 1100px; margin: 0 auto; padding: 56px 28px; }
+    .ls-heading { text-align: center; margin-bottom: 36px; }
+    .ls-tag {
+      font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--erp-accent); background: var(--erp-accent-lt); border: 1px solid var(--erp-accent-bd);
+      border-radius: 4px; padding: 3px 9px; display: inline-block; margin-bottom: 10px;
+    }
+    .ls-heading h2 { font-size: 1.55rem; font-weight: 700; color: var(--erp-text-1); letter-spacing: -.02em; margin-bottom: 8px; }
+    .ls-heading p  { color: var(--erp-text-3); font-size: .92rem; max-width: 520px; margin: 0 auto; }
+
+    /* ── Audience cards ── */
+    .audience-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 16px; }
+    .audience-card {
+      background: var(--erp-surface-alt, #f8fafc); border: 1px solid var(--erp-border);
+      border-radius: 12px; padding: 22px 18px; text-align: center;
+    }
+    .audience-card:hover { border-color: var(--erp-accent-bd); background: var(--erp-accent-lt); }
+    .audience-icon { font-size: 1.6rem; margin-bottom: 10px; }
+    .audience-card strong { display: block; font-size: .9rem; font-weight: 700; color: var(--erp-text-1); margin-bottom: 6px; }
+    .audience-card p { font-size: .8rem; color: var(--erp-text-3); line-height: 1.5; margin: 0; }
+
+    /* ── Sample table ── */
+    .sample-table-wrapper { overflow-x: auto; margin-bottom: 20px; border-radius: 10px; border: 1px solid var(--erp-border); }
+    .sample-table { width: 100%; border-collapse: collapse; font-size: .84rem; background: #fff; }
+    .sample-table th { background: var(--erp-surface-alt,#f8fafc); color: var(--erp-text-2); font-weight: 600; font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--erp-border); white-space: nowrap; }
+    .sample-table td { padding: 10px 14px; border-bottom: 1px solid var(--erp-border); color: var(--erp-text-1); }
+    .sample-table tr:last-child td { border-bottom: none; }
+    .sample-note { font-size: .78rem; color: var(--erp-text-3); margin: 10px 0 0; padding: 0 4px; }
+    .sample-downloads { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .sample-dl-label { font-size: .78rem; font-weight: 600; color: var(--erp-text-3); text-transform: uppercase; letter-spacing: .07em; }
+    .btn-sample { font-size: .82rem; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--erp-border); background: #fff; color: var(--erp-text-3); cursor: not-allowed; opacity: .65; }
+    .coming-soon { font-size: .7rem; background: #f1f5f9; border-radius: 3px; padding: 1px 5px; margin-left: 4px; }
+
+    /* ── Trust grid ── */
+    .trust-inner { text-align: center; }
+    .trust-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; }
+    .trust-item { padding: 24px 16px; background: #fff; border: 1px solid var(--erp-border); border-radius: 12px; text-align: center; }
+    .trust-icon { font-size: 1.5rem; margin-bottom: 10px; }
+    .trust-item strong { display: block; font-size: .88rem; font-weight: 700; color: var(--erp-text-1); margin-bottom: 6px; }
+    .trust-item p { font-size: .79rem; color: var(--erp-text-3); line-height: 1.5; margin: 0; }
+
+    /* ── Footer links ── */
+    .footer-links { margin-top: 10px; font-size: .8rem; color: var(--erp-text-3); }
+    .footer-sep { margin: 0 8px; }
+    .footer-wip { font-size: .72rem; opacity: .6; }
+
+    /* ── Responsive new sections ── */
+    @media (max-width: 900px) {
+      .audience-grid { grid-template-columns: repeat(3,1fr); }
+      .trust-grid    { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 600px) {
+      .audience-grid { grid-template-columns: repeat(2,1fr); }
+      .trust-grid    { grid-template-columns: 1fr 1fr; }
+      .landing-section-inner { padding: 36px 16px; }
+      header h1 { font-size: 1.45rem !important; }
+      .hero-chips { gap: 6px; }
+      .hero-chip { font-size: .74rem; padding: 4px 10px; }
+    }
+    @media (max-width: 400px) {
+      .audience-grid { grid-template-columns: 1fr; }
+      .trust-grid    { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -919,6 +1340,8 @@
       Easy Debit Summary
     </a>
     <div class="nav-actions">
+      <a class="nav-btn ghost" href="{{ url_for('demo_dashboard') }}" style="color:#0f766e!important;border-color:#0f766e!important;">Try Demo</a>
+      <a class="nav-btn ghost" href="{{ url_for('downloads_page') }}" style="color:#1d4ed8!important;border-color:#1d4ed8!important;">Desktop App</a>
       {% if user_email %}
       <span class="nav-user">
         <span class="nav-dot"></span>
@@ -932,89 +1355,16 @@
     </div>
   </nav>
   
-  <section class="how-section" id="how-to-use">
-    <div class="how-card">
-      <div class="how-slider" data-how-slider>
-        <div class="how-track">
-          <article class="how-slide image-only">
-            <div class="how-visual">
-              <div class="how-number">01</div>
-              <img src="{{ url_for('how_to_use_asset', filename='step1.jpeg') }}" alt="Step 1 walkthrough screenshot" loading="lazy">
-            </div>
-            <p class="how-footnote">Step 1</p>
-          </article>
-
-          <article class="how-slide image-only">
-            <div class="how-visual">
-              <div class="how-number">02</div>
-              <img src="{{ url_for('how_to_use_asset', filename='step2.jpeg') }}" alt="Step 2 walkthrough screenshot" loading="lazy">
-            </div>
-            <p class="how-footnote">Step 2</p>
-          </article>
-
-          <article class="how-slide image-only">
-            <div class="how-visual">
-              <div class="how-number">03</div>
-              <img src="{{ url_for('how_to_use_asset', filename='step3.jpeg') }}" alt="Step 3 walkthrough screenshot" loading="lazy">
-            </div>
-            <p class="how-footnote">Step 3</p>
-          </article>
-
-          <article class="how-slide image-only">
-            <div class="how-visual">
-              <div class="how-number">04</div>
-              <img src="{{ url_for('how_to_use_asset', filename='step4.jpeg') }}" alt="Step 4 walkthrough screenshot" loading="lazy">
-            </div>
-            <p class="how-footnote">Step 4</p>
-          </article>
-
-          <article class="how-slide image-only">
-            <div class="how-visual">
-              <div class="how-number">05</div>
-              <img src="{{ url_for('how_to_use_asset', filename='step5.jpeg') }}" alt="Step 5 walkthrough screenshot" loading="lazy">
-            </div>
-            <p class="how-footnote">Step 5</p>
-          </article>
-
-          <article class="how-slide image-only">
-            <div class="how-visual">
-              <div class="how-number">06</div>
-              <img src="{{ url_for('how_to_use_asset', filename='step6.jpeg') }}" alt="Step 6 walkthrough screenshot" loading="lazy">
-            </div>
-            <p class="how-footnote">Step 6</p>
-          </article>
-
-          <article class="how-slide image-only">
-            <div class="how-visual">
-              <div class="how-number">07</div>
-              <img src="{{ url_for('how_to_use_asset', filename='step7.jpeg') }}" alt="Step 7 walkthrough screenshot" loading="lazy">
-            </div>
-            <p class="how-footnote">Step 7</p>
-          </article>
-        </div>
-
-        <div class="how-nav">
-          <div class="how-controls">
-            <button type="button" class="how-control prev" aria-label="Previous step">Prev</button>
-            <button type="button" class="how-control next" aria-label="Next step">Next</button>
-          </div>
-          <div class="how-dots" role="tablist" aria-label="How to use steps">
-            <button type="button" class="how-dot active" data-index="0" aria-label="Step 1" aria-pressed="true"></button>
-            <button type="button" class="how-dot" data-index="1" aria-label="Step 2" aria-pressed="false"></button>
-            <button type="button" class="how-dot" data-index="2" aria-label="Step 3" aria-pressed="false"></button>
-            <button type="button" class="how-dot" data-index="3" aria-label="Step 4" aria-pressed="false"></button>
-            <button type="button" class="how-dot" data-index="4" aria-label="Step 5" aria-pressed="false"></button>
-            <button type="button" class="how-dot" data-index="5" aria-label="Step 6" aria-pressed="false"></button>
-            <button type="button" class="how-dot" data-index="6" aria-label="Step 7" aria-pressed="false"></button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <header>
-    <h1>Easy Debit Summary</h1>
-    <p>Upload your bank statement PDF and get instant insights & CSV exports</p>
+    <div class="hero-eyebrow">For CAs, Accountants &amp; Finance Teams</div>
+    <h1>Turn Indian Bank Statement PDFs into Clean Summaries, Insights &amp; CSV — in Seconds</h1>
+    <p>Upload your statement, choose your bank, and instantly get organised debit/credit summaries, spending insights, and export-ready reports.</p>
+    <div class="hero-chips">
+      <span class="hero-chip">⏱ Save hours of manual work</span>
+      <span class="hero-chip">🏦 All major Indian banks</span>
+      <span class="hero-chip">📊 Clean CSV export</span>
+      <span class="hero-chip">🔒 Password-protected PDFs supported</span>
+    </div>
   </header>
 
   <div class="container">
@@ -1053,27 +1403,181 @@
 
             <div class="form-group">
               <label>Statement Password (optional)</label>
-              <input type="password" name="pdf_password[]" placeholder="Enter password if the PDF is locked">
-              <small class="password-hint" data-default-hint="Optional: only needed when your bank locks the PDF.">Optional: only needed when your bank locks the PDF.</small>
+              <input type="password" name="pdf_password[]" placeholder="e.g. date of birth or customer ID">
+              <small class="password-hint" data-default-hint="Required only if your bank statement PDF is password protected. Most banks use DOB (DDMMYYYY) or Customer ID.">Required only if your bank statement PDF is password protected. Most banks use DOB (DDMMYYYY) or Customer ID.</small>
             </div>
 
             <button type="button" class="remove-block">Remove</button>
           </div>
         </div>
 
+        <div class="what-you-get">
+          <span class="wyg-label">What you'll get</span>
+          <div class="wyg-chips">
+            <span>Total debit &amp; credit</span>
+            <span>Month-wise summary</span>
+            <span>Category breakdown</span>
+            <span>High-value transactions</span>
+            <span>Business vs personal split</span>
+            <span>CSV &amp; dashboard export</span>
+          </div>
+        </div>
+
         <div class="multi-actions">
           <button type="button" class="inline-btn" id="addStatement">+ Add another statement</button>
-          <input type="submit" class="primary-btn" value="Upload and Extract">
+          <input type="submit" class="primary-btn" value="Analyze Statement">
         </div>
       </form>
     </div>
 
-    <div class="card sample-image">
-      <h3>📊 Sample Statement Preview</h3>
-      <img id="sample-img" src="{{ url_for('static', filename='image_1.png') }}" alt="Sample Statement">
-      
+    <div class="card guide-card">
+      <div class="guide-header">
+        <span class="guide-tag">HOW IT WORKS</span>
+        <h3>4 Steps to Extract Transactions</h3>
+        <p>Process any Indian bank statement in under a minute.</p>
+      </div>
+
+      <ol class="guide-steps">
+        <li class="guide-step">
+          <div class="guide-num">01</div>
+          <div class="guide-body">
+            <strong>Select Your Bank</strong>
+            <p>Choose the issuing bank — HDFC, ICICI, SBI, Axis, Yes Bank, or IndusInd.</p>
+          </div>
+        </li>
+        <li class="guide-step">
+          <div class="guide-num">02</div>
+          <div class="guide-body">
+            <strong>Upload Statement PDF</strong>
+            <p>Attach the bank-provided PDF. You can add multiple statements from different banks at once.</p>
+          </div>
+        </li>
+        <li class="guide-step">
+          <div class="guide-num">03</div>
+          <div class="guide-body">
+            <strong>Enter PDF Password <span class="guide-optional">if locked</span></strong>
+            <p>Most banks protect PDFs with DOB or Customer ID. We'll show a hint per bank.</p>
+          </div>
+        </li>
+        <li class="guide-step">
+          <div class="guide-num">04</div>
+          <div class="guide-body">
+            <strong>Extract &amp; Download</strong>
+            <p>Click <em>Upload and Extract</em> to process. Download clean CSV or open the full summary dashboard.</p>
+          </div>
+        </li>
+      </ol>
+
+      <div class="guide-banks">
+        <span class="guide-banks-label">Supported banks</span>
+        <div class="guide-bank-chips">
+          <span>HDFC</span>
+          <span>ICICI</span>
+          <span>SBI</span>
+          <span>Axis</span>
+          <span>Yes Bank</span>
+          <span>IndusInd</span>
+        </div>
+      </div>
     </div>
   </div>
+
+  <!-- WHO IS THIS FOR -->
+  <section class="landing-section">
+    <div class="landing-section-inner">
+      <div class="ls-heading">
+        <span class="ls-tag">USE CASES</span>
+        <h2>Who uses Easy Debit Summary?</h2>
+      </div>
+      <div class="audience-grid">
+        <div class="audience-card">
+          <div class="audience-icon">🏢</div>
+          <strong>CA Offices</strong>
+          <p>Process client bank statements in bulk, reconcile accounts and prep ITR workings in minutes.</p>
+        </div>
+        <div class="audience-card">
+          <div class="audience-icon">📋</div>
+          <strong>Accountants</strong>
+          <p>Extract and categorise transactions automatically — skip the manual copy-paste from PDFs.</p>
+        </div>
+        <div class="audience-card">
+          <div class="audience-icon">💼</div>
+          <strong>Business Owners</strong>
+          <p>Get a clean month-wise view of business inflows and outflows without opening a spreadsheet.</p>
+        </div>
+        <div class="audience-card">
+          <div class="audience-icon">🏦</div>
+          <strong>Loan &amp; Finance Teams</strong>
+          <p>Quickly analyse applicant statements for income patterns, EMIs, and cash flow health.</p>
+        </div>
+        <div class="audience-card">
+          <div class="audience-icon">👤</div>
+          <strong>Personal Finance</strong>
+          <p>Understand your own spending, identify subscriptions, and see where your money is going.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SAMPLE OUTPUT PREVIEW -->
+  <section class="landing-section ls-alt">
+    <div class="landing-section-inner">
+      <div class="ls-heading">
+        <span class="ls-tag">SAMPLE OUTPUT</span>
+        <h2>What the extracted data looks like</h2>
+        <p>Clean, structured rows — ready for Excel, Google Sheets, or your accounting software.</p>
+      </div>
+      <div class="sample-table-wrapper">
+        <table class="sample-table">
+          <thead>
+            <tr><th>Date</th><th>Description</th><th>Debit ₹</th><th>Credit ₹</th><th>Category</th><th>Merchant</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>02 Jan 2025</td><td>Salary Credit</td><td>—</td><td>85,000</td><td>NEFT</td><td>Employer Corp</td></tr>
+            <tr><td>04 Jan 2025</td><td>Swiggy Order</td><td>650</td><td>—</td><td>CARD/POS</td><td>Swiggy</td></tr>
+            <tr><td>06 Jan 2025</td><td>Electricity Bill</td><td>2,100</td><td>—</td><td>NEFT</td><td>BESCOM</td></tr>
+            <tr><td>09 Jan 2025</td><td>Rent Payment</td><td>25,000</td><td>—</td><td>NEFT</td><td>Landlord</td></tr>
+            <tr><td>15 Jan 2025</td><td>Mutual Fund SIP</td><td>10,000</td><td>—</td><td>NEFT</td><td>Zerodha</td></tr>
+            <tr><td>25 Jan 2025</td><td>Netflix Subscription</td><td>649</td><td>—</td><td>SUBSCRIPTION</td><td>Netflix</td></tr>
+          </tbody>
+        </table>
+        <p class="sample-note">Sample preview only. Actual output depends on the uploaded statement and bank format.</p>
+      </div>
+      <div class="sample-downloads">
+        <span class="sample-dl-label">Download samples</span>
+        <button class="btn-sample" disabled>Sample PDF <span class="coming-soon">coming soon</span></button>
+        <button class="btn-sample" disabled>Sample CSV <span class="coming-soon">coming soon</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST & PRIVACY -->
+  <section class="landing-section">
+    <div class="landing-section-inner trust-inner">
+      <div class="trust-grid">
+        <div class="trust-item">
+          <div class="trust-icon">🔐</div>
+          <strong>Processed securely</strong>
+          <p>Files are processed on our server and not shared with any third party.</p>
+        </div>
+        <div class="trust-item">
+          <div class="trust-icon">🗝</div>
+          <strong>Password stays local</strong>
+          <p>PDF passwords are used only to unlock the file for extraction — never stored.</p>
+        </div>
+        <div class="trust-item">
+          <div class="trust-icon">📁</div>
+          <strong>Your data, your control</strong>
+          <p>Only upload statements you are authorised to analyse. Avoid public or shared systems.</p>
+        </div>
+        <div class="trust-item">
+          <div class="trust-icon">✅</div>
+          <strong>No data sold</strong>
+          <p>We do not sell, share, or train models on your uploaded financial data.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <footer>
     <div class="footer-content">
@@ -1093,6 +1597,11 @@
       <div class="footer-line copyright">
         <span class="footer-icon">©</span>
         <span id="currentYear">2025</span> Easy Debit Summary. All rights reserved.
+      </div>
+      <div class="footer-links">
+        <span class="footer-link-item">Privacy Policy <span class="footer-wip">(coming soon)</span></span>
+        <span class="footer-sep">·</span>
+        <span class="footer-link-item">Terms of Use <span class="footer-wip">(coming soon)</span></span>
       </div>
     </div>
   </footer>
