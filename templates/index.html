@@ -1286,6 +1286,213 @@
       .audience-grid { grid-template-columns: 1fr; }
       .trust-grid    { grid-template-columns: 1fr; }
     }
+
+    /* ══════════════════════════════════════════
+       MOBILE OVERHAUL — professional & clean
+    ══════════════════════════════════════════ */
+
+    /* Hamburger button */
+    .nav-hamburger {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      width: 36px; height: 36px;
+      background: none;
+      border: 1px solid var(--erp-border);
+      border-radius: 7px;
+      cursor: pointer;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .nav-hamburger span {
+      display: block;
+      width: 18px; height: 2px;
+      background: var(--erp-text-2);
+      border-radius: 2px;
+      transition: all .2s;
+    }
+    .nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+    .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* Mobile right cluster */
+    .nav-mobile-right {
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Mobile drawer */
+    .nav-drawer {
+      display: none;
+      position: absolute;
+      top: 56px; left: 0; right: 0;
+      background: var(--erp-surface);
+      border-bottom: 1px solid var(--erp-border);
+      box-shadow: 0 8px 24px rgba(15,23,42,.1);
+      flex-direction: column;
+      z-index: 199;
+      padding: 8px 0;
+    }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a {
+      padding: 12px 20px;
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--erp-text-1);
+      text-decoration: none;
+      border-bottom: 1px solid var(--erp-border);
+      transition: background .15s;
+    }
+    .nav-drawer a:last-child { border-bottom: none; }
+    .nav-drawer a:hover { background: var(--erp-accent-lt); color: var(--erp-accent); }
+
+    @media (max-width: 768px) {
+      /* Show mobile controls, hide desktop nav */
+      .nav-desktop   { display: none !important; }
+      .nav-mobile-right { display: flex !important; }
+      .nav-hamburger { display: flex !important; }
+
+      /* Navbar — always single row */
+      .navbar {
+        flex-direction: row !important;
+        align-items: center !important;
+        height: 56px !important;
+        padding: 0 16px !important;
+        gap: 0 !important;
+        position: relative !important;
+      }
+      .nav-brand { flex: 1; font-size: .88rem !important; }
+
+      /* Hero */
+      header { padding: 16px 16px 12px !important; }
+      header h1 { font-size: 1.25rem !important; line-height: 1.25 !important; margin-bottom: 8px !important; }
+      header p  { font-size: .84rem !important; margin-bottom: 12px !important; }
+      .hero-eyebrow { font-size: .68rem !important; }
+      .hero-chips { gap: 6px !important; margin-top: 12px !important; }
+      .hero-chip  { font-size: .73rem !important; padding: 4px 10px !important; }
+
+      /* Download button row in hero */
+      header > div[style*="margin-top"] {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 6px !important;
+        margin-top: 16px !important;
+      }
+      header > div[style*="margin-top"] a {
+        width: 100% !important;
+        justify-content: center !important;
+        font-size: .88rem !important;
+      }
+      header > div[style*="margin-top"] span {
+        margin-left: 0 !important;
+        font-size: .72rem !important;
+        text-align: center !important;
+      }
+
+      /* Container: single column, no gap */
+      .container {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 16px !important;
+        padding: 16px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      /* Cards: full width, comfortable padding */
+      .card {
+        min-width: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 20px 16px !important;
+        border-radius: 12px !important;
+      }
+
+      /* Form elements: large touch targets */
+      select,
+      input[type="file"],
+      input[type="password"],
+      input[type="text"] {
+        font-size: 16px !important;
+        padding: 12px 14px !important;
+        border-radius: 8px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      .primary-btn {
+        width: 100% !important;
+        padding: 14px !important;
+        font-size: 1rem !important;
+        border-radius: 8px !important;
+        margin-top: 4px !important;
+      }
+
+      .inline-btn {
+        width: 100% !important;
+        text-align: center !important;
+        padding: 10px !important;
+        font-size: .85rem !important;
+      }
+
+      .multi-actions {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+      }
+
+      /* What-you-get chips */
+      .what-you-get { padding: 12px 14px !important; }
+      .wyg-chips span { font-size: .74rem !important; padding: 3px 9px !important; }
+
+      /* Guide card */
+      .guide-header h3 { font-size: .95rem !important; }
+      .guide-step { padding: 12px 0 !important; gap: 12px !important; }
+      .guide-body p { font-size: .8rem !important; }
+
+      /* Landing sections */
+      .landing-section-inner { padding: 24px 16px !important; }
+      .ls-heading { margin-bottom: 20px !important; }
+      .ls-heading h2 { font-size: 1.2rem !important; }
+      .ls-heading p  { font-size: .83rem !important; }
+
+      /* Audience grid: 2 cols on mobile */
+      .audience-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+      .audience-card { padding: 16px 12px !important; }
+      .audience-icon { font-size: 1.3rem !important; margin-bottom: 7px !important; }
+      .audience-card strong { font-size: .82rem !important; }
+      .audience-card p { font-size: .74rem !important; }
+
+      /* Trust grid: 2 cols */
+      .trust-grid { grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
+      .trust-item { padding: 16px 12px !important; }
+      .trust-item strong { font-size: .82rem !important; }
+      .trust-item p { font-size: .74rem !important; }
+
+      /* Sample table: horizontal scroll */
+      .sample-table-wrapper { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
+      .sample-table { font-size: .78rem !important; }
+      .sample-table th, .sample-table td { padding: 8px 10px !important; white-space: nowrap !important; }
+
+      /* Footer */
+      footer { padding: 20px 16px !important; margin-top: 0 !important; text-align: center !important; }
+      .footer-line { font-size: .78rem !important; }
+
+      /* Prevent horizontal overflow */
+      body { overflow-x: hidden !important; }
+      .sample-table-wrapper { max-width: 100% !important; }
+    }
+
+    @media (max-width: 380px) {
+      header h1 { font-size: 1.3rem !important; }
+      .audience-grid { grid-template-columns: 1fr !important; }
+      .trust-grid    { grid-template-columns: 1fr !important; }
+      .hero-chips    { flex-direction: column !important; align-items: center !important; }
+    }
   </style>
 </head>
 <body>
@@ -1339,18 +1546,36 @@
       <span class="nav-dot"></span>
       Easy Debit Summary
     </a>
-    <div class="nav-actions">
+    <!-- Desktop nav -->
+    <div class="nav-actions nav-desktop">
       <a class="nav-btn ghost" href="{{ url_for('demo_dashboard') }}" style="color:#0f766e!important;border-color:#0f766e!important;">Try Demo</a>
       <a class="nav-btn ghost" href="{{ url_for('downloads_page') }}" style="color:#1d4ed8!important;border-color:#1d4ed8!important;">Desktop App</a>
       {% if user_email %}
-      <span class="nav-user">
-        <span class="nav-dot"></span>
-        {{ full_name or user_email }}
-      </span>
+      <span class="nav-user"><span class="nav-dot"></span>{{ full_name or user_email }}</span>
       <a class="nav-btn ghost" href="{{ url_for('dashboard') }}">Dashboard</a>
       <a class="nav-btn" href="{{ url_for('logout') }}">Logout</a>
       {% else %}
       <a class="nav-btn" href="{{ url_for('login') }}">Login</a>
+      {% endif %}
+    </div>
+    <!-- Mobile: right side -->
+    <div class="nav-mobile-right">
+      {% if user_email %}
+      <a class="nav-btn" href="{{ url_for('dashboard') }}" style="font-size:.8rem!important;padding:6px 12px!important;">Dashboard</a>
+      {% else %}
+      <a class="nav-btn" href="{{ url_for('login') }}" style="font-size:.8rem!important;padding:6px 12px!important;">Login</a>
+      {% endif %}
+      <button class="nav-hamburger" id="navHamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <!-- Mobile drawer -->
+    <div class="nav-drawer" id="navDrawer">
+      <a href="{{ url_for('demo_dashboard') }}">Try Demo</a>
+      <a href="{{ url_for('downloads_page') }}">Desktop App</a>
+      {% if user_email %}
+      <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('logout') }}">Logout</a>
       {% endif %}
     </div>
   </nav>
@@ -1615,6 +1840,29 @@
 
   <script>
     (function() {
+      // Hamburger menu
+      const hamburger = document.getElementById('navHamburger');
+      const drawer    = document.getElementById('navDrawer');
+      if (hamburger && drawer) {
+        hamburger.addEventListener('click', function(e) {
+          e.stopPropagation();
+          hamburger.classList.toggle('open');
+          drawer.classList.toggle('open');
+        });
+        document.addEventListener('click', function(e) {
+          if (!drawer.contains(e.target) && !hamburger.contains(e.target)) {
+            hamburger.classList.remove('open');
+            drawer.classList.remove('open');
+          }
+        });
+        drawer.querySelectorAll('a').forEach(function(a) {
+          a.addEventListener('click', function() {
+            hamburger.classList.remove('open');
+            drawer.classList.remove('open');
+          });
+        });
+      }
+
       const slider = document.querySelector('[data-how-slider]');
       if (!slider) return;
 
