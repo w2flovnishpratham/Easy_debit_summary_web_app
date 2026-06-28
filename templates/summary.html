@@ -1288,8 +1288,41 @@ body {
 }
 body::before, body::after { display: none !important; }
 
+/* ── Summary Navbar ── */
+.sum-nav {
+  position: sticky; top: 0; z-index: 200;
+  background: #fff; border-bottom: 1px solid #e2e8f0;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px; padding: 0 24px;
+  box-shadow: 0 1px 3px rgba(15,23,42,.06);
+}
+.sum-nav-brand { font-size: .92rem; font-weight: 700; color: #0f172a; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+.sum-nav-brand span { width: 8px; height: 8px; border-radius: 50%; background: #1d4ed8; display: inline-block; }
+.sum-nav-actions { display: flex; align-items: center; gap: 8px; }
+.sum-nav-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 6px; font-size: .82rem; font-weight: 600; text-decoration: none; border: 1px solid #e2e8f0; color: #334155; background: #fff; cursor: pointer; transition: all .15s; }
+.sum-nav-btn:hover { border-color: #1d4ed8; color: #1d4ed8; background: #eff6ff; }
+.sum-nav-btn.primary { background: #1d4ed8; color: #fff; border-color: transparent; }
+.sum-nav-btn.primary:hover { background: #1e40af; }
+@media (max-width: 600px) {
+  .sum-nav { padding: 0 14px; }
+  .sum-nav-brand { font-size: .82rem; }
+  .sum-nav-btn { padding: 6px 10px; font-size: .78rem; gap: 4px; }
+  .sum-nav-btn svg { display: none; }
+}
+
 /* Page wrapper */
-.page { padding: 28px 28px 64px !important; }
+.page { padding: 24px 28px 64px !important; }
+
+/* Mobile fixes */
+@media (max-width: 640px) {
+  .page { padding: 16px 14px 48px !important; }
+  .table-wrapper { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
+  .accuracy-table-wrap { overflow-x: auto !important; }
+  .chat-ledger-table { overflow-x: auto !important; }
+  .section-heading { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
+  .hero.card { padding: 18px 16px !important; }
+  .hero h1 { font-size: 1.25rem !important; }
+}
 
 /* Hero / header card */
 .hero.card {
@@ -1558,6 +1591,23 @@ footer { color: var(--erp-text-3) !important; margin-top: 36px !important; }
       } catch (e) {}
     };
   </script>
+
+  <nav class="sum-nav">
+    <a class="sum-nav-brand" href="{{ url_for('index') }}">
+      <span></span>Easy Debit Summary
+    </a>
+    <div class="sum-nav-actions">
+      <a class="sum-nav-btn" href="{{ url_for('index') }}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </a>
+      <a class="sum-nav-btn primary" href="{{ url_for('index') }}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Upload
+      </a>
+    </div>
+  </nav>
+
   <div class="page">
     <header class="hero card">
       <div class="eyebrow">Easy Debit Summary</div>
